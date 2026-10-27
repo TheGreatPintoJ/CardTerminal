@@ -1,4 +1,3 @@
-package me.pintoadmin.cardTerminal;
+package me.pintoadmin.cardTerminal.screens;
 
-public class MainMenu {
-}
+public class MainMenu {}

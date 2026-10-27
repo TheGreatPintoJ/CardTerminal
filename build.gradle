@@ -1,9 +1,11 @@
 plugins {
     id 'java'
+    id("com.gradleup.shadow") version "9.3.1"
+    id("com.diffplug.spotless") version "6.25.0"
 }
 
 group = 'me.pintoadmin'
-version = '1.0-SNAPSHOT'
+version = 'DEV'
 
 repositories {
     mavenCentral()
@@ -13,8 +15,36 @@ dependencies {
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    implementation 'com.googlecode.lanterna:lanterna:3.1.2'
 }
 
 test {
     useJUnitPlatform()
 }
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'me.pintoadmin.cardTerminal.Main'
+    }
+}
+
+spotless {
+    java {
+        googleJavaFormat("1.28.0").aosp()
+        target(
+                "src/main/java/**/*.java",
+        )
+        removeUnusedImports()
+        formatAnnotations()
+        trimTrailingWhitespace()
+        toggleOffOn("// @formatter:off", "// @formatter:on")
+    }
+}
+
+tasks.named('shadowJar', com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
+    relocate 'com.googlecode.lanterna', 'me.pintoadmin.lanterna'
+    archiveClassifier.set('')
+}
+
+compileJava.dependsOn spotlessApply
+build.dependsOn shadowJar
