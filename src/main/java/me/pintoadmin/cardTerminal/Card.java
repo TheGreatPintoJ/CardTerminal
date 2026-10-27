@@ -101,13 +101,7 @@ public class Card {
         }
 
         // Draw card suit
-        char cardSuit =
-                switch (suit) {
-                    case SPADE -> SPADE;
-                    case CLUB -> CLUB;
-                    case HEART -> HEART;
-                    case DIAMOND -> DIAMOND;
-                };
+        char cardSuit = Main.suitToChar(suit);
         g.setCharacter(x + 1, y + 2, cardSuit);
         g.setCharacter(x + 4, y + 3, cardSuit);
         g.setCharacter(x + 7, y + 4, cardSuit);
@@ -142,6 +136,13 @@ public class Card {
                 g.setCharacter(x + xi, y + yi, ' ');
                 //                g.setCharacter(x + xi, y + yi, xi + yi % 2 == 0 ? '░' : '▒');
             }
+        }
+    }
+
+    public void flip(boolean faceup) {
+        if (flipped != faceup) {
+            flipped = !flipped;
+            draw(x, y, !flipped);
         }
     }
 

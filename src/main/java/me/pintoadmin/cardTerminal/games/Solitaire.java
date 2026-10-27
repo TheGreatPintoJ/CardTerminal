@@ -14,7 +14,7 @@ public class Solitaire extends Game {
     private final Supplier<Integer> HEIGHT = () -> Main.g.getSize().getRows();
 
     public Solitaire() {
-        System.out.println("Solitaire game seed: "+SEED);
+        System.out.println("Solitaire game seed: " + SEED);
         for (int column = 0; column < 7; column++) {
             List<Card> thisColumn = new ArrayList<>();
             for (int row = 0; row <= column; row++) {
@@ -23,6 +23,7 @@ public class Solitaire extends Game {
                 thisColumn.add(card);
             }
             cards.add(thisColumn);
+            System.out.println("Column " + column + " is " + thisColumn);
         }
         drawGame();
     }
@@ -50,7 +51,7 @@ public class Solitaire extends Game {
 
         for (List<Card> list : cards) {
             if (list.isEmpty()) continue;
-            list.getLast().flip();
+            list.getLast().flip(true);
         }
 
         int foundationX = 0;

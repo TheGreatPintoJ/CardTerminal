@@ -19,17 +19,22 @@ public class Foundation {
 
     public void draw(int x, int y) {
         try {
-            drawCardOutline(x, y);
-            drawCardOutline(x + 9, y);
-            drawCardOutline(x + 18, y);
-            drawCardOutline(x + 27, y);
+            drawCardSpace(x, y, HEART);
+            drawCardSpace(x + 9, y, SPADE);
+            drawCardSpace(x + 18, y, DIAMOND);
+            drawCardSpace(x + 27, y, CLUB);
         } catch (IOException e) {
             System.err.println("Could not draw foundation: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
-    private void drawCardOutline(int x, int y) throws IOException {
+    private void drawCardSpace(int x, int y, Card.CardSuit suit) throws IOException {
+        drawCardSpace(x, y);
+        g.setCharacter(x + 4, y + 3, Main.suitToChar(suit));
+    }
+
+    private void drawCardSpace(int x, int y) throws IOException {
         g.setBackgroundColor(TextColor.ANSI.BLACK);
         g.setForegroundColor(new TextColor.RGB(50, 50, 50));
 

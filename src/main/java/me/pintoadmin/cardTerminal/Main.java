@@ -135,6 +135,15 @@ public class Main {
         }
     }
 
+    public static char suitToChar(Card.CardSuit suit) {
+        return switch (suit) {
+            case SPADE -> SPADE;
+            case CLUB -> CLUB;
+            case HEART -> HEART;
+            case DIAMOND -> DIAMOND;
+        };
+    }
+
     public static String rankToString(Card.CardRank rank) {
         return switch (rank) {
             case ACE -> "A";

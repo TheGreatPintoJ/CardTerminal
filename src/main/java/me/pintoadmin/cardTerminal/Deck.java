@@ -29,7 +29,7 @@ public class Deck {
         Collections.shuffle(cardsInDeck, new Random(SEED));
     }
 
-    public void flipTopCard(){
+    public void flipTopCard() {
         Random random = new Random();
         Card randomCard = cardsInDeck.get(random.nextInt(cardsInDeck.size()));
         randomCard.draw(deckX, deckY);
@@ -108,9 +108,14 @@ public class Deck {
         }
     }
 
+    private void drawCardSpace(int x, int y, Card.CardSuit suit) throws IOException {
+        drawCardSpace(x, y);
+        g.setCharacter(x + 4, y + 3, Main.suitToChar(suit));
+    }
+
     private void drawCardSpace(int x, int y) throws IOException {
         g.setBackgroundColor(TextColor.ANSI.BLACK);
-        g.setForegroundColor(new TextColor.RGB(50, 0, 0));
+        g.setForegroundColor(new TextColor.RGB(50, 50, 50));
 
         g.drawLine(x + 1, y, x + 7, y, '─');
         g.drawLine(x + 1, y + 6, x + 7, y + 6, '─');
