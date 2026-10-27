@@ -74,7 +74,7 @@ public class Main {
         DIAMOND
     }
 
-    public enum CardNumber {
+    public enum CardRank {
         ACE,
         TWO,
         THREE,
@@ -122,7 +122,7 @@ public class Main {
         }
     }
 
-    public static void drawCard(int x, int y, CardNumber number, CardSuit suit) throws IOException {
+    public static void drawCard(int x, int y, CardRank rank, CardSuit suit) throws IOException {
         g.setBackgroundColor(TextColor.ANSI.BLACK);
         g.setForegroundColor(TextColor.ANSI.WHITE);
 
@@ -144,15 +144,15 @@ public class Main {
             g.setCharacter(x + 8, y + 6, '┘');
         }
 
-        // Draw card number
-        if (numToString(number).length() == 1) {
-            g.setCharacter(x + 1, y + 1, numToString(number).charAt(0));
-            g.setCharacter(x + 7, y + 5, numToString(number).charAt(0));
+        // Draw card rank
+        if (rankToString(rank).length() == 1) {
+            g.setCharacter(x + 1, y + 1, rankToString(rank).charAt(0));
+            g.setCharacter(x + 7, y + 5, rankToString(rank).charAt(0));
         } else {
-            g.setCharacter(x + 1, y + 1, numToString(number).charAt(0));
-            g.setCharacter(x + 2, y + 1, numToString(number).charAt(1));
-            g.setCharacter(x + 6, y + 5, numToString(number).charAt(0));
-            g.setCharacter(x + 7, y + 5, numToString(number).charAt(1));
+            g.setCharacter(x + 1, y + 1, rankToString(rank).charAt(0));
+            g.setCharacter(x + 2, y + 1, rankToString(rank).charAt(1));
+            g.setCharacter(x + 6, y + 5, rankToString(rank).charAt(0));
+            g.setCharacter(x + 7, y + 5, rankToString(rank).charAt(1));
         }
 
         // Draw card suit
@@ -200,8 +200,8 @@ public class Main {
         }
     }
 
-    public static String numToString(CardNumber num) {
-        return switch (num) {
+    public static String rankToString(CardRank rank) {
+        return switch (rank) {
             case ACE -> "A";
             case TWO -> "2";
             case THREE -> "3";

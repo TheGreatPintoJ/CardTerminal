@@ -7,8 +7,8 @@ public class Deck {
 
     public Deck() {
         for (Main.CardSuit suit : Main.CardSuit.values()) {
-            for (Main.CardNumber num : Main.CardNumber.values()) {
-                cardsInDeck.add(new Card(num, suit));
+            for (Main.CardRank rank : Main.CardRank.values()) {
+                cardsInDeck.add(new Card(rank, suit));
             }
         }
     }

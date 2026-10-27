@@ -20,7 +20,6 @@ public class SolitaireSetup {
                 Card card = deck.drawCard();
                 cards.add(card);
 
-                System.out.println("Card: " + j);
                 card.draw(startingX + (i + j) * 9, startingY + i * 2, false);
             }
         }
