@@ -142,6 +142,7 @@ public class Card {
     }
 
     public void flip() {
+        flipped = !flipped;
         draw(x, y, !flipped);
     }
 

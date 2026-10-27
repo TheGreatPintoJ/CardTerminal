@@ -32,10 +32,11 @@ public class Solitaire extends Game {
         int startingY = 0;
 
         int i = 0;
-        for (int row = 0; row < 7; row++) {
-            for (int column = 0; column + row < 7; column++) {
-                Card card = cards.get(i);
-                card.draw(startingX + (row + column) * 9, startingY + row * 3, column == 0);
+        for (int column = 0; column < 7; column++) {
+            int ci = 0;
+            for (Card card : cards.get(column)) {
+                card.draw(startingX + (column) * 9, startingY + ci * 3, column == 0);
+                ci++;
                 i++;
             }
         }
