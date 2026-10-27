@@ -25,7 +25,7 @@ public class Solitaire extends Game {
             cards.add(thisColumn);
             System.out.println("Column " + column + " is " + thisColumn);
         }
-        drawGame();
+        redraw();
     }
 
     @Override
@@ -50,7 +50,6 @@ public class Solitaire extends Game {
         }
 
         for (List<Card> list : cards) {
-            if (list.isEmpty()) continue;
             list.getLast().flip(true);
         }
 

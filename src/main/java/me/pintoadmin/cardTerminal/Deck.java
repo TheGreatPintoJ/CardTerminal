@@ -77,7 +77,7 @@ public class Deck {
     }
 
     private void drawCardBack(int x, int y) throws IOException {
-        g.setBackgroundColor(TextColor.ANSI.BLACK);
+        g.setBackgroundColor(Main.BLACK);
         g.setForegroundColor(TextColor.ANSI.WHITE);
 
         g.drawLine(x + 1, y, x + 7, y, '─');
@@ -101,7 +101,7 @@ public class Deck {
         for (int xi = 1; xi < 8; xi++) {
             for (int yi = 1; yi < 6; yi++) {
                 g.setBackgroundColor(TextColor.ANSI.WHITE);
-                g.setForegroundColor(TextColor.ANSI.BLACK);
+                g.setForegroundColor(Main.BLACK);
                 g.setCharacter(x + xi, y + yi, ' ');
                 //                g.setCharacter(x + xi, y + yi, xi + yi % 2 == 0 ? '░' : '▒');
             }
@@ -114,7 +114,7 @@ public class Deck {
     }
 
     private void drawCardSpace(int x, int y) throws IOException {
-        g.setBackgroundColor(TextColor.ANSI.BLACK);
+        g.setBackgroundColor(Main.BLACK);
         g.setForegroundColor(new TextColor.RGB(50, 50, 50));
 
         g.drawLine(x + 1, y, x + 7, y, '─');

@@ -35,7 +35,7 @@ public class Foundation {
     }
 
     private void drawCardSpace(int x, int y) throws IOException {
-        g.setBackgroundColor(TextColor.ANSI.BLACK);
+        g.setBackgroundColor(Main.BLACK);
         g.setForegroundColor(new TextColor.RGB(50, 50, 50));
 
         g.drawLine(x + 1, y, x + 7, y, '─');

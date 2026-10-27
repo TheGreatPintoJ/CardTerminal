@@ -68,6 +68,8 @@ public class Main {
     public static char HEART = '♥';
     public static char DIAMOND = '♦';
 
+    public static TextColor BLACK;
+
     private Game currentGame;
 
     enum OS {
@@ -87,7 +89,8 @@ public class Main {
             terminal.addResizeListener(resizeListener);
 
             g = screen.newTextGraphics();
-            g.setBackgroundColor(TextColor.ANSI.BLACK);
+            BLACK = g.getBackgroundColor();
+            g.setBackgroundColor(BLACK);
             g.setForegroundColor(TextColor.ANSI.WHITE);
 
             screen.setCursorPosition(null);
@@ -96,7 +99,7 @@ public class Main {
             g.fill(' ');
 
             currentGame = new Solitaire();
-
+            currentGame.redraw();
             screen.refresh(Screen.RefreshType.COMPLETE);
 
             Thread mainLoop =
