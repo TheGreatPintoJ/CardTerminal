@@ -10,13 +10,29 @@ import java.util.*;
 public class Deck {
     private final TextGraphics g = Main.g;
     private final List<Card> cardsInDeck = new ArrayList<>();
+    private final List<Card> cardsInDiscard = new ArrayList<>();
 
-    public Deck() {
+    private long SEED;
+
+    private int deckX;
+    private int deckY;
+    private int discardX;
+    private int discardY;
+
+    public Deck(long SEED) {
+        this.SEED = SEED;
         for (Card.CardSuit suit : Card.CardSuit.values()) {
             for (Card.CardRank rank : Card.CardRank.values()) {
                 cardsInDeck.add(new Card(rank, suit));
             }
         }
+        Collections.shuffle(cardsInDeck, new Random(SEED));
+    }
+
+    public void flipTopCard(){
+        Random random = new Random();
+        Card randomCard = cardsInDeck.get(random.nextInt(cardsInDeck.size()));
+        randomCard.draw(deckX, deckY);
     }
 
     public Card drawCard() {
@@ -27,11 +43,35 @@ public class Deck {
         return randomCard;
     }
 
+    public void discardCard(Card card) {
+        if (cardsInDiscard.contains(card)) return;
+        cardsInDiscard.add(card);
+        cardsInDeck.remove(card);
+    }
+
     public void drawDeck(int x, int y) {
+        deckX = x;
+        deckY = y;
         try {
             drawCardBack(x, y);
         } catch (IOException e) {
             System.err.println("Could not draw deck: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public void drawDiscard(int x, int y) {
+        discardX = x;
+        discardY = y;
+        try {
+            try {
+                Card topCard = cardsInDiscard.getLast();
+                topCard.draw(x, y, true);
+            } catch (NoSuchElementException _) {
+            }
+            drawCardSpace(x, y);
+        } catch (IOException e) {
+            System.err.println("Could not draw discard: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -65,6 +105,29 @@ public class Deck {
                 g.setCharacter(x + xi, y + yi, ' ');
                 //                g.setCharacter(x + xi, y + yi, xi + yi % 2 == 0 ? '░' : '▒');
             }
+        }
+    }
+
+    private void drawCardSpace(int x, int y) throws IOException {
+        g.setBackgroundColor(TextColor.ANSI.BLACK);
+        g.setForegroundColor(new TextColor.RGB(50, 0, 0));
+
+        g.drawLine(x + 1, y, x + 7, y, '─');
+        g.drawLine(x + 1, y + 6, x + 7, y + 6, '─');
+        g.drawLine(x, y + 1, x, y + 5, '│');
+        g.drawLine(x + 8, y + 1, x + 8, y + 5, '│');
+
+        // Switch corner characters to square for windows (curved corner don't display correctly)
+        if (getOS() != Main.OS.WINDOWS) {
+            g.setCharacter(x, y, '╭');
+            g.setCharacter(x + 8, y, '╮');
+            g.setCharacter(x, y + 6, '╰');
+            g.setCharacter(x + 8, y + 6, '╯');
+        } else {
+            g.setCharacter(x, y, '┌');
+            g.setCharacter(x + 8, y, '┐');
+            g.setCharacter(x, y + 6, '└');
+            g.setCharacter(x + 8, y + 6, '┘');
         }
     }
 }

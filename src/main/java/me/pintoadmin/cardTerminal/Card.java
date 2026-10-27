@@ -48,6 +48,10 @@ public class Card {
         this.suit = suit;
     }
 
+    public void draw(int x, int y) {
+        draw(x, y, flipped);
+    }
+
     public void draw(int x, int y, boolean flipped) {
         try {
             this.x = x;
