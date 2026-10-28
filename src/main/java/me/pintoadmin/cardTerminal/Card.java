@@ -6,6 +6,7 @@ import com.googlecode.lanterna.*;
 import com.googlecode.lanterna.graphics.*;
 import java.io.*;
 import java.util.*;
+import org.w3c.dom.*;
 
 public class Card {
     private final TextGraphics g = Main.g;
@@ -18,6 +19,8 @@ public class Card {
 
     private int x;
     private int y;
+
+    private TextColor cardTextColor = TextColor.ANSI.WHITE;
 
     public enum CardSuit {
         SPADE,
@@ -39,7 +42,8 @@ public class Card {
         TEN,
         JACK,
         QUEEN,
-        KING
+        KING,
+        JOKER
     }
 
     public Card(CardRank rank, CardSuit suit) {
@@ -72,7 +76,7 @@ public class Card {
 
     private void drawCard(int x, int y, Card.CardRank rank, Card.CardSuit suit) throws IOException {
         g.setBackgroundColor(Main.BLACK);
-        g.setForegroundColor(TextColor.ANSI.WHITE);
+        g.setForegroundColor(cardTextColor);
 
         g.fillRectangle(new TerminalPosition(x, y), new TerminalSize(9, 6), ' ');
 
@@ -114,7 +118,7 @@ public class Card {
 
     private void drawCardBack(int x, int y) throws IOException {
         g.setBackgroundColor(Main.BLACK);
-        g.setForegroundColor(TextColor.ANSI.WHITE);
+        g.setForegroundColor(cardTextColor);
 
         g.drawLine(x + 1, y, x + 7, y, '─');
         g.drawLine(x + 1, y + 6, x + 7, y + 6, '─');
@@ -136,10 +140,7 @@ public class Card {
 
         for (int xi = 1; xi < 8; xi++) {
             for (int yi = 1; yi < 6; yi++) {
-                g.setBackgroundColor(TextColor.ANSI.WHITE);
-                g.setForegroundColor(Main.BLACK);
-                g.setCharacter(x + xi, y + yi, ' ');
-                //                g.setCharacter(x + xi, y + yi, xi + yi % 2 == 0 ? '░' : '▒');
+                g.setCharacter(x + xi, y + yi, '█');
             }
         }
     }
@@ -154,6 +155,10 @@ public class Card {
     public void flip() {
         faceup = !faceup;
         draw(x, y, !faceup);
+    }
+
+    public void setTextColor(TextColor color) {
+        cardTextColor = color;
     }
 
     public CardRank getRank() {

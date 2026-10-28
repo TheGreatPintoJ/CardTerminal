@@ -14,11 +14,14 @@ public class Foundation {
     private final List<Card> cards = new ArrayList<>();
     private final Map<Card.CardSuit, Integer> piles =
             new HashMap<>(Map.of(HEART, 0, SPADE, 0, DIAMOND, 0, CLUB, 0));
+    private final Deck deck;
 
     private int x;
     private int y;
 
-    public Foundation() {}
+    public Foundation(Deck deck) {
+        this.deck = deck;
+    }
 
     public void redraw() {
         draw(x, y);
@@ -73,5 +76,11 @@ public class Foundation {
             return true;
         }
         return false;
+    }
+
+    public Card getTopCard(Card.CardSuit suit) {
+        Card.CardRank rank = Main.intToRank(piles.get(suit));
+        if (rank == null) return null;
+        return deck.getCard(rank, suit);
     }
 }

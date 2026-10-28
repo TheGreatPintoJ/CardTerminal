@@ -1,5 +1,7 @@
 package me.pintoadmin.cardTerminal;
 
+import static me.pintoadmin.cardTerminal.Card.CardRank.*;
+
 import com.googlecode.lanterna.*;
 import com.googlecode.lanterna.graphics.*;
 import com.googlecode.lanterna.input.*;
@@ -100,30 +102,6 @@ public class Main {
             currentGame.redraw();
             screen.refresh(Screen.RefreshType.COMPLETE);
 
-            Thread keyHandlers =
-                    new Thread(
-                            () -> {
-                                while (true) {
-                                    try {
-                                        KeyStroke keystroke = screen.pollInput();
-                                        if (keystroke == null) continue;
-                                        if (keystroke.getKeyType() == KeyType.Escape) {
-                                            screen.close();
-                                            Thread.currentThread().interrupt();
-                                            break;
-                                        } else if (keystroke.getKeyType() == KeyType.Enter) {
-                                            currentGame.drawCard();
-                                            screen.refresh(Screen.RefreshType.DELTA);
-                                        }
-                                    } catch (IOException e) {
-                                        System.err.println(
-                                                "Could not read terminal input: " + e.getMessage());
-                                        e.printStackTrace();
-                                    }
-                                }
-                            });
-            keyHandlers.start();
-
             Thread resizeHandler =
                     new Thread(
                             () -> {
@@ -140,6 +118,29 @@ public class Main {
                                 }
                             });
             resizeHandler.start();
+
+            Thread keyHandlers =
+                    new Thread(
+                            () -> {
+                                while (true) {
+                                    try {
+                                        KeyStroke keystroke = screen.pollInput();
+                                        if (keystroke == null) continue;
+                                        if (keystroke.getKeyType() == KeyType.Escape) {
+                                            screen.close();
+                                            Thread.currentThread().interrupt();
+                                            resizeHandler.interrupt();
+                                            System.exit(0);
+                                            break;
+                                        } else currentGame.handleInput(keystroke);
+                                    } catch (IOException e) {
+                                        System.err.println(
+                                                "Could not read terminal input: " + e.getMessage());
+                                        e.printStackTrace();
+                                    }
+                                }
+                            });
+            keyHandlers.start();
 
             if (terminal instanceof SwingTerminalFrame swingTerminalFrame) {
                 swingTerminalFrame.addWindowListener(
@@ -184,6 +185,7 @@ public class Main {
             case JACK -> "J";
             case QUEEN -> "Q";
             case KING -> "K";
+            case JOKER -> "JK";
         };
     }
 
@@ -202,6 +204,27 @@ public class Main {
             case JACK -> 11;
             case QUEEN -> 12;
             case KING -> 13;
+            case JOKER -> 14;
+        };
+    }
+
+    public static Card.CardRank intToRank(Integer i) {
+        return switch (i) {
+            case 1 -> ACE;
+            case 2 -> TWO;
+            case 3 -> THREE;
+            case 4 -> FOUR;
+            case 5 -> FIVE;
+            case 6 -> SIX;
+            case 7 -> SEVEN;
+            case 8 -> EIGHT;
+            case 9 -> NINE;
+            case 10 -> TEN;
+            case 11 -> JACK;
+            case 12 -> QUEEN;
+            case 13 -> KING;
+            case 14 -> JOKER;
+            default -> null;
         };
     }
 

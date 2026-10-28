@@ -9,6 +9,7 @@ import java.util.*;
 
 public class Deck {
     private final TextGraphics g = Main.g;
+    private final List<Card> allCards = new ArrayList<>();
     private final List<Card> cardsInDeck = new ArrayList<>();
     private final List<Card> cardsInDiscard = new ArrayList<>();
 
@@ -25,7 +26,10 @@ public class Deck {
         random = new Random(SEED);
         for (Card.CardSuit suit : Card.CardSuit.values()) {
             for (Card.CardRank rank : Card.CardRank.values()) {
-                cardsInDeck.add(new Card(rank, suit));
+                if (rank == Card.CardRank.JOKER) continue;
+                Card card = new Card(rank, suit);
+                allCards.add(card);
+                cardsInDeck.add(card);
             }
         }
         Collections.shuffle(cardsInDeck, random);
@@ -43,6 +47,23 @@ public class Deck {
         if (cardsInDiscard.contains(card)) return;
         cardsInDiscard.add(card);
         cardsInDeck.remove(card);
+    }
+
+    public Card getTopDiscard() {
+        return cardsInDiscard.getLast();
+    }
+
+    public Card getCard(Card.CardRank rank, Card.CardSuit suit) {
+        System.out.println("Getting card: " + rank.toString() + ":" + suit.toString());
+        System.out.println(
+                "All cards: "
+                        + allCards.stream()
+                                .map(c -> c.getRank().toString() + ":" + c.getSuit().toString())
+                                .toList());
+        return allCards.stream()
+                .filter(c -> c.getRank() == rank && c.getSuit() == suit)
+                .toList()
+                .getFirst();
     }
 
     public void shuffle() {
