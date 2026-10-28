@@ -29,12 +29,6 @@ public class Deck {
         Collections.shuffle(cardsInDeck, new Random(SEED));
     }
 
-    public void flipTopCard() {
-        Random random = new Random();
-        Card randomCard = cardsInDeck.get(random.nextInt(cardsInDeck.size()));
-        randomCard.draw(deckX, deckY);
-    }
-
     public Card drawCard() {
         if (cardsInDeck.isEmpty()) return null;
         Random random = new Random();

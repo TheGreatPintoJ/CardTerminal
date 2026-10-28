@@ -9,6 +9,7 @@ public class Solitaire extends Game {
     private final Deck deck = new Deck(SEED);
     private final Foundation foundation = new Foundation();
     private final List<List<Card>> cards = new ArrayList<>(); // 2d, column:row:card
+    private final Card drawnCard;
 
     private final Supplier<Integer> WIDTH = () -> Main.g.getSize().getColumns();
     private final Supplier<Integer> HEIGHT = () -> Main.g.getSize().getRows();
@@ -25,6 +26,7 @@ public class Solitaire extends Game {
             cards.add(thisColumn);
             System.out.println("Column " + column + " is " + thisColumn);
         }
+        drawnCard = deck.drawCard();
         redraw();
     }
 
@@ -57,6 +59,7 @@ public class Solitaire extends Game {
         int foundationY = HEIGHT.get() - 7;
 
         foundation.draw(foundationX, foundationY);
-        deck.flipTopCard();
+
+        drawnCard.draw(0, HEIGHT.get() - 14, true);
     }
 }
