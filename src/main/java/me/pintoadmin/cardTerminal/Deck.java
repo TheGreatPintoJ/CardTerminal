@@ -13,6 +13,7 @@ public class Deck {
     private final List<Card> cardsInDiscard = new ArrayList<>();
 
     private long SEED;
+    private Random random;
 
     private int deckX;
     private int deckY;
@@ -21,12 +22,13 @@ public class Deck {
 
     public Deck(long SEED) {
         this.SEED = SEED;
+        random = new Random(SEED);
         for (Card.CardSuit suit : Card.CardSuit.values()) {
             for (Card.CardRank rank : Card.CardRank.values()) {
                 cardsInDeck.add(new Card(rank, suit));
             }
         }
-        Collections.shuffle(cardsInDeck, new Random(SEED));
+        Collections.shuffle(cardsInDeck, random);
     }
 
     public Card drawCard() {
@@ -43,15 +45,35 @@ public class Deck {
         cardsInDeck.remove(card);
     }
 
+    public void shuffle() {
+        cardsInDeck.addAll(cardsInDiscard);
+        cardsInDiscard.clear();
+
+        Collections.shuffle(cardsInDeck, random);
+    }
+
+    public void redrawDeck() {
+        drawDeck(deckX, deckY);
+    }
+
     public void drawDeck(int x, int y) {
         deckX = x;
         deckY = y;
         try {
-            drawCardBack(x, y);
+            if (!cardsInDeck.isEmpty()) drawCardBack(x, y);
+            else {
+                drawCardSpaceFilled(x, y);
+                g.setForegroundColor(TextColor.ANSI.WHITE_BRIGHT);
+                g.setCharacter(x + 4, y + 3, '⇄');
+            }
         } catch (IOException e) {
             System.err.println("Could not draw deck: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    public void redrawDiscard() {
+        drawDiscard(discardX, discardY);
     }
 
     public void drawDiscard(int x, int y) {
@@ -62,6 +84,7 @@ public class Deck {
                 Card topCard = cardsInDiscard.getLast();
                 topCard.draw(x, y, true);
             } catch (NoSuchElementException _) {
+                drawCardSpaceFilled(x, y);
             }
             drawCardSpace(x, y);
         } catch (IOException e) {
@@ -102,9 +125,15 @@ public class Deck {
         }
     }
 
-    private void drawCardSpace(int x, int y, Card.CardSuit suit) throws IOException {
+    private void drawCardSpaceFilled(int x, int y) throws IOException {
+        for (int xi = 1; xi < 8; xi++) {
+            for (int yi = 1; yi < 6; yi++) {
+                g.setBackgroundColor(Main.BLACK);
+                g.setForegroundColor(TextColor.ANSI.WHITE);
+                g.setCharacter(x + xi, y + yi, ' ');
+            }
+        }
         drawCardSpace(x, y);
-        g.setCharacter(x + 4, y + 3, Main.suitToChar(suit));
     }
 
     private void drawCardSpace(int x, int y) throws IOException {

@@ -14,7 +14,7 @@ public class Card {
     private final CardRank rank;
     private final CardSuit suit;
 
-    private boolean flipped = false;
+    private boolean faceup = false;
 
     private int x;
     private int y;
@@ -48,16 +48,21 @@ public class Card {
         this.suit = suit;
     }
 
-    public void draw(int x, int y) {
-        draw(x, y, flipped);
+    public void redraw() {
+        draw(x, y, faceup);
     }
 
-    public void draw(int x, int y, boolean flipped) {
+    public void draw(int x, int y) {
+        draw(x, y, faceup);
+    }
+
+    public void draw(int x, int y, boolean faceup) {
         try {
             this.x = x;
             this.y = y;
+            this.faceup = faceup;
 
-            if (flipped) drawCard(x, y, rank, suit);
+            if (faceup) drawCard(x, y, rank, suit);
             else drawCardBack(x, y);
         } catch (IOException e) {
             System.err.println("Could not draw card " + uuid + ": " + e.getMessage());
@@ -140,15 +145,15 @@ public class Card {
     }
 
     public void flip(boolean faceup) {
-        if (flipped != faceup) {
-            flipped = !flipped;
+        if (this.faceup != faceup) {
+            this.faceup = !this.faceup;
         }
         draw(x, y, faceup);
     }
 
     public void flip() {
-        flipped = !flipped;
-        draw(x, y, !flipped);
+        faceup = !faceup;
+        draw(x, y, !faceup);
     }
 
     public CardRank getRank() {
@@ -167,7 +172,7 @@ public class Card {
         return suit == CardSuit.DIAMOND || suit == CardSuit.HEART;
     }
 
-    public boolean isFlipped() {
-        return flipped;
+    public boolean isFaceup() {
+        return faceup;
     }
 }

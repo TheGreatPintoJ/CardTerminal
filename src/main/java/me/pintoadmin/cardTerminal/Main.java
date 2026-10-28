@@ -84,10 +84,6 @@ public class Main {
             screen = new TerminalScreen(terminal);
             screen.startScreen();
 
-            SimpleTerminalResizeListener resizeListener =
-                    new SimpleTerminalResizeListener(terminal.getTerminalSize());
-            terminal.addResizeListener(resizeListener);
-
             g = screen.newTextGraphics();
             BLACK = g.getBackgroundColor();
             g.setBackgroundColor(BLACK);
@@ -102,19 +98,10 @@ public class Main {
             currentGame.redraw();
             screen.refresh(Screen.RefreshType.COMPLETE);
 
-            Thread mainLoop =
+            Thread keyHandlers =
                     new Thread(
                             () -> {
                                 while (true) {
-                                    TerminalSize newSize = screen.doResizeIfNecessary();
-                                    if (newSize != null) {
-                                        currentGame.redraw();
-                                        try {
-                                            screen.refresh(Screen.RefreshType.COMPLETE);
-                                        } catch (IOException e) {
-                                            throw new RuntimeException(e);
-                                        }
-                                    }
                                     try {
                                         KeyStroke keystroke = terminal.readInput();
                                         if (keystroke.getKeyType() == KeyType.Escape) {
@@ -122,7 +109,7 @@ public class Main {
                                             Thread.currentThread().interrupt();
                                             break;
                                         } else if (keystroke.getKeyType() == KeyType.Enter) {
-                                            currentGame.redraw();
+                                            currentGame.drawCard();
                                             screen.refresh(Screen.RefreshType.DELTA);
                                         }
                                     } catch (IOException e) {
@@ -132,7 +119,24 @@ public class Main {
                                     }
                                 }
                             });
-            mainLoop.start();
+            keyHandlers.start();
+
+            Thread resizeHandler =
+                    new Thread(
+                            () -> {
+                                while (true) {
+                                    TerminalSize newSize = screen.doResizeIfNecessary();
+                                    if (newSize != null) {
+                                        currentGame.resize();
+                                        try {
+                                            screen.refresh(Screen.RefreshType.DELTA);
+                                        } catch (IOException e) {
+                                            throw new RuntimeException(e);
+                                        }
+                                    }
+                                }
+                            });
+            resizeHandler.start();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

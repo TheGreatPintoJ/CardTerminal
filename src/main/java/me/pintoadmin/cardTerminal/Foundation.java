@@ -15,9 +15,18 @@ public class Foundation {
     private final Map<Card.CardSuit, Integer> piles =
             new HashMap<>(Map.of(HEART, 0, SPADE, 0, DIAMOND, 0, CLUB, 0));
 
+    private int x;
+    private int y;
+
     public Foundation() {}
 
+    public void redraw() {
+        draw(x, y);
+    }
+
     public void draw(int x, int y) {
+        this.x = x;
+        this.y = y;
         try {
             drawCardSpace(x, y, HEART);
             drawCardSpace(x + 9, y, SPADE);
@@ -34,7 +43,7 @@ public class Foundation {
         g.setCharacter(x + 4, y + 3, Main.suitToChar(suit));
     }
 
-    private void drawCardSpace(int x, int y) throws IOException {
+    private void drawCardSpace(int x, int y) {
         g.setBackgroundColor(Main.BLACK);
         g.setForegroundColor(new TextColor.RGB(50, 50, 50));
 

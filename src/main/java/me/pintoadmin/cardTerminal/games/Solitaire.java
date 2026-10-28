@@ -9,14 +9,19 @@ public class Solitaire extends Game {
     private final Deck deck = new Deck(SEED);
     private final Foundation foundation = new Foundation();
     private final List<List<Card>> cards = new ArrayList<>(); // 2d, column:row:card
-    private final Card drawnCard;
+    private Card drawnCard;
 
     private final Supplier<Integer> WIDTH = () -> Main.g.getSize().getColumns();
     private final Supplier<Integer> HEIGHT = () -> Main.g.getSize().getRows();
 
+    private final int stockWidth = 7; // Seven for default solitaire, hopefully configurable later
+
+    private final Supplier<Integer> deckX = () -> 0;
+    private final Supplier<Integer> deckY = () -> HEIGHT.get() - 14;
+
     public Solitaire() {
         System.out.println("Solitaire game seed: " + SEED);
-        for (int column = 0; column < 7; column++) {
+        for (int column = 0; column < stockWidth; column++) {
             List<Card> thisColumn = new ArrayList<>();
             for (int row = 0; row <= column; row++) {
                 Card card = deck.drawCard();
@@ -24,26 +29,77 @@ public class Solitaire extends Game {
                 thisColumn.add(card);
             }
             cards.add(thisColumn);
-            System.out.println("Column " + column + " is " + thisColumn);
         }
         drawnCard = deck.drawCard();
-        redraw();
+
+        drawGame();
+    }
+
+    @Override
+    public void resize() {
+        Main.screen.clear();
+        drawGame();
     }
 
     @Override
     public void redraw() {
         Main.screen.clear();
-        drawGame();
+        deck.redrawDeck();
+        deck.redrawDiscard();
+
+        for (List<Card> list : cards) {
+            for (Card card : list) {
+                card.redraw();
+            }
+        }
+
+        for (List<Card> list : cards) {
+            list.getLast().flip(true);
+        }
+
+        foundation.redraw();
+        drawnCard.redraw();
+    }
+
+    private boolean nextDrawShuffles = false;
+
+    @Override
+    public void drawCard() {
+        if (nextDrawShuffles) {
+            deck.shuffle();
+            deck.redrawDiscard();
+            deck.redrawDeck();
+
+            drawnCard = deck.drawCard();
+            drawnCard.draw(deckX.get(), deckY.get(), false);
+
+            nextDrawShuffles = false;
+            return;
+        }
+        if (!drawnCard.isFaceup()) {
+            drawnCard.draw(deckX.get(), deckY.get(), true);
+            return;
+        }
+        deck.discardCard(drawnCard);
+        deck.redrawDiscard();
+        drawnCard = deck.drawCard();
+        if (drawnCard == null) {
+            // Deck has run out
+            deck.redrawDeck();
+            nextDrawShuffles = true;
+            return;
+        }
+        drawnCard.draw(deckX.get(), deckY.get(), true);
     }
 
     private void drawGame() {
-        deck.drawDeck(0, HEIGHT.get() - 14);
-        deck.drawDiscard(9, HEIGHT.get() - 14);
+        deck.drawDeck(deckX.get(), deckY.get());
+        deck.drawDiscard(deckX.get() + 9, deckY.get());
 
-        int startingX = Main.g.getSize().getColumns() - (9 * 7);
+        int startingX = Main.g.getSize().getColumns() - (9 * stockWidth);
         int startingY = 0;
 
-        for (int column = 0; column < 7; column++) {
+        for (int column = 0; column < stockWidth; column++) {
             int ci = 0;
             for (Card card : cards.get(column)) {
                 card.draw(startingX + (column) * 9, startingY + ci * 3);
@@ -60,6 +116,7 @@ public class Solitaire extends Game {
 
         foundation.draw(foundationX, foundationY);
 
-        drawnCard.draw(0, HEIGHT.get() - 14, true);
+        if (drawnCard != null) drawnCard.draw(deckX.get(), deckY.get());
+        else deck.redrawDeck();
     }
 }
