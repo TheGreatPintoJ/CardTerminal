@@ -5,6 +5,8 @@ import com.googlecode.lanterna.graphics.*;
 import com.googlecode.lanterna.input.*;
 import com.googlecode.lanterna.screen.*;
 import com.googlecode.lanterna.terminal.*;
+import com.googlecode.lanterna.terminal.swing.*;
+import java.awt.event.*;
 import java.io.*;
 import me.pintoadmin.cardTerminal.games.*;
 
@@ -103,7 +105,8 @@ public class Main {
                             () -> {
                                 while (true) {
                                     try {
-                                        KeyStroke keystroke = terminal.readInput();
+                                        KeyStroke keystroke = screen.pollInput();
+                                        if (keystroke == null) continue;
                                         if (keystroke.getKeyType() == KeyType.Escape) {
                                             screen.close();
                                             Thread.currentThread().interrupt();
@@ -137,6 +140,21 @@ public class Main {
                                 }
                             });
             resizeHandler.start();
+
+            if (terminal instanceof SwingTerminalFrame swingTerminalFrame) {
+                swingTerminalFrame.addWindowListener(
+                        new WindowAdapter() {
+                            @Override
+                            public void windowClosing(WindowEvent e) {
+                                try {
+                                    keyHandlers.interrupt();
+                                    resizeHandler.interrupt();
+                                } catch (RuntimeException _) {
+                                }
+                                System.exit(0);
+                            }
+                        });
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
