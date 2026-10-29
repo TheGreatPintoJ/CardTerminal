@@ -15,6 +15,8 @@ import me.pintoadmin.cardTerminal.games.*;
 // Unicode suits:♠ ♣ ♥ ♦
 // Empty versions: ♤ ♧ ♡ ♢
 // Cards: 🂡 https://unicode.org/Public/18.0.0/charts/PDF/U1F0A0.pdf
+// Other unicodes: █ ▌▐ ▀▄
+// Box characters: ┤├ (https://gist.github.com/flaviut/0db1aec4cadf2ef06455)
 /*
 Card mockups (Should render correctly in terminal)
 w = 9, h = 7
@@ -132,7 +134,12 @@ public class Main {
                                             resizeHandler.interrupt();
                                             System.exit(0);
                                             break;
-                                        } else currentGame.handleInput(keystroke);
+                                        } else {
+                                            if (keystroke.getKeyType() == KeyType.Character
+                                                    && keystroke.getCharacter() == 'r')
+                                                currentGame = new Solitaire(currentGame.getSeed());
+                                            currentGame.handleInput(keystroke);
+                                        }
                                     } catch (IOException e) {
                                         System.err.println(
                                                 "Could not read terminal input: " + e.getMessage());

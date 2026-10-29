@@ -12,9 +12,9 @@ import java.util.function.*;
 import me.pintoadmin.cardTerminal.*;
 
 public class Solitaire extends Game {
-    private final long SEED = new Random().nextLong();
-    private final Deck deck = new Deck(SEED);
-    private final Foundation foundation = new Foundation(deck);
+    private final long SEED;
+    private final Deck deck;
+    private final Foundation foundation;
     private final List<List<Card>> stock = new ArrayList<>(); // 2d, column:row:card
     private final LinkedList<SolitaireMove> moves = new LinkedList<>();
     private final LinkedList<SolitaireMove> movesUndone = new LinkedList<>();
@@ -31,15 +31,7 @@ public class Solitaire extends Game {
     private int selectedColumn = -1;
 
     private Card selectedCard;
-    private Supplier<Location> selectedCardLocation =
-            () ->
-                    stock.stream().map(l -> l.contains(selectedCard)).toList().contains(true)
-                            ? Location.STOCK
-                            : selectedCard == drawnCard
-                                    ? Location.DECK
-                                    : selectedCard == deck.getTopDiscard()
-                                            ? Location.DISCARD
-                                            : Location.FOUNDATION;
+    private final Supplier<Location> selectedCardLocation;
 
     enum Location {
         DECK,
@@ -49,6 +41,22 @@ public class Solitaire extends Game {
     }
 
     public Solitaire() {
+        this(new Random().nextLong());
+    }
+
+    public Solitaire(long SEED) {
+        this.SEED = SEED;
+        this.deck = new Deck(SEED);
+        this.foundation = new Foundation(deck);
+        this.selectedCardLocation =
+                () ->
+                        stock.stream().map(l -> l.contains(selectedCard)).toList().contains(true)
+                                ? Location.STOCK
+                                : selectedCard == drawnCard
+                                        ? Location.DECK
+                                        : selectedCard == deck.getTopDiscard()
+                                                ? Location.DISCARD
+                                                : Location.FOUNDATION;
         System.out.println("Solitaire game seed: " + SEED);
         for (int column = 0; column < stockWidth; column++) {
             List<Card> thisColumn = new ArrayList<>();
@@ -62,6 +70,11 @@ public class Solitaire extends Game {
         drawnCard = deck.drawCard();
 
         drawGame();
+    }
+
+    @Override
+    public long getSeed() {
+        return SEED;
     }
 
     @Override

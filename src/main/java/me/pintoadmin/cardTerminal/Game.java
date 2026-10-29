@@ -4,6 +4,8 @@ import com.googlecode.lanterna.input.KeyStroke;
 import java.io.*;
 
 public abstract class Game {
+    public abstract long getSeed();
+
     public abstract void resize();
 
     public abstract void redraw();
