@@ -238,7 +238,7 @@ public class Solitaire extends Game {
                     break;
                 case ' ':
                     // Select drawn card
-                    if(selectedCard == drawnCard) clearSelected();
+                    if (selectedCard == drawnCard) clearSelected();
                     else selectCard(Location.DECK, 0);
                     break;
                 case '[':

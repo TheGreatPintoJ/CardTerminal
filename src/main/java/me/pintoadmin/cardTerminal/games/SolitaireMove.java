@@ -76,7 +76,10 @@ public class SolitaireMove {
                                                                 .getFirst()));
                 LinkedList<Card> oldStockPile =
                         solitaire.getStock().stream()
-                                .filter(l -> l.contains(card))
+                                .filter(
+                                        l ->
+                                                l.contains(card)
+                                                        && solitaire.getStock().indexOf(l) != index)
                                 .toList()
                                 .getFirst();
                 oldStockPile.forEach(Card::clear);
@@ -90,10 +93,7 @@ public class SolitaireMove {
 
                 solitaire.getStock().stream()
                         .filter(l -> solitaire.getStock().indexOf(l) != index)
-                        .forEach(
-                                l -> {
-                                    l.remove(card);
-                                });
+                        .forEach(l -> l.remove(card));
                 solitaire.drawGame();
                 break;
             case DISCARD:
