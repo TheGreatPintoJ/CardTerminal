@@ -1,6 +1,6 @@
 package me.pintoadmin.cardTerminal;
 
-import static me.pintoadmin.cardTerminal.Card.CardRank.*;
+import static me.pintoadmin.cardTerminal.Card.Rank.*;
 
 import com.googlecode.lanterna.*;
 import com.googlecode.lanterna.graphics.*;
@@ -168,54 +168,7 @@ public class Main {
         }
     }
 
-    public static char suitToChar(Card.CardSuit suit) {
-        return switch (suit) {
-            case SPADE -> SPADE;
-            case CLUB -> CLUB;
-            case HEART -> HEART;
-            case DIAMOND -> DIAMOND;
-        };
-    }
-
-    public static String rankToString(Card.CardRank rank) {
-        return switch (rank) {
-            case ACE -> "A";
-            case TWO -> "2";
-            case THREE -> "3";
-            case FOUR -> "4";
-            case FIVE -> "5";
-            case SIX -> "6";
-            case SEVEN -> "7";
-            case EIGHT -> "8";
-            case NINE -> "9";
-            case TEN -> "10";
-            case JACK -> "J";
-            case QUEEN -> "Q";
-            case KING -> "K";
-            case JOKER -> "JK";
-        };
-    }
-
-    public static int rankToInt(Card.CardRank rank) {
-        return switch (rank) {
-            case ACE -> 1;
-            case TWO -> 2;
-            case THREE -> 3;
-            case FOUR -> 4;
-            case FIVE -> 5;
-            case SIX -> 6;
-            case SEVEN -> 7;
-            case EIGHT -> 8;
-            case NINE -> 9;
-            case TEN -> 10;
-            case JACK -> 11;
-            case QUEEN -> 12;
-            case KING -> 13;
-            case JOKER -> 14;
-        };
-    }
-
-    public static Card.CardRank intToRank(Integer i) {
+    public static Card.Rank intToRank(Integer i) {
         return switch (i) {
             case 1 -> ACE;
             case 2 -> TWO;

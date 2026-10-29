@@ -146,15 +146,14 @@ public class Solitaire extends Game {
         int startingY = 0;
 
         for (int column = 0; column < stockWidth; column++) {
-            int ci = 0;
+            List<Card> thisColumn = stock.get(column);
             for (Card card : stock.get(column)) {
                 card.setTextColor(TextColor.ANSI.WHITE);
                 if (column == selectedColumn)
                     if (selectedCard == null || card == selectedCard)
                         card.setTextColor(
                                 card.isFaceup() ? TextColor.ANSI.GREEN : TextColor.ANSI.RED);
-                card.draw(startingX + (column) * 9, startingY + ci * 3);
-                ci++;
+                card.draw(startingX + (column) * 9, startingY + thisColumn.indexOf(card) * 3);
             }
         }
 
@@ -191,16 +190,18 @@ public class Solitaire extends Game {
             char key = keyStroke.getCharacter();
             try {
                 int intKey = Integer.parseInt(String.valueOf(key)) - 1;
-
-                if (selectedCard != null) {
-                    if (intKey == -1) {
-                        clearSelected();
-                    } else moveSelected(Location.STOCK, intKey);
+                if (intKey == -1) {
+                    clearSelected();
+                    redraw();
                 } else {
-                    if (intKey < stockWidth && selectedColumn == -1) {
-                        selectedColumn = intKey;
-                    } else if (intKey < stock.get(selectedColumn).size()) {
-                        selectedCard = stock.get(selectedColumn).get(intKey);
+                    if (selectedCard != null) {
+                        moveSelected(Location.STOCK, intKey);
+                    } else {
+                        if (intKey < stockWidth && selectedColumn == -1) {
+                            selectedColumn = intKey;
+                        } else if (intKey < stock.get(selectedColumn).size()) {
+                            selectedCard = stock.get(selectedColumn).get(intKey);
+                        }
                     }
                 }
             } catch (NumberFormatException | IndexOutOfBoundsException _) {
@@ -246,10 +247,6 @@ public class Solitaire extends Game {
         Main.screen.refresh(Screen.RefreshType.DELTA);
     }
 
-    private void selectCard(int column, int row) {
-        selectedCard = stock.get(column).get(row);
-    }
-
     private void selectCard(Location loc, int index) {
         if (loc == null || index == -1) {
             selectedCard = null;
@@ -265,10 +262,10 @@ public class Solitaire extends Game {
                 selectedCard = deck.getTopDiscard();
                 break;
             case FOUNDATION:
-                Card.CardSuit suit = Card.CardSuit.HEART;
-                if (index == 1) suit = Card.CardSuit.SPADE;
-                else if (index == 2) suit = Card.CardSuit.DIAMOND;
-                else if (index == 3) suit = Card.CardSuit.CLUB;
+                Card.Suit suit = Card.Suit.HEART;
+                if (index == 1) suit = Card.Suit.SPADE;
+                else if (index == 2) suit = Card.Suit.DIAMOND;
+                else if (index == 3) suit = Card.Suit.CLUB;
                 selectedCard = foundation.getTopCard(suit);
                 break;
         }
@@ -345,9 +342,5 @@ public class Solitaire extends Game {
 
     public List<List<Card>> getStock() {
         return stock;
-    }
-
-    public int getStockWidth() {
-        return stockWidth;
     }
 }

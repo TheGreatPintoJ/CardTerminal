@@ -24,9 +24,9 @@ public class Deck {
     public Deck(long SEED) {
         this.SEED = SEED;
         random = new Random(SEED);
-        for (Card.CardSuit suit : Card.CardSuit.values()) {
-            for (Card.CardRank rank : Card.CardRank.values()) {
-                if (rank == Card.CardRank.JOKER) continue;
+        for (Card.Suit suit : Card.Suit.values()) {
+            for (Card.Rank rank : Card.Rank.values()) {
+                if (rank == Card.Rank.JOKER) continue;
                 Card card = new Card(rank, suit);
                 allCards.add(card);
                 cardsInDeck.add(card);
@@ -59,7 +59,7 @@ public class Deck {
         cardsInDiscard.removeLast();
     }
 
-    public Card getCard(Card.CardRank rank, Card.CardSuit suit) {
+    public Card getCard(Card.Rank rank, Card.Suit suit) {
         return allCards.stream()
                 .filter(c -> c.getRank() == rank && c.getSuit() == suit)
                 .toList()

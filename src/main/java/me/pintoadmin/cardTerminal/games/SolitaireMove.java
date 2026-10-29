@@ -39,8 +39,20 @@ public class SolitaireMove {
                 res = true;
                 break;
             case STOCK:
-                res = solitaire.getStock().get(index).add(card);
-                handleRemove();
+                // Check if possible to move to stock
+                List<Card> stockPile = solitaire.getStock().get(index);
+                if (stockPile.isEmpty() && card.getRank() == Card.Rank.KING) {
+                    res = stockPile.add(card);
+                } else {
+                    // Check if colors are opposites
+                    if (stockPile.getLast().getSuit().isOppositeColor(card.getSuit())
+                            // Check if ranks line up
+                            && stockPile.getLast().getRank().toInt()
+                                    == card.getRank().toInt() + 1) {
+                        res = stockPile.add(card);
+                    }
+                }
+                if (res) handleRemove();
                 solitaire.drawGame();
                 break;
         }

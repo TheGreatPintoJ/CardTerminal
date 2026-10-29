@@ -6,14 +6,13 @@ import com.googlecode.lanterna.*;
 import com.googlecode.lanterna.graphics.*;
 import java.io.*;
 import java.util.*;
-import org.w3c.dom.*;
 
 public class Card {
     private final TextGraphics g = Main.g;
 
     private final UUID uuid;
-    private final CardRank rank;
-    private final CardSuit suit;
+    private final Rank rank;
+    private final Suit suit;
 
     private boolean faceup = false;
 
@@ -22,14 +21,38 @@ public class Card {
 
     private TextColor cardTextColor = TextColor.ANSI.WHITE;
 
-    public enum CardSuit {
+    public enum Suit {
         SPADE,
         CLUB,
         HEART,
-        DIAMOND
+        DIAMOND;
+
+        public boolean isOppositeColor(Suit suit) {
+            return (this == Suit.HEART || this == Suit.DIAMOND)
+                            && (suit == Suit.SPADE || suit == Suit.CLUB)
+                    || (suit == Suit.HEART || suit == Suit.DIAMOND)
+                            && (this == Suit.SPADE || this == Suit.CLUB);
+        }
+
+        public boolean isBlack() {
+            return this == Suit.SPADE || this == Suit.CLUB;
+        }
+
+        public boolean isRed() {
+            return this == Suit.DIAMOND || this == Suit.HEART;
+        }
+
+        public char toChar() {
+            return switch (this) {
+                case SPADE -> Main.SPADE;
+                case CLUB -> Main.CLUB;
+                case HEART -> Main.HEART;
+                case DIAMOND -> Main.DIAMOND;
+            };
+        }
     }
 
-    public enum CardRank {
+    public enum Rank {
         ACE,
         TWO,
         THREE,
@@ -43,10 +66,48 @@ public class Card {
         JACK,
         QUEEN,
         KING,
-        JOKER
+        JOKER;
+
+        public String toChars() {
+            return switch (this) {
+                case ACE -> "A";
+                case TWO -> "2";
+                case THREE -> "3";
+                case FOUR -> "4";
+                case FIVE -> "5";
+                case SIX -> "6";
+                case SEVEN -> "7";
+                case EIGHT -> "8";
+                case NINE -> "9";
+                case TEN -> "10";
+                case JACK -> "J";
+                case QUEEN -> "Q";
+                case KING -> "K";
+                case JOKER -> "JK";
+            };
+        }
+
+        public int toInt() {
+            return switch (this) {
+                case ACE -> 1;
+                case TWO -> 2;
+                case THREE -> 3;
+                case FOUR -> 4;
+                case FIVE -> 5;
+                case SIX -> 6;
+                case SEVEN -> 7;
+                case EIGHT -> 8;
+                case NINE -> 9;
+                case TEN -> 10;
+                case JACK -> 11;
+                case QUEEN -> 12;
+                case KING -> 13;
+                case JOKER -> 14;
+            };
+        }
     }
 
-    public Card(CardRank rank, CardSuit suit) {
+    public Card(Rank rank, Suit suit) {
         uuid = UUID.randomUUID();
         this.rank = rank;
         this.suit = suit;
@@ -82,7 +143,7 @@ public class Card {
         }
     }
 
-    private void drawCard(int x, int y, Card.CardRank rank, Card.CardSuit suit) throws IOException {
+    private void drawCard(int x, int y, Rank rank, Suit suit) throws IOException {
         g.setBackgroundColor(BLACK);
         g.setForegroundColor(cardTextColor);
 
@@ -107,18 +168,18 @@ public class Card {
         }
 
         // Draw card rank
-        if (rankToString(rank).length() == 1) {
-            g.setCharacter(x + 1, y + 1, rankToString(rank).charAt(0));
-            g.setCharacter(x + 7, y + 5, rankToString(rank).charAt(0));
+        if (rank.toChars().length() == 1) {
+            g.setCharacter(x + 1, y + 1, rank.toChars().charAt(0));
+            g.setCharacter(x + 7, y + 5, rank.toChars().charAt(0));
         } else {
-            g.setCharacter(x + 1, y + 1, rankToString(rank).charAt(0));
-            g.setCharacter(x + 2, y + 1, rankToString(rank).charAt(1));
-            g.setCharacter(x + 6, y + 5, rankToString(rank).charAt(0));
-            g.setCharacter(x + 7, y + 5, rankToString(rank).charAt(1));
+            g.setCharacter(x + 1, y + 1, rank.toChars().charAt(0));
+            g.setCharacter(x + 2, y + 1, rank.toChars().charAt(1));
+            g.setCharacter(x + 6, y + 5, rank.toChars().charAt(0));
+            g.setCharacter(x + 7, y + 5, rank.toChars().charAt(1));
         }
 
         // Draw card suit
-        char cardSuit = suitToChar(suit);
+        char cardSuit = suit.toChar();
         g.setCharacter(x + 1, y + 2, cardSuit);
         g.setCharacter(x + 4, y + 3, cardSuit);
         g.setCharacter(x + 7, y + 4, cardSuit);
@@ -169,20 +230,12 @@ public class Card {
         cardTextColor = color;
     }
 
-    public CardRank getRank() {
+    public Rank getRank() {
         return rank;
     }
 
-    public CardSuit getSuit() {
+    public Suit getSuit() {
         return suit;
-    }
-
-    public boolean isBlack() {
-        return suit == CardSuit.SPADE || suit == CardSuit.CLUB;
-    }
-
-    public boolean isRed() {
-        return suit == CardSuit.DIAMOND || suit == CardSuit.HEART;
     }
 
     public boolean isFaceup() {

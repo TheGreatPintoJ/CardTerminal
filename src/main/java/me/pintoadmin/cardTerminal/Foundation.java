@@ -1,8 +1,7 @@
 package me.pintoadmin.cardTerminal;
 
-import static me.pintoadmin.cardTerminal.Card.CardSuit.*;
+import static me.pintoadmin.cardTerminal.Card.Suit.*;
 import static me.pintoadmin.cardTerminal.Main.getOS;
-import static me.pintoadmin.cardTerminal.Main.rankToInt;
 
 import com.googlecode.lanterna.*;
 import com.googlecode.lanterna.graphics.*;
@@ -12,7 +11,7 @@ import java.util.*;
 public class Foundation {
     private final TextGraphics g = Main.g;
     private final List<Card> cards = new ArrayList<>();
-    private final Map<Card.CardSuit, Integer> piles =
+    private final Map<Card.Suit, Integer> piles =
             new HashMap<>(Map.of(HEART, 0, SPADE, 0, DIAMOND, 0, CLUB, 0));
     private final Deck deck;
 
@@ -46,9 +45,9 @@ public class Foundation {
         }
     }
 
-    private void drawCardSpace(int x, int y, Card.CardSuit suit) throws IOException {
+    private void drawCardSpace(int x, int y, Card.Suit suit) throws IOException {
         drawCardSpace(x, y);
-        g.setCharacter(x + 4, y + 3, Main.suitToChar(suit));
+        g.setCharacter(x + 4, y + 3, suit.toChar());
     }
 
     private void drawCardSpace(int x, int y) {
@@ -76,7 +75,7 @@ public class Foundation {
 
     public boolean addCard(Card card) {
         if (cards.contains(card)) return false;
-        if (rankToInt(card.getRank()) - 1 == piles.get(card.getSuit())) {
+        if (card.getRank().toInt() - 1 == piles.get(card.getSuit())) {
             piles.compute(card.getSuit(), (_, v) -> v + 1);
             return true;
         }
@@ -85,13 +84,13 @@ public class Foundation {
 
     public void removeCard(Card card) {
         if (!cards.contains(card)) return;
-        if (rankToInt(card.getRank()) + 1 == piles.get(card.getSuit())) {
+        if (card.getRank().toInt() + 1 == piles.get(card.getSuit())) {
             piles.compute(card.getSuit(), (_, v) -> v - 1);
         }
     }
 
-    public Card getTopCard(Card.CardSuit suit) {
-        Card.CardRank rank = Main.intToRank(piles.get(suit));
+    public Card getTopCard(Card.Suit suit) {
+        Card.Rank rank = Main.intToRank(piles.get(suit));
         if (rank == null) return null;
         return deck.getCard(rank, suit);
     }
