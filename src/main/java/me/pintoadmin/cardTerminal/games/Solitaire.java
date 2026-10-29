@@ -157,7 +157,7 @@ public class Solitaire extends Game {
         if (keyStroke.getKeyType() == KeyType.Character) {
             char key = keyStroke.getCharacter();
             try {
-                int intKey = Integer.parseInt(String.valueOf(key));
+                int intKey = Integer.parseInt(String.valueOf(key)) - 1;
                 if (intKey < stockWidth && selectedColumn == -1) {
                     selectedColumn = intKey;
                 } else if (intKey < cards.get(selectedColumn).size()) {
@@ -184,7 +184,7 @@ public class Solitaire extends Game {
             }
         } else if (keyStroke.getKeyType() == KeyType.Tab) {
             // Top discard
-            selectCard(Location.DISCARD, 0);
+            if (deck.getTopDiscard() != null) selectCard(Location.DISCARD, 0);
         } else if (keyStroke.getKeyType() == KeyType.F1) {
             // Foundation 1
             if (selectedCard == null) selectCard(Location.FOUNDATION, 0);
@@ -238,7 +238,9 @@ public class Solitaire extends Game {
     }
 
     private void moveSelected(Location toLocation, int index) {
-        moves.add(new SolitaireMove(this, selectedCard, toLocation, index));
+        SolitaireMove move = new SolitaireMove(this, selectedCard, toLocation, index);
+        moves.add(move);
+        move.execute();
     }
 
     private void undo() {

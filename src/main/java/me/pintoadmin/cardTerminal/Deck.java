@@ -50,6 +50,7 @@ public class Deck {
     }
 
     public Card getTopDiscard() {
+        if (cardsInDiscard.isEmpty()) return null;
         return cardsInDiscard.getLast();
     }
 

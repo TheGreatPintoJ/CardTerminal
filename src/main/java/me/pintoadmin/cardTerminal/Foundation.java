@@ -31,10 +31,15 @@ public class Foundation {
         this.x = x;
         this.y = y;
         try {
-            drawCardSpace(x, y, HEART);
-            drawCardSpace(x + 9, y, SPADE);
-            drawCardSpace(x + 18, y, DIAMOND);
-            drawCardSpace(x + 27, y, CLUB);
+
+            if (piles.get(HEART) == 0) drawCardSpace(x, y, HEART);
+            else deck.getCard(Main.intToRank(piles.get(HEART)), HEART).draw(x, y);
+            if (piles.get(SPADE) == 0) drawCardSpace(x + 9, y, SPADE);
+            else deck.getCard(Main.intToRank(piles.get(SPADE)), SPADE).draw(x + 9, y);
+            if (piles.get(DIAMOND) == 0) drawCardSpace(x + 18, y, DIAMOND);
+            else deck.getCard(Main.intToRank(piles.get(DIAMOND)), DIAMOND).draw(x + 28, y);
+            if (piles.get(CLUB) == 0) drawCardSpace(x + 27, y, CLUB);
+            else deck.getCard(Main.intToRank(piles.get(CLUB)), CLUB).draw(x + 27, y);
         } catch (IOException e) {
             System.err.println("Could not draw foundation: " + e.getMessage());
             e.printStackTrace();
