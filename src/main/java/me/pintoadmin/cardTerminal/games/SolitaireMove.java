@@ -63,7 +63,17 @@ public class SolitaireMove {
         switch (fromLocation) {
             case STOCK:
                 card.clear();
-                LinkedList<Card> stockPile = solitaire.getStock().get(index);
+                LinkedList<Card> stockPile =
+                        solitaire
+                                .getStock()
+                                .get(
+                                        solitaire
+                                                .getStock()
+                                                .indexOf(
+                                                        solitaire.getStock().stream()
+                                                                .filter(l -> l.contains(card))
+                                                                .toList()
+                                                                .getFirst()));
                 LinkedList<Card> oldStockPile =
                         solitaire.getStock().stream()
                                 .filter(l -> l.contains(card))
@@ -80,7 +90,10 @@ public class SolitaireMove {
 
                 solitaire.getStock().stream()
                         .filter(l -> solitaire.getStock().indexOf(l) != index)
-                        .forEach(l -> l.remove(card));
+                        .forEach(
+                                l -> {
+                                    l.remove(card);
+                                });
                 solitaire.drawGame();
                 break;
             case DISCARD:

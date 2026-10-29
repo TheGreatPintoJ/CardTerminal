@@ -108,7 +108,6 @@ public class Solitaire extends Game {
 
     @Override
     public void drawCard() {
-        selectCard(null, -1);
         if (nextDrawShuffles) {
             deck.shuffle();
             deck.redrawDiscard();
@@ -148,6 +147,13 @@ public class Solitaire extends Game {
 
         for (int column = 0; column < stockWidth; column++) {
             List<Card> thisColumn = stock.get(column);
+            if (thisColumn.isEmpty()) {
+                try {
+                    drawCardSpace(startingX + (column) * 9, startingY);
+                } catch (IOException _) {
+                }
+                continue;
+            }
             for (Card card : stock.get(column)) {
                 card.setTextColor(TextColor.ANSI.WHITE);
                 if (column == selectedColumn)
@@ -200,6 +206,13 @@ public class Solitaire extends Game {
                     } else {
                         if (intKey < stockWidth && selectedColumn == -1) {
                             selectedColumn = intKey;
+                            List<Card> faceupCards =
+                                    stock.get(selectedColumn).stream()
+                                            .filter(Card::isFaceup)
+                                            .toList();
+                            if (faceupCards.size() == 1) {
+                                selectedCard = faceupCards.getFirst();
+                            }
                         } else if (intKey < stock.get(selectedColumn).size()) {
                             selectedCard = stock.get(selectedColumn).get(intKey);
                         }
@@ -209,6 +222,7 @@ public class Solitaire extends Game {
             }
             switch (key) {
                 case '`':
+                    clearSelected();
                     drawCard();
                     break;
                 case ' ':
@@ -230,19 +244,19 @@ public class Solitaire extends Game {
         } else if (keyStroke.getKeyType() == KeyType.F1) {
             // Foundation 1
             if (selectedCard == null) selectCard(Location.FOUNDATION, 0);
-            else moveSelected(Location.FOUNDATION, 0);
+            else moveSelected(Location.FOUNDATION, -1);
         } else if (keyStroke.getKeyType() == KeyType.F2) {
             // Foundation 2
             if (selectedCard == null) selectCard(Location.FOUNDATION, 1);
-            else moveSelected(Location.FOUNDATION, 1);
+            else moveSelected(Location.FOUNDATION, -1);
         } else if (keyStroke.getKeyType() == KeyType.F3) {
             // Foundation 3
             if (selectedCard == null) selectCard(Location.FOUNDATION, 2);
-            else moveSelected(Location.FOUNDATION, 2);
+            else moveSelected(Location.FOUNDATION, -1);
         } else if (keyStroke.getKeyType() == KeyType.F4) {
             // Foundation 4
             if (selectedCard == null) selectCard(Location.FOUNDATION, 3);
-            else moveSelected(Location.FOUNDATION, 3);
+            else moveSelected(Location.FOUNDATION, -1);
         }
         drawGame();
         Main.screen.refresh(Screen.RefreshType.DELTA);
