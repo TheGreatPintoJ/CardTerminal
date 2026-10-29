@@ -30,7 +30,6 @@ public class Foundation {
         this.x = x;
         this.y = y;
         try {
-
             if (piles.get(HEART) == 0) drawCardSpace(x, y, HEART);
             else deck.getCard(Main.intToRank(piles.get(HEART)), HEART).draw(x, y);
             if (piles.get(SPADE) == 0) drawCardSpace(x + 9, y, SPADE);
@@ -41,6 +40,18 @@ public class Foundation {
             else deck.getCard(Main.intToRank(piles.get(CLUB)), CLUB).draw(x + 27, y);
         } catch (IOException e) {
             System.err.println("Could not draw foundation: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public void clear() {
+        try {
+            drawCardSpace(x, y, HEART);
+            drawCardSpace(x + 9, y, SPADE);
+            drawCardSpace(x + 18, y, DIAMOND);
+            drawCardSpace(x + 27, y, CLUB);
+        } catch (IOException e) {
+            System.err.println("Could not clear foundation: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -77,16 +88,19 @@ public class Foundation {
         if (cards.contains(card)) return false;
         if (card.getRank().toInt() - 1 == piles.get(card.getSuit())) {
             piles.compute(card.getSuit(), (_, v) -> v + 1);
+            cards.add(card);
             return true;
         }
         return false;
     }
 
-    public void removeCard(Card card) {
-        if (!cards.contains(card)) return;
-        if (card.getRank().toInt() + 1 == piles.get(card.getSuit())) {
+    public boolean removeCard(Card card) {
+        if (!cards.contains(card)) return false;
+        if (card.getRank().toInt() == piles.get(card.getSuit())) {
             piles.compute(card.getSuit(), (_, v) -> v - 1);
+            return true;
         }
+        return false;
     }
 
     public Card getTopCard(Card.Suit suit) {

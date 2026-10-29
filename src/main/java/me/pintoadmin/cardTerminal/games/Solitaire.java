@@ -108,6 +108,15 @@ public class Solitaire extends Game {
 
     @Override
     public void drawCard() {
+        SolitaireMove move =
+                new SolitaireMove(
+                        this,
+                        selectedCard,
+                        selectedCardLocation.get(),
+                        null,
+                        -1,
+                        SolitaireMove.Type.DRAW);
+        moves.add(move);
         if (nextDrawShuffles) {
             deck.shuffle();
             deck.redrawDiscard();
@@ -305,9 +314,13 @@ public class Solitaire extends Game {
         selectedCard.setTextColor(TextColor.ANSI.WHITE);
         SolitaireMove move =
                 new SolitaireMove(
-                        this, selectedCard, selectedCardLocation.get(), toLocation, index);
-        moves.add(move);
-        move.execute();
+                        this,
+                        selectedCard,
+                        selectedCardLocation.get(),
+                        toLocation,
+                        index,
+                        SolitaireMove.Type.MOVE);
+        if (move.execute()) moves.add(move);
 
         clearSelected();
     }
