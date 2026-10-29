@@ -17,7 +17,7 @@ import me.pintoadmin.cardTerminal.games.*;
 // Cards: 🂡 https://unicode.org/Public/18.0.0/charts/PDF/U1F0A0.pdf
 /*
 Card mockups (Should render correctly in terminal)
-
+w = 9, h = 7
   ╭───────╮
   │A      │
   │♠      │

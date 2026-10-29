@@ -61,8 +61,8 @@ public class Card {
     }
 
     public void clear() {
-        for (int xi = 1; xi < 8; xi++) {
-            for (int yi = 1; yi < 6; yi++) {
+        for (int xi = 0; xi < 9; xi++) {
+            for (int yi = 0; yi < 7; yi++) {
                 g.setCharacter(x + xi, y + yi, ' ');
             }
         }
@@ -83,7 +83,7 @@ public class Card {
     }
 
     private void drawCard(int x, int y, Card.CardRank rank, Card.CardSuit suit) throws IOException {
-        g.setBackgroundColor(Main.BLACK);
+        g.setBackgroundColor(BLACK);
         g.setForegroundColor(cardTextColor);
 
         g.fillRectangle(new TerminalPosition(x, y), new TerminalSize(9, 6), ' ');
@@ -94,7 +94,7 @@ public class Card {
         g.drawLine(x + 8, y + 1, x + 8, y + 5, '│');
 
         // Switch corner characters to square for windows (curved corner don't display correctly)
-        if (getOS() != Main.OS.WINDOWS) {
+        if (getOS() != OS.WINDOWS) {
             g.setCharacter(x, y, '╭');
             g.setCharacter(x + 8, y, '╮');
             g.setCharacter(x, y + 6, '╰');
@@ -118,14 +118,14 @@ public class Card {
         }
 
         // Draw card suit
-        char cardSuit = Main.suitToChar(suit);
+        char cardSuit = suitToChar(suit);
         g.setCharacter(x + 1, y + 2, cardSuit);
         g.setCharacter(x + 4, y + 3, cardSuit);
         g.setCharacter(x + 7, y + 4, cardSuit);
     }
 
     private void drawCardBack(int x, int y) throws IOException {
-        g.setBackgroundColor(Main.BLACK);
+        g.setBackgroundColor(BLACK);
         g.setForegroundColor(cardTextColor);
 
         g.drawLine(x + 1, y, x + 7, y, '─');
@@ -134,7 +134,7 @@ public class Card {
         g.drawLine(x + 8, y + 1, x + 8, y + 5, '│');
 
         // Switch corner characters to square for windows (curved corner don't display correctly)
-        if (getOS() != Main.OS.WINDOWS) {
+        if (getOS() != OS.WINDOWS) {
             g.setCharacter(x, y, '╭');
             g.setCharacter(x + 8, y, '╮');
             g.setCharacter(x, y + 6, '╰');
