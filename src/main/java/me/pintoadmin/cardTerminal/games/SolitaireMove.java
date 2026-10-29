@@ -40,7 +40,7 @@ public class SolitaireMove {
                 break;
             case STOCK:
                 // Check if possible to move to stock
-                List<Card> stockPile = solitaire.getStock().get(index);
+                LinkedList<Card> stockPile = solitaire.getStock().get(index);
                 if (stockPile.isEmpty() && card.getRank() == Card.Rank.KING) {
                     res = stockPile.add(card);
                 } else {
@@ -63,6 +63,21 @@ public class SolitaireMove {
         switch (fromLocation) {
             case STOCK:
                 card.clear();
+                LinkedList<Card> stockPile = solitaire.getStock().get(index);
+                LinkedList<Card> oldStockPile =
+                        solitaire.getStock().stream()
+                                .filter(l -> l.contains(card))
+                                .toList()
+                                .getFirst();
+                oldStockPile.forEach(Card::clear);
+
+                // Move rest of stack
+                stockPile.addAll(
+                        oldStockPile.subList(oldStockPile.indexOf(card) + 1, oldStockPile.size()));
+                // Remove rest of stack from old pile
+                oldStockPile.removeAll(
+                        oldStockPile.subList(oldStockPile.indexOf(card) + 1, oldStockPile.size()));
+
                 solitaire.getStock().stream()
                         .filter(l -> solitaire.getStock().indexOf(l) != index)
                         .forEach(l -> l.remove(card));

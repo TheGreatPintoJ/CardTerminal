@@ -122,6 +122,8 @@ public class Card {
     }
 
     public void clear() {
+        g.setBackgroundColor(BLACK);
+        g.setForegroundColor(cardTextColor);
         for (int xi = 0; xi < 9; xi++) {
             for (int yi = 0; yi < 7; yi++) {
                 g.setCharacter(x + xi, y + yi, ' ');

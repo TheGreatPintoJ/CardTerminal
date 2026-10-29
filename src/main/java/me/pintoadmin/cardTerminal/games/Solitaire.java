@@ -15,7 +15,7 @@ public class Solitaire extends Game {
     private final long SEED;
     private final Deck deck;
     private final Foundation foundation;
-    private final List<List<Card>> stock = new ArrayList<>(); // 2d, column:row:card
+    private final LinkedList<LinkedList<Card>> stock = new LinkedList<>(); // 2d, column:row:card
     private final LinkedList<SolitaireMove> moves = new LinkedList<>();
     private final LinkedList<SolitaireMove> movesUndone = new LinkedList<>();
     private Card drawnCard;
@@ -59,7 +59,7 @@ public class Solitaire extends Game {
                                                 : Location.FOUNDATION;
         System.out.println("Solitaire game seed: " + SEED);
         for (int column = 0; column < stockWidth; column++) {
-            List<Card> thisColumn = new ArrayList<>();
+            LinkedList<Card> thisColumn = new LinkedList<>();
             for (int row = 0; row <= column; row++) {
                 Card card = deck.drawCard();
                 if (card == null) continue;
@@ -96,11 +96,12 @@ public class Solitaire extends Game {
         }
 
         for (List<Card> list : stock) {
+            if (list.isEmpty()) continue;
             list.getLast().flip(true);
         }
 
         foundation.redraw();
-        drawnCard.redraw();
+        if (drawnCard != null) drawnCard.redraw();
     }
 
     private boolean nextDrawShuffles = false;
@@ -324,7 +325,7 @@ public class Solitaire extends Game {
 
     private void clearSelected() {
         selectedColumn = -1;
-        selectedCard.setTextColor(TextColor.ANSI.WHITE);
+        if (selectedCard != null) selectedCard.setTextColor(TextColor.ANSI.WHITE);
         selectedCard = null;
     }
 
@@ -340,7 +341,7 @@ public class Solitaire extends Game {
         return deck;
     }
 
-    public List<List<Card>> getStock() {
+    public LinkedList<LinkedList<Card>> getStock() {
         return stock;
     }
 }
