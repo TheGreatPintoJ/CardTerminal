@@ -136,8 +136,11 @@ public class Main {
                                             break;
                                         } else {
                                             if (keystroke.getKeyType() == KeyType.Character
-                                                    && keystroke.getCharacter() == 'r')
+                                                    && keystroke.getCharacter() == 'r') {
+                                                screen.clear();
                                                 currentGame = new Solitaire(currentGame.getSeed());
+                                                continue;
+                                            }
                                             currentGame.handleInput(keystroke);
                                         }
                                     } catch (IOException e) {

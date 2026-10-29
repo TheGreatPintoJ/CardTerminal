@@ -37,7 +37,6 @@ public class Deck {
 
     public Card drawCard() {
         if (cardsInDeck.isEmpty()) return null;
-        Random random = new Random();
         Card randomCard = cardsInDeck.get(random.nextInt(cardsInDeck.size()));
         if (!cardsInDeck.remove(randomCard)) return drawCard();
         return randomCard;
