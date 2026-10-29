@@ -76,7 +76,7 @@ public class Main {
 
     private Game currentGame;
 
-    enum OS {
+    public enum OS {
         WINDOWS,
         MAC,
         LINUX
@@ -248,7 +248,7 @@ public class Main {
         }
     }
 
-    static OS getOS() {
+    public static OS getOS() {
         String os = System.getProperty("os.name").toLowerCase();
         OS type = OS.LINUX;
 

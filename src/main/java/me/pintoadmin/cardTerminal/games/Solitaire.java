@@ -1,5 +1,8 @@
 package me.pintoadmin.cardTerminal.games;
 
+import static me.pintoadmin.cardTerminal.Main.g;
+import static me.pintoadmin.cardTerminal.Main.getOS;
+
 import com.googlecode.lanterna.*;
 import com.googlecode.lanterna.input.*;
 import com.googlecode.lanterna.screen.*;
@@ -12,13 +15,13 @@ public class Solitaire extends Game {
     private final long SEED = new Random().nextLong();
     private final Deck deck = new Deck(SEED);
     private final Foundation foundation = new Foundation(deck);
-    private final List<List<Card>> cards = new ArrayList<>(); // 2d, column:row:card
+    private final List<List<Card>> stock = new ArrayList<>(); // 2d, column:row:card
     private final LinkedList<SolitaireMove> moves = new LinkedList<>();
     private final LinkedList<SolitaireMove> movesUndone = new LinkedList<>();
     private Card drawnCard;
 
-    private final Supplier<Integer> WIDTH = () -> Main.g.getSize().getColumns();
-    private final Supplier<Integer> HEIGHT = () -> Main.g.getSize().getRows();
+    private final Supplier<Integer> WIDTH = () -> g.getSize().getColumns();
+    private final Supplier<Integer> HEIGHT = () -> g.getSize().getRows();
 
     private final int stockWidth = 7; // Seven for default solitaire, hopefully configurable later
 
@@ -28,6 +31,15 @@ public class Solitaire extends Game {
     private int selectedColumn = -1;
 
     private Card selectedCard;
+    private Supplier<Location> selectedCardLocation =
+            () ->
+                    stock.stream().map(l -> l.contains(selectedCard)).toList().contains(true)
+                            ? Location.STOCK
+                            : selectedCard == drawnCard
+                                    ? Location.DECK
+                                    : selectedCard == deck.getTopDiscard()
+                                            ? Location.DISCARD
+                                            : Location.FOUNDATION;
 
     enum Location {
         DECK,
@@ -45,7 +57,7 @@ public class Solitaire extends Game {
                 if (card == null) continue;
                 thisColumn.add(card);
             }
-            cards.add(thisColumn);
+            stock.add(thisColumn);
         }
         drawnCard = deck.drawCard();
 
@@ -64,13 +76,13 @@ public class Solitaire extends Game {
         deck.redrawDeck();
         deck.redrawDiscard();
 
-        for (List<Card> list : cards) {
+        for (List<Card> list : stock) {
             for (Card card : list) {
                 card.redraw();
             }
         }
 
-        for (List<Card> list : cards) {
+        for (List<Card> list : stock) {
             list.getLast().flip(true);
         }
 
@@ -94,12 +106,15 @@ public class Solitaire extends Game {
             nextDrawShuffles = false;
             return;
         }
-        if (!drawnCard.isFaceup()) {
-            drawnCard.draw(deckX.get(), deckY.get(), true);
-            return;
+        if (drawnCard != null) {
+            if (!drawnCard.isFaceup()) {
+                drawnCard.draw(deckX.get(), deckY.get(), true);
+                return;
+            }
+            deck.discardCard(drawnCard);
         }
-        deck.discardCard(drawnCard);
         deck.redrawDiscard();
+
         drawnCard = deck.drawCard();
         if (drawnCard == null) {
             // Deck has run out
@@ -114,12 +129,12 @@ public class Solitaire extends Game {
         deck.drawDeck(deckX.get(), deckY.get());
         deck.drawDiscard(deckX.get() + 9, deckY.get());
 
-        int startingX = Main.g.getSize().getColumns() - (9 * stockWidth);
+        int startingX = g.getSize().getColumns() - (9 * stockWidth);
         int startingY = 0;
 
         for (int column = 0; column < stockWidth; column++) {
             int ci = 0;
-            for (Card card : cards.get(column)) {
+            for (Card card : stock.get(column)) {
                 card.setTextColor(TextColor.ANSI.WHITE);
                 if (column == selectedColumn)
                     if (selectedCard == null || card == selectedCard)
@@ -130,8 +145,13 @@ public class Solitaire extends Game {
             }
         }
 
-        for (List<Card> list : cards) {
-            list.getLast().flip(true);
+        for (List<Card> list : stock) {
+            if (list.isEmpty())
+                try {
+                    drawCardSpace(startingX + (stock.indexOf(list)) * 9, startingY);
+                } catch (IOException _) {
+                }
+            else list.getLast().flip(true);
         }
 
         int foundationX = 0;
@@ -158,10 +178,15 @@ public class Solitaire extends Game {
             char key = keyStroke.getCharacter();
             try {
                 int intKey = Integer.parseInt(String.valueOf(key)) - 1;
+                if (intKey == -1) {
+                    selectedColumn = -1;
+                    selectedCard.setTextColor(TextColor.ANSI.WHITE);
+                    selectedCard = null;
+                }
                 if (intKey < stockWidth && selectedColumn == -1) {
                     selectedColumn = intKey;
-                } else if (intKey < cards.get(selectedColumn).size()) {
-                    selectedCard = cards.get(selectedColumn).get(intKey);
+                } else if (intKey < stock.get(selectedColumn).size()) {
+                    selectedCard = stock.get(selectedColumn).get(intKey);
                 }
             } catch (NumberFormatException | IndexOutOfBoundsException _) {
             }
@@ -207,7 +232,7 @@ public class Solitaire extends Game {
     }
 
     private void selectCard(int column, int row) {
-        selectedCard = cards.get(column).get(row);
+        selectedCard = stock.get(column).get(row);
     }
 
     private void selectCard(Location loc, int index) {
@@ -238,7 +263,10 @@ public class Solitaire extends Game {
     }
 
     private void moveSelected(Location toLocation, int index) {
-        SolitaireMove move = new SolitaireMove(this, selectedCard, toLocation, index);
+        selectedCard.setTextColor(TextColor.ANSI.WHITE);
+        SolitaireMove move =
+                new SolitaireMove(
+                        this, selectedCard, selectedCardLocation.get(), toLocation, index);
         moves.add(move);
         move.execute();
     }
@@ -257,6 +285,33 @@ public class Solitaire extends Game {
         movesUndone.removeLast();
     }
 
+    private void drawCardSpace(int x, int y) throws IOException {
+        g.setBackgroundColor(Main.BLACK);
+        g.setForegroundColor(new TextColor.RGB(50, 50, 50));
+
+        g.drawLine(x + 1, y, x + 7, y, '─');
+        g.drawLine(x + 1, y + 6, x + 7, y + 6, '─');
+        g.drawLine(x, y + 1, x, y + 5, '│');
+        g.drawLine(x + 8, y + 1, x + 8, y + 5, '│');
+
+        // Switch corner characters to square for windows (curved corner don't display correctly)
+        if (getOS() != Main.OS.WINDOWS) {
+            g.setCharacter(x, y, '╭');
+            g.setCharacter(x + 8, y, '╮');
+            g.setCharacter(x, y + 6, '╰');
+            g.setCharacter(x + 8, y + 6, '╯');
+        } else {
+            g.setCharacter(x, y, '┌');
+            g.setCharacter(x + 8, y, '┐');
+            g.setCharacter(x, y + 6, '└');
+            g.setCharacter(x + 8, y + 6, '┘');
+        }
+    }
+
+    void nullDrawnCard() {
+        drawnCard = null;
+    }
+
     public Foundation getFoundation() {
         return foundation;
     }
@@ -266,7 +321,7 @@ public class Solitaire extends Game {
     }
 
     public List<List<Card>> getStock() {
-        return cards;
+        return stock;
     }
 
     public int getStockWidth() {

@@ -60,6 +60,14 @@ public class Card {
         draw(x, y, faceup);
     }
 
+    public void clear() {
+        for (int xi = 1; xi < 8; xi++) {
+            for (int yi = 1; yi < 6; yi++) {
+                g.setCharacter(x + xi, y + yi, ' ');
+            }
+        }
+    }
+
     public void draw(int x, int y, boolean faceup) {
         try {
             this.x = x;

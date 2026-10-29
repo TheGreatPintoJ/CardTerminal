@@ -37,7 +37,7 @@ public class Foundation {
             if (piles.get(SPADE) == 0) drawCardSpace(x + 9, y, SPADE);
             else deck.getCard(Main.intToRank(piles.get(SPADE)), SPADE).draw(x + 9, y);
             if (piles.get(DIAMOND) == 0) drawCardSpace(x + 18, y, DIAMOND);
-            else deck.getCard(Main.intToRank(piles.get(DIAMOND)), DIAMOND).draw(x + 28, y);
+            else deck.getCard(Main.intToRank(piles.get(DIAMOND)), DIAMOND).draw(x + 18, y);
             if (piles.get(CLUB) == 0) drawCardSpace(x + 27, y, CLUB);
             else deck.getCard(Main.intToRank(piles.get(CLUB)), CLUB).draw(x + 27, y);
         } catch (IOException e) {
@@ -81,6 +81,13 @@ public class Foundation {
             return true;
         }
         return false;
+    }
+
+    public void removeCard(Card card) {
+        if (!cards.contains(card)) return;
+        if (rankToInt(card.getRank()) + 1 == piles.get(card.getSuit())) {
+            piles.compute(card.getSuit(), (_, v) -> v - 1);
+        }
     }
 
     public Card getTopCard(Card.CardSuit suit) {

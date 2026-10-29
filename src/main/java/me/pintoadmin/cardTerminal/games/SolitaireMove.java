@@ -1,18 +1,25 @@
 package me.pintoadmin.cardTerminal.games;
 
-import java.util.UUID;
+import java.util.*;
 import me.pintoadmin.cardTerminal.*;
 
 public class SolitaireMove extends Move {
     private final UUID uuid = UUID.randomUUID();
     private final Solitaire solitaire;
     private final Card card;
+    private final Solitaire.Location fromLocation;
     private final Solitaire.Location location;
     private final int index;
 
-    public SolitaireMove(Solitaire solitaire, Card card, Solitaire.Location location, int index) {
+    public SolitaireMove(
+            Solitaire solitaire,
+            Card card,
+            Solitaire.Location fromLocation,
+            Solitaire.Location location,
+            int index) {
         this.solitaire = solitaire;
         this.card = card;
+        this.fromLocation = fromLocation;
         this.location = location;
         this.index = index;
     }
@@ -33,6 +40,25 @@ public class SolitaireMove extends Move {
             case STOCK:
                 res = solitaire.getStock().get(index % solitaire.getStockWidth()).add(card);
                 solitaire.drawGame();
+                break;
+        }
+        if (!res) return false;
+        switch (fromLocation) {
+            case STOCK:
+                card.clear();
+                solitaire.getStock().forEach(l -> l.remove(card));
+                break;
+            case DISCARD:
+                card.clear();
+                solitaire.getDeck().removeTopDiscard();
+                break;
+            case FOUNDATION:
+                card.clear();
+                solitaire.getFoundation().removeCard(card);
+                break;
+            case DECK:
+                card.clear();
+                solitaire.nullDrawnCard();
                 break;
         }
         return res;

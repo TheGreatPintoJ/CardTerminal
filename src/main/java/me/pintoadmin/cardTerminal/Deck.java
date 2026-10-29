@@ -54,13 +54,12 @@ public class Deck {
         return cardsInDiscard.getLast();
     }
 
+    public void removeTopDiscard() {
+        if (cardsInDiscard.isEmpty()) return;
+        cardsInDiscard.removeLast();
+    }
+
     public Card getCard(Card.CardRank rank, Card.CardSuit suit) {
-        System.out.println("Getting card: " + rank.toString() + ":" + suit.toString());
-        System.out.println(
-                "All cards: "
-                        + allCards.stream()
-                                .map(c -> c.getRank().toString() + ":" + c.getSuit().toString())
-                                .toList());
         return allCards.stream()
                 .filter(c -> c.getRank() == rank && c.getSuit() == suit)
                 .toList()
