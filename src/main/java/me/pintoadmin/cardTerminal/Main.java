@@ -101,7 +101,7 @@ public class Main {
             g.fill(' ');
 
             currentGame = new Solitaire(4752746607772290783L);
-            currentGame.redraw();
+            //            currentGame.redraw();
             screen.refresh(Screen.RefreshType.COMPLETE);
 
             Thread resizeHandler =
@@ -139,6 +139,7 @@ public class Main {
                                                     && keystroke.getCharacter() == 'r') {
                                                 screen.clear();
                                                 currentGame = new Solitaire(currentGame.getSeed());
+                                                screen.refresh(Screen.RefreshType.COMPLETE);
                                                 continue;
                                             }
                                             currentGame.handleInput(keystroke);

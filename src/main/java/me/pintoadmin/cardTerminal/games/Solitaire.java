@@ -156,10 +156,17 @@ public class Solitaire extends Game {
             }
             for (Card card : stock.get(column)) {
                 card.setTextColor(TextColor.ANSI.WHITE);
-                if (column == selectedColumn)
-                    if (selectedCard == null || card == selectedCard)
+                if (column == selectedColumn) {
+                    if (selectedCard == null) {
                         card.setTextColor(
-                                card.isFaceup() ? TextColor.ANSI.GREEN : TextColor.ANSI.RED);
+                                card.isFaceup()
+                                        ? new TextColor.RGB(255, 200, 0)
+                                        : TextColor.ANSI.RED);
+                    }
+                    if (card == selectedCard) {
+                        card.setTextColor(TextColor.ANSI.GREEN);
+                    }
+                }
                 card.draw(startingX + (column) * 9, startingY + thisColumn.indexOf(card) * 3);
             }
         }
@@ -213,8 +220,12 @@ public class Solitaire extends Game {
                             if (faceupCards.size() == 1) {
                                 selectedCard = faceupCards.getFirst();
                             }
-                        } else if (intKey < stock.get(selectedColumn).size()) {
-                            selectedCard = stock.get(selectedColumn).get(intKey);
+                        } else if (intKey <= stock.get(selectedColumn).size()) {
+                            List<Card> faceupCards =
+                                    stock.get(selectedColumn).stream()
+                                            .filter(Card::isFaceup)
+                                            .toList();
+                            selectedCard = faceupCards.get(intKey);
                         }
                     }
                 }
@@ -227,7 +238,8 @@ public class Solitaire extends Game {
                     break;
                 case ' ':
                     // Select drawn card
-                    selectCard(Location.DECK, 0);
+                    if(selectedCard == drawnCard) clearSelected();
+                    else selectCard(Location.DECK, 0);
                     break;
                 case '[':
                     // Undo
