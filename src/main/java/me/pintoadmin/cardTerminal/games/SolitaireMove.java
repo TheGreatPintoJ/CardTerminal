@@ -3,7 +3,7 @@ package me.pintoadmin.cardTerminal.games;
 import java.util.*;
 import me.pintoadmin.cardTerminal.*;
 
-public class SolitaireMove extends Move {
+public class SolitaireMove {
     private final UUID uuid = UUID.randomUUID();
     private final Solitaire solitaire;
     private final Card card;
@@ -24,7 +24,6 @@ public class SolitaireMove extends Move {
         this.index = index;
     }
 
-    @Override
     public boolean execute() {
         boolean res = false;
         switch (location) {
@@ -73,10 +72,8 @@ public class SolitaireMove extends Move {
         }
     }
 
-    @Override
     public void undo() {}
 
-    @Override
     public UUID getUUID() {
         return uuid;
     }
