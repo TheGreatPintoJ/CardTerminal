@@ -178,15 +178,17 @@ public class Solitaire extends Game {
             char key = keyStroke.getCharacter();
             try {
                 int intKey = Integer.parseInt(String.valueOf(key)) - 1;
-                if (intKey == -1) {
-                    selectedColumn = -1;
-                    selectedCard.setTextColor(TextColor.ANSI.WHITE);
-                    selectedCard = null;
-                }
-                if (intKey < stockWidth && selectedColumn == -1) {
-                    selectedColumn = intKey;
-                } else if (intKey < stock.get(selectedColumn).size()) {
-                    selectedCard = stock.get(selectedColumn).get(intKey);
+
+                if (selectedCard != null) {
+                    if (intKey == -1) {
+                        clearSelected();
+                    } else moveSelected(Location.STOCK, intKey);
+                } else {
+                    if (intKey < stockWidth && selectedColumn == -1) {
+                        selectedColumn = intKey;
+                    } else if (intKey < stock.get(selectedColumn).size()) {
+                        selectedCard = stock.get(selectedColumn).get(intKey);
+                    }
                 }
             } catch (NumberFormatException | IndexOutOfBoundsException _) {
             }
@@ -269,6 +271,8 @@ public class Solitaire extends Game {
                         this, selectedCard, selectedCardLocation.get(), toLocation, index);
         moves.add(move);
         move.execute();
+
+        clearSelected();
     }
 
     private void undo() {
@@ -306,6 +310,12 @@ public class Solitaire extends Game {
             g.setCharacter(x, y + 6, '└');
             g.setCharacter(x + 8, y + 6, '┘');
         }
+    }
+
+    private void clearSelected() {
+        selectedColumn = -1;
+        selectedCard.setTextColor(TextColor.ANSI.WHITE);
+        selectedCard = null;
     }
 
     void nullDrawnCard() {

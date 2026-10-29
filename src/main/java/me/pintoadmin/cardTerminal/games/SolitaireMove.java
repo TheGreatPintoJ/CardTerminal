@@ -30,41 +30,45 @@ public class SolitaireMove extends Move {
         switch (location) {
             case FOUNDATION:
                 res = solitaire.getFoundation().addCard(card);
-                if (res) clearFromLoc();
+                if (res) handleRemove();
                 solitaire.getFoundation().redraw();
                 break;
             case DISCARD:
                 solitaire.getDeck().discardCard(card);
-                clearFromLoc();
+                handleRemove();
                 solitaire.getDeck().redrawDiscard();
                 res = true;
                 break;
             case STOCK:
-                res = solitaire.getStock().get(index % solitaire.getStockWidth()).add(card);
-                clearFromLoc();
+                res = solitaire.getStock().get(index).add(card);
+                handleRemove();
                 solitaire.drawGame();
                 break;
         }
         return res;
     }
 
-    private void clearFromLoc() {
+    private void handleRemove() {
         switch (fromLocation) {
             case STOCK:
                 card.clear();
                 solitaire.getStock().forEach(l -> l.remove(card));
+                solitaire.drawGame();
                 break;
             case DISCARD:
                 card.clear();
                 solitaire.getDeck().removeTopDiscard();
+                solitaire.getDeck().redrawDiscard();
                 break;
             case FOUNDATION:
                 card.clear();
                 solitaire.getFoundation().removeCard(card);
+                solitaire.getFoundation().redraw();
                 break;
             case DECK:
                 card.clear();
                 solitaire.nullDrawnCard();
+                solitaire.getDeck().redrawDeck();
                 break;
         }
     }
