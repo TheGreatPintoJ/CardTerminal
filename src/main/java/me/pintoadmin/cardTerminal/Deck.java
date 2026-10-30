@@ -76,11 +76,13 @@ public class Deck {
                 .getFirst();
     }
 
-    public void shuffleDiscard() {
+    public List<Card> shuffleDiscard() {
+        List<Card> list = List.copyOf(cardsInDiscard);
         cardsInDeck.addAll(cardsInDiscard);
         cardsInDiscard.clear();
 
         Collections.shuffle(cardsInDeck, random);
+        return list;
     }
 
     public void shuffle() {

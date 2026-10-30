@@ -12,9 +12,11 @@ public class SolitaireMove {
     private final int toIndex;
     private int fromIndex;
     private final Type type;
+    private final List<Card> oldDiscard = new LinkedList<>();
 
     enum Type {
         DRAW,
+        SHUFFLE,
         MOVE
     }
 
@@ -170,10 +172,18 @@ public class SolitaireMove {
             solitaire.getDeck().addTopDeck(card);
             solitaire.setDrawnCard(solitaire.getDeck().getTopDiscard());
             solitaire.getDeck().removeTopDiscard();
+        } else if (type == Type.SHUFFLE) {
+            // Set deck to old shuffle
+            oldDiscard.forEach(c -> solitaire.getDeck().discardCard(c));
         }
     }
 
     public UUID getUUID() {
         return uuid;
+    }
+
+    public void setOldDiscard(List<Card> oldDiscard) {
+        this.oldDiscard.clear();
+        this.oldDiscard.addAll(oldDiscard);
     }
 }

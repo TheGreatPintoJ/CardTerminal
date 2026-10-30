@@ -108,17 +108,18 @@ public class Solitaire extends Game {
 
     @Override
     public void drawCard() {
-        SolitaireMove move =
-                new SolitaireMove(
-                        this,
-                        drawnCard,
-                        Location.DECK,
-                        Location.DISCARD,
-                        -1,
-                        SolitaireMove.Type.DRAW);
-        moves.add(move);
         if (nextDrawShuffles) {
-            deck.shuffleDiscard();
+            SolitaireMove move =
+                    new SolitaireMove(
+                            this,
+                            drawnCard,
+                            Location.DISCARD,
+                            Location.DECK,
+                            -1,
+                            SolitaireMove.Type.SHUFFLE);
+            move.setOldDiscard(deck.shuffleDiscard());
+            moves.add(move);
+
             deck.redrawDiscard();
             deck.redrawDeck();
 
@@ -128,6 +129,16 @@ public class Solitaire extends Game {
             nextDrawShuffles = false;
             return;
         }
+        SolitaireMove move =
+                new SolitaireMove(
+                        this,
+                        drawnCard,
+                        Location.DECK,
+                        Location.DISCARD,
+                        -1,
+                        SolitaireMove.Type.DRAW);
+        moves.add(move);
+
         if (drawnCard != null) {
             if (!drawnCard.isFaceup()) {
                 drawnCard.draw(deckX.get(), deckY.get(), true);
