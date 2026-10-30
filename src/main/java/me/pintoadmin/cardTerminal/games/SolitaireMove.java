@@ -35,37 +35,36 @@ public class SolitaireMove {
 
     public boolean execute() {
         boolean res = false;
-        switch (location) {
-            case FOUNDATION:
-                res = solitaire.getFoundation().addCard(card);
-                if (res) handleRemove();
-                solitaire.getFoundation().redraw();
-                break;
-            case DISCARD:
-                solitaire.getDeck().discardCard(card);
-                handleRemove();
-                solitaire.getDeck().redrawDiscard();
-                res = true;
-                break;
-            case STOCK:
-                // Check if possible to move to stock
-                LinkedList<Card> stockPile = solitaire.getStock().get(toIndex);
-                if (stockPile.isEmpty() && card.getRank() == Card.Rank.KING) {
-                    res = stockPile.add(card);
-                } else {
-                    if (!stockPile.isEmpty()) {
-                        // Check if colors are opposites
-                        if (stockPile.getLast().getSuit().isOppositeColor(card.getSuit())
-                                // Check if ranks line up
-                                && stockPile.getLast().getRank().toInt()
-                                        == card.getRank().toInt() + 1) {
-                            res = stockPile.add(card);
+        if (type == Type.DRAW) {
+            solitaire.drawCard();
+            return true;
+        } else {
+            switch (location) {
+                case FOUNDATION:
+                    res = solitaire.getFoundation().addCard(card);
+                    if (res) handleRemove();
+                    solitaire.getFoundation().redraw();
+                    break;
+                case STOCK:
+                    // Check if possible to move to stock
+                    LinkedList<Card> stockPile = solitaire.getStock().get(toIndex);
+                    if (stockPile.isEmpty() && card.getRank() == Card.Rank.KING) {
+                        res = stockPile.add(card);
+                    } else {
+                        if (!stockPile.isEmpty()) {
+                            // Check if colors are opposites
+                            if (stockPile.getLast().getSuit().isOppositeColor(card.getSuit())
+                                    // Check if ranks line up
+                                    && stockPile.getLast().getRank().toInt()
+                                            == card.getRank().toInt() + 1) {
+                                res = stockPile.add(card);
+                            }
                         }
                     }
-                }
-                if (res) handleRemove();
-                solitaire.drawGame();
-                break;
+                    if (res) handleRemove();
+                    solitaire.drawGame();
+                    break;
+            }
         }
         return res;
     }
@@ -168,6 +167,9 @@ public class SolitaireMove {
             }
         } else if (type == Type.DRAW) {
             // Add to top of deck
+            solitaire.getDeck().addTopDeck(card);
+            solitaire.setDrawnCard(solitaire.getDeck().getTopDiscard());
+            solitaire.getDeck().removeTopDiscard();
         }
     }
 

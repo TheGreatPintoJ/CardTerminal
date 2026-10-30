@@ -35,11 +35,22 @@ public class Deck {
         Collections.shuffle(cardsInDeck, random);
     }
 
-    public Card drawCard() {
+    public Card dealCard() {
         if (cardsInDeck.isEmpty()) return null;
         Card randomCard = cardsInDeck.get(random.nextInt(cardsInDeck.size()));
         if (!cardsInDeck.remove(randomCard)) return drawCard();
         return randomCard;
+    }
+
+    public Card drawCard() {
+        if (cardsInDeck.isEmpty()) return null;
+        Card card = cardsInDeck.getLast();
+        if (!cardsInDeck.remove(card)) return drawCard();
+        return card;
+    }
+
+    public void addTopDeck(Card card) {
+        cardsInDeck.addLast(card);
     }
 
     public void discardCard(Card card) {
@@ -65,10 +76,14 @@ public class Deck {
                 .getFirst();
     }
 
-    public void shuffle() {
+    public void shuffleDiscard() {
         cardsInDeck.addAll(cardsInDiscard);
         cardsInDiscard.clear();
 
+        Collections.shuffle(cardsInDeck, random);
+    }
+
+    public void shuffle() {
         Collections.shuffle(cardsInDeck, random);
     }
 

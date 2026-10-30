@@ -61,7 +61,7 @@ public class Solitaire extends Game {
         for (int column = 0; column < stockWidth; column++) {
             LinkedList<Card> thisColumn = new LinkedList<>();
             for (int row = 0; row <= column; row++) {
-                Card card = deck.drawCard();
+                Card card = deck.dealCard();
                 if (card == null) continue;
                 thisColumn.add(card);
             }
@@ -111,14 +111,14 @@ public class Solitaire extends Game {
         SolitaireMove move =
                 new SolitaireMove(
                         this,
-                        selectedCard,
-                        selectedCardLocation.get(),
-                        null,
+                        drawnCard,
+                        Location.DECK,
+                        Location.DISCARD,
                         -1,
                         SolitaireMove.Type.DRAW);
         moves.add(move);
         if (nextDrawShuffles) {
-            deck.shuffle();
+            deck.shuffleDiscard();
             deck.redrawDiscard();
             deck.redrawDeck();
 
@@ -320,7 +320,10 @@ public class Solitaire extends Game {
                         toLocation,
                         index,
                         SolitaireMove.Type.MOVE);
-        if (move.execute()) moves.add(move);
+        if (move.execute()) {
+            moves.add(move);
+            movesUndone.clear();
+        }
 
         clearSelected();
     }
@@ -370,6 +373,10 @@ public class Solitaire extends Game {
 
     void nullDrawnCard() {
         drawnCard = null;
+    }
+
+    void setDrawnCard(Card card) {
+        drawnCard = card;
     }
 
     public Foundation getFoundation() {
