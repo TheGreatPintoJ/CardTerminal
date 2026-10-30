@@ -8,7 +8,7 @@ import java.io.*;
 import java.util.*;
 
 public class Card {
-    private final TextGraphics g = Main.g;
+    private static final TextGraphics g = Main.g;
 
     private final UUID uuid;
     private final Rank rank;
@@ -145,13 +145,22 @@ public class Card {
         }
     }
 
-    private void drawCard(int x, int y, Rank rank, Suit suit) throws IOException {
+    public static void drawCardOutline(int x, int y) {
         g.setBackgroundColor(BLACK);
-        g.setForegroundColor(cardTextColor);
+        g.setForegroundColor(TextColor.ANSI.WHITE);
 
-        g.fillRectangle(new TerminalPosition(x, y), new TerminalSize(9, 6), ' ');
+        g.fillRectangle(new TerminalPosition(x + 1, y + 1), new TerminalSize(7, 5), ' ');
 
-        g.drawLine(x + 1, y, x + 7, y, '─');
+        for (int i = 1; i < 8; i++) {
+            TextCharacter replaced = screen.getBackCharacter(x + i, y);
+            System.out.println(
+                    replaced.getBackgroundColor() + " - " + replaced.getForegroundColor());
+            if (replaced.getBackgroundColor() == TextColor.ANSI.WHITE
+                    && replaced.getForegroundColor() == BLACK) {
+                g.setCharacter(x + i, y, '▀');
+            } else g.setCharacter(x + i, y, '─');
+        }
+        //        g.drawLine(x + 1, y, x + 7, y, '─');
         g.drawLine(x + 1, y + 6, x + 7, y + 6, '─');
         g.drawLine(x, y + 1, x, y + 5, '│');
         g.drawLine(x + 8, y + 1, x + 8, y + 5, '│');
@@ -168,6 +177,10 @@ public class Card {
             g.setCharacter(x, y + 6, '└');
             g.setCharacter(x + 8, y + 6, '┘');
         }
+    }
+
+    private void drawCard(int x, int y, Rank rank, Suit suit) throws IOException {
+        drawCardOutline(x, y);
 
         // Draw card rank
         if (rank.toChars().length() == 1) {
@@ -188,26 +201,7 @@ public class Card {
     }
 
     private void drawCardBack(int x, int y) throws IOException {
-        g.setBackgroundColor(BLACK);
-        g.setForegroundColor(cardTextColor);
-
-        g.drawLine(x + 1, y, x + 7, y, '─');
-        g.drawLine(x + 1, y + 6, x + 7, y + 6, '─');
-        g.drawLine(x, y + 1, x, y + 5, '│');
-        g.drawLine(x + 8, y + 1, x + 8, y + 5, '│');
-
-        // Switch corner characters to square for windows (curved corner don't display correctly)
-        if (getOS() != OS.WINDOWS) {
-            g.setCharacter(x, y, '╭');
-            g.setCharacter(x + 8, y, '╮');
-            g.setCharacter(x, y + 6, '╰');
-            g.setCharacter(x + 8, y + 6, '╯');
-        } else {
-            g.setCharacter(x, y, '┌');
-            g.setCharacter(x + 8, y, '┐');
-            g.setCharacter(x, y + 6, '└');
-            g.setCharacter(x + 8, y + 6, '┘');
-        }
+        drawCardOutline(x, y);
 
         for (int xi = 1; xi < 8; xi++) {
             for (int yi = 1; yi < 6; yi++) {
