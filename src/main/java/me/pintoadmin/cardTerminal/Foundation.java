@@ -98,6 +98,7 @@ public class Foundation {
         if (!cards.contains(card)) return false;
         if (card.getRank().toInt() == piles.get(card.getSuit())) {
             piles.compute(card.getSuit(), (_, v) -> v - 1);
+            cards.remove(card);
             return true;
         }
         return false;
