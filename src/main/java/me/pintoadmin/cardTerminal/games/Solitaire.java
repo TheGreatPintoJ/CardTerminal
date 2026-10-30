@@ -61,7 +61,7 @@ public class Solitaire extends Game {
         for (int column = 0; column < stockWidth; column++) {
             LinkedList<Card> thisColumn = new LinkedList<>();
             for (int row = 0; row <= column; row++) {
-                Card card = deck.dealCard();
+                Card card = deck.drawCard();
                 if (card == null) continue;
                 thisColumn.add(card);
             }
@@ -244,30 +244,27 @@ public class Solitaire extends Game {
         if (keyStroke.getKeyType() == KeyType.Character) {
             char key = keyStroke.getCharacter();
             try {
-                int intKey = Integer.parseInt(String.valueOf(key)) - 1;
-                if (intKey == -1) {
+                if (key == '-') {
                     clearSelected();
                     redraw();
+                }
+                int intKey = Integer.parseInt(String.valueOf(key)) - 1;
+                if (selectedCard != null) {
+                    moveSelected(Location.STOCK, intKey);
                 } else {
-                    if (selectedCard != null) {
-                        moveSelected(Location.STOCK, intKey);
-                    } else {
-                        if (intKey < stockWidth && selectedColumn == -1) {
-                            selectedColumn = intKey;
-                            List<Card> faceupCards =
-                                    stock.get(selectedColumn).stream()
-                                            .filter(Card::isFaceup)
-                                            .toList();
-                            if (faceupCards.size() == 1) {
-                                selectedCard = faceupCards.getFirst();
-                            }
-                        } else if (intKey <= stock.get(selectedColumn).size()) {
-                            List<Card> faceupCards =
-                                    stock.get(selectedColumn).stream()
-                                            .filter(Card::isFaceup)
-                                            .toList();
-                            selectedCard = faceupCards.get(intKey);
+                    if (intKey < stockWidth && selectedColumn == -1) {
+                        selectedColumn = intKey;
+                        List<Card> faceupCards =
+                                stock.get(selectedColumn).stream().filter(Card::isFaceup).toList();
+                        if (faceupCards.size() == 1) {
+                            selectedCard = faceupCards.getFirst();
                         }
+                    } else if (intKey <= stock.get(selectedColumn).size()) {
+                        List<Card> faceupCards =
+                                stock.get(selectedColumn).stream().filter(Card::isFaceup).toList();
+                        if (intKey == -1) {
+                            selectedCard = faceupCards.getLast();
+                        } else selectedCard = faceupCards.get(intKey);
                     }
                 }
             } catch (NumberFormatException | IndexOutOfBoundsException _) {

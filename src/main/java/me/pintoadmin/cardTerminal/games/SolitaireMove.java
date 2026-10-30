@@ -76,7 +76,10 @@ public class SolitaireMove {
                             }
                         }
                     }
-                    if (res) handleRemove();
+                    if (res) {
+
+                        handleRemove();
+                    }
                     solitaire.drawGame();
                     break;
             }
@@ -103,17 +106,7 @@ public class SolitaireMove {
                                                                                 != toIndex)
                                                 .toList()
                                                 .getFirst());
-                LinkedList<Card> stockPile =
-                        solitaire
-                                .getStock()
-                                .get(
-                                        solitaire
-                                                .getStock()
-                                                .indexOf(
-                                                        solitaire.getStock().stream()
-                                                                .filter(l -> l.contains(card))
-                                                                .toList()
-                                                                .getFirst()));
+                LinkedList<Card> stockPile = solitaire.getStock().get(toIndex);
                 LinkedList<Card> oldStockPile =
                         solitaire.getStock().stream()
                                 .filter(
@@ -125,15 +118,18 @@ public class SolitaireMove {
                                 .getFirst();
                 oldStockPile.forEach(Card::clear);
 
-                // Move rest of stack
-                stockPile.addAll(
-                        oldStockPile.subList(oldStockPile.indexOf(card) + 1, oldStockPile.size()));
-                // Remove rest of stack from old pile
-                oldStockPile.removeAll(
-                        oldStockPile
-                                .subList(oldStockPile.indexOf(card) + 1, oldStockPile.size())
-                                .stream()
-                                .toList());
+                if (location == Solitaire.Location.STOCK) {
+                    // Move rest of stack
+                    stockPile.addAll(
+                            oldStockPile.subList(
+                                    oldStockPile.indexOf(card) + 1, oldStockPile.size()));
+                    // Remove rest of stack from old pile
+                    oldStockPile.removeAll(
+                            oldStockPile
+                                    .subList(oldStockPile.indexOf(card) + 1, oldStockPile.size())
+                                    .stream()
+                                    .toList());
+                }
 
                 solitaire.getStock().stream()
                         .filter(l -> solitaire.getStock().indexOf(l) != toIndex)

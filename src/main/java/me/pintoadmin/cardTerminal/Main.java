@@ -100,7 +100,7 @@ public class Main {
             screen.clear();
             g.fill(' ');
 
-            currentGame = new Solitaire(4752746607772290783L);
+            currentGame = new Solitaire(); // Dev seed: 4752746607772290783L
             //            currentGame.redraw();
             screen.refresh(Screen.RefreshType.COMPLETE);
 
