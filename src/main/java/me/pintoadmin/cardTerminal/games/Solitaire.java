@@ -108,24 +108,20 @@ public class Solitaire extends Game {
     @Override
     public void drawCard(boolean logged) {
         if (nextDrawShuffles) {
-            if (logged) {
-                SolitaireMove move =
-                        new SolitaireMove(
-                                this,
-                                drawnCard,
-                                Location.DISCARD,
-                                Location.DECK,
-                                -1,
-                                SolitaireMove.Type.SHUFFLE);
-                move.setOldDiscard(deck.shuffleDiscard());
-                moves.add(move);
-            }
+            SolitaireMove move =
+                    new SolitaireMove(
+                            this,
+                            drawnCard,
+                            Location.DISCARD,
+                            Location.DECK,
+                            -1,
+                            SolitaireMove.Type.SHUFFLE);
+            move.setOldDiscard(deck.shuffleDiscard());
+            move.setShuffled(deck.getAllCards());
+            moves.add(move);
 
             deck.redrawDiscard();
             deck.redrawDeck();
-
-            drawnCard = deck.drawCard();
-            drawnCard.draw(deckX.get(), deckY.get(), false);
 
             nextDrawShuffles = false;
             return;
@@ -402,6 +398,10 @@ public class Solitaire extends Game {
 
     void setDrawnCard(Card card) {
         drawnCard = card;
+    }
+
+    void setNextShuffle(boolean state) {
+        nextDrawShuffles = state;
     }
 
     public Foundation getFoundation() {

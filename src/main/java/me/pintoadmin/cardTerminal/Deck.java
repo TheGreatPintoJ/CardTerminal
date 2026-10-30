@@ -70,6 +70,10 @@ public class Deck {
         cardsInDiscard.removeLast();
     }
 
+    public void clearDiscard() {
+        cardsInDiscard.clear();
+    }
+
     public Card getCard(Card.Rank rank, Card.Suit suit) {
         return allCards.stream()
                 .filter(c -> c.getRank() == rank && c.getSuit() == suit)
@@ -88,6 +92,15 @@ public class Deck {
 
     public void shuffle() {
         Collections.shuffle(cardsInDeck, random);
+    }
+
+    public List<Card> getAllCards() {
+        return cardsInDeck;
+    }
+
+    public void setAllCards(List<Card> cards) {
+        cardsInDeck.clear();
+        cardsInDeck.addAll(cards);
     }
 
     public void redrawDeck() {
