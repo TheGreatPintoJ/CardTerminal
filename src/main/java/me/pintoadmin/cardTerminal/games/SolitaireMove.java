@@ -38,7 +38,7 @@ public class SolitaireMove {
     public boolean execute() {
         boolean res = false;
         if (type == Type.DRAW) {
-            solitaire.drawCard();
+            solitaire.drawCard(false);
             return true;
         } else {
             switch (location) {

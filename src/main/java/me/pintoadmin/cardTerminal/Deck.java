@@ -10,8 +10,8 @@ import java.util.*;
 public class Deck {
     private final TextGraphics g = Main.g;
     private final List<Card> allCards = new ArrayList<>();
-    private final List<Card> cardsInDeck = new ArrayList<>();
-    private final List<Card> cardsInDiscard = new ArrayList<>();
+    private final List<Card> cardsInDeck = new LinkedList<>();
+    private final List<Card> cardsInDiscard = new LinkedList<>();
 
     private long SEED;
     private Random random;
@@ -40,7 +40,7 @@ public class Deck {
         Card randomCard = cardsInDeck.get(random.nextInt(cardsInDeck.size()));
         if (!cardsInDeck.remove(randomCard)) return drawCard();
         return randomCard;
-    }
+    } // TODO: remove with static seed
 
     public Card drawCard() {
         if (cardsInDeck.isEmpty()) return null;
@@ -50,6 +50,7 @@ public class Deck {
     }
 
     public void addTopDeck(Card card) {
+        if (cardsInDeck.contains(card)) return;
         cardsInDeck.addLast(card);
     }
 

@@ -10,7 +10,7 @@ public abstract class Game {
 
     public abstract void redraw();
 
-    public abstract void drawCard();
+    public abstract void drawCard(boolean logged);
 
     public abstract void handleInput(KeyStroke keyStroke) throws IOException;
 }
