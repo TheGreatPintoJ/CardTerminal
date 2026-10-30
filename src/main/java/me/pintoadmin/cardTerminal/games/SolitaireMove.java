@@ -14,10 +14,12 @@ public class SolitaireMove {
     private final Type type;
     private final List<Card> oldDiscard = new LinkedList<>();
     private final List<Card> shuffled = new LinkedList<>();
+    private long shuffleIndex;
 
     enum Type {
         DRAW,
         SHUFFLE,
+        EXHAUST,
         MOVE
     }
 
@@ -44,8 +46,13 @@ public class SolitaireMove {
         } else if (type == Type.SHUFFLE) {
             solitaire.getDeck().clearDiscard();
             solitaire.getDeck().setAllCards(shuffled);
+            solitaire.getDeck().setNextShuffleIndex(shuffleIndex + 1);
             solitaire.setNextShuffle(false);
             return true;
+        } else if (type == Type.EXHAUST) {
+            solitaire.getDeck().discardCard(card);
+            solitaire.setDrawnCard(null);
+            solitaire.setNextShuffle(true);
         } else {
             switch (location) {
                 case FOUNDATION:
@@ -182,7 +189,13 @@ public class SolitaireMove {
         } else if (type == Type.SHUFFLE) {
             // Set deck to old shuffle
             oldDiscard.forEach(c -> solitaire.getDeck().discardCard(c));
+            solitaire.getDeck().setNextShuffleIndex(shuffleIndex);
             solitaire.setNextShuffle(true);
+        } else if (type == Type.EXHAUST) {
+            if (solitaire.getDeck().getTopDiscard() != card) return;
+            solitaire.getDeck().removeTopDiscard();
+            solitaire.setDrawnCard(card);
+            solitaire.setNextShuffle(false);
         }
     }
 
@@ -198,5 +211,9 @@ public class SolitaireMove {
     public void setShuffled(List<Card> shuffled) {
         this.shuffled.clear();
         this.shuffled.addAll(shuffled);
+    }
+
+    public void setShuffleIndex(long index) {
+        shuffleIndex = index;
     }
 }

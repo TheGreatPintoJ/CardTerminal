@@ -15,6 +15,7 @@ public class Deck {
 
     private long SEED;
     private Random random;
+    private long nextShuffleIndex;
 
     private int deckX;
     private int deckY;
@@ -86,12 +87,22 @@ public class Deck {
         cardsInDeck.addAll(cardsInDiscard);
         cardsInDiscard.clear();
 
-        Collections.shuffle(cardsInDeck, random);
+        long index = nextShuffleIndex++;
+        Collections.shuffle(cardsInDeck, new Random(SEED ^ index));
         return list;
     }
 
-    public void shuffle() {
-        Collections.shuffle(cardsInDeck, random);
+    private void shuffle() {
+        long index = nextShuffleIndex++;
+        Collections.shuffle(cardsInDeck, new Random(SEED ^ index));
+    }
+
+    public long getNextShuffleIndex() {
+        return nextShuffleIndex;
+    }
+
+    public void setNextShuffleIndex(long index) {
+        nextShuffleIndex = index;
     }
 
     public List<Card> getAllCards() {

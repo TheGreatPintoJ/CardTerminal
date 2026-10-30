@@ -116,6 +116,7 @@ public class Solitaire extends Game {
                             Location.DECK,
                             -1,
                             SolitaireMove.Type.SHUFFLE);
+            move.setShuffleIndex(deck.getNextShuffleIndex());
             move.setOldDiscard(deck.shuffleDiscard());
             move.setShuffled(deck.getAllCards());
             moves.add(move);
@@ -149,6 +150,17 @@ public class Solitaire extends Game {
         drawnCard = deck.drawCard();
         if (drawnCard == null) {
             // Deck has run out
+            if (logged) {
+                SolitaireMove move =
+                        new SolitaireMove(
+                                this,
+                                deck.getTopDiscard(),
+                                Location.DECK,
+                                Location.DISCARD,
+                                -1,
+                                SolitaireMove.Type.EXHAUST);
+                moves.add(move);
+            }
             deck.redrawDeck();
             nextDrawShuffles = true;
             return;
