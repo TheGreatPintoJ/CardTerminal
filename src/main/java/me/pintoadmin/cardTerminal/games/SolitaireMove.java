@@ -40,6 +40,9 @@ public class SolitaireMove {
         if (type == Type.DRAW) {
             solitaire.drawCard(false);
             return true;
+        } else if (type == Type.SHUFFLE) {
+            solitaire.drawCard(false);
+            return true;
         } else {
             switch (location) {
                 case FOUNDATION:
