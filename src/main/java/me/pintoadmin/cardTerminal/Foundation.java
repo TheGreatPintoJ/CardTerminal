@@ -104,6 +104,13 @@ public class Foundation {
         return false;
     }
 
+    public boolean checkWin() {
+        return piles.get(HEART) == 13
+                && piles.get(SPADE) == 13
+                && piles.get(DIAMOND) == 13
+                && piles.get(CLUB) == 13;
+    }
+
     public Card getTopCard(Card.Suit suit) {
         Card.Rank rank = Main.intToRank(piles.get(suit));
         if (rank == null) return null;

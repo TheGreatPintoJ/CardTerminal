@@ -1,9 +1,9 @@
 package me.pintoadmin.cardTerminal.games;
 
-import static me.pintoadmin.cardTerminal.Main.g;
-import static me.pintoadmin.cardTerminal.Main.getOS;
+import static me.pintoadmin.cardTerminal.Main.*;
 
 import com.googlecode.lanterna.*;
+import com.googlecode.lanterna.graphics.*;
 import com.googlecode.lanterna.input.*;
 import com.googlecode.lanterna.screen.*;
 import java.io.*;
@@ -237,10 +237,12 @@ public class Solitaire extends Game {
     Tab: select discarded card
     1,2,3,4,5,6,7: select column
         1-9,0: select row (card)
+    -: deselect all
     [/]: undo/redo
      */
     @Override
     public void handleInput(KeyStroke keyStroke) throws IOException {
+        if (checkHandleWin()) return;
         if (keyStroke.getKeyType() == KeyType.Character) {
             char key = keyStroke.getCharacter();
             try {
@@ -310,7 +312,8 @@ public class Solitaire extends Game {
             else moveSelected(Location.FOUNDATION, -1);
         }
         drawGame();
-        Main.screen.refresh(Screen.RefreshType.DELTA);
+        screen.refresh(Screen.RefreshType.DELTA);
+        checkHandleWin();
     }
 
     private void selectCard(Location loc, int index) {
@@ -338,6 +341,31 @@ public class Solitaire extends Game {
         if (selectedCard != null)
             selectedCard.setTextColor(
                     selectedCard.isFaceup() ? TextColor.ANSI.GREEN : TextColor.ANSI.RED);
+    }
+
+    private boolean checkHandleWin() throws IOException {
+        if (foundation.checkWin()) { // || true for testing
+            // Player won
+            screen.clear();
+            clearSelected();
+            setDrawnCard(null);
+
+            g.enableModifiers(SGR.BLINK);
+            g.setBackgroundColor(BLACK);
+            g.setForegroundColor(TextColor.ANSI.WHITE);
+            // @formatter:off
+            Main.drawText(WIDTH.get()/2, HEIGHT.get()/2-2, "▄▄▄   ▄▄▄   ▄▄▄▄▄   ▄▄▄  ▄▄▄   ▄▄▄▄  ▄▄▄  ▄▄▄▄ ▄▄▄▄▄ ▄▄▄    ▄▄▄");
+            Main.drawText(WIDTH.get()/2, HEIGHT.get()/2-1, "███   ███ ▄███████▄ ███  ███   ▀███  ███  ███▀  ███  ████▄  ███");
+            Main.drawText(WIDTH.get()/2, HEIGHT.get()/2,   "▀███▄███▀ ███   ███ ███  ███    ███  ███  ███   ███  ███▀██▄███");
+            Main.drawText(WIDTH.get()/2, HEIGHT.get()/2+1, "  ▀███▀   ███▄▄▄███ ███▄▄███    ███▄▄███▄▄███   ███  ███  ▀████");
+            Main.drawText(WIDTH.get()/2, HEIGHT.get()/2+2, "   ███     ▀█████▀  ▀██████▀     ▀████▀████▀   ▄███▄ ███    ███");
+            // @formatter:on
+            terminal.bell();
+            g.disableModifiers(SGR.BLINK);
+            screen.refresh(Screen.RefreshType.COMPLETE);
+            return true;
+        }
+        return false;
     }
 
     private void moveSelected(Location toLocation, int index) {
