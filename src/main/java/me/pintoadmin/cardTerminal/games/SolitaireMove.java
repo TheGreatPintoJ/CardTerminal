@@ -57,7 +57,7 @@ public class SolitaireMove {
             switch (location) {
                 case FOUNDATION:
                     res = solitaire.getFoundation().addCard(card);
-                    if (res) handleRemove();
+                    if (res) res = handleRemove();
                     solitaire.getFoundation().redraw();
                     break;
                 case STOCK:
@@ -76,10 +76,7 @@ public class SolitaireMove {
                             }
                         }
                     }
-                    if (res) {
-
-                        handleRemove();
-                    }
+                    if (res) handleRemove();
                     solitaire.drawGame();
                     break;
             }
@@ -87,7 +84,7 @@ public class SolitaireMove {
         return res;
     }
 
-    private void handleRemove() {
+    private boolean handleRemove() {
         card.clear();
         solitaire.getFoundation().clear();
         switch (fromLocation) {
@@ -106,7 +103,8 @@ public class SolitaireMove {
                                                                                 != toIndex)
                                                 .toList()
                                                 .getFirst());
-                LinkedList<Card> stockPile = toIndex != -1 ? solitaire.getStock().get(toIndex) : new LinkedList<>();
+                LinkedList<Card> stockPile =
+                        toIndex != -1 ? solitaire.getStock().get(toIndex) : new LinkedList<>();
                 LinkedList<Card> oldStockPile =
                         solitaire.getStock().stream()
                                 .filter(
@@ -129,6 +127,11 @@ public class SolitaireMove {
                                     .subList(oldStockPile.indexOf(card) + 1, oldStockPile.size())
                                     .stream()
                                     .toList());
+                }
+                if (location == Solitaire.Location.FOUNDATION) {
+                    if (!oldStockPile
+                            .subList(oldStockPile.indexOf(card) + 1, oldStockPile.size())
+                            .isEmpty()) return false;
                 }
 
                 solitaire.getStock().stream()
@@ -153,6 +156,7 @@ public class SolitaireMove {
                 solitaire.getDeck().redrawDeck();
                 break;
         }
+        return true;
     }
 
     public void undo() {
