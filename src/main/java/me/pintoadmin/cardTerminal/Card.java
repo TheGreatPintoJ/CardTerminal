@@ -6,6 +6,7 @@ import com.googlecode.lanterna.*;
 import com.googlecode.lanterna.graphics.*;
 import java.io.*;
 import java.util.*;
+import org.w3c.dom.*;
 
 public class Card {
     private static final TextGraphics g = Main.g;
@@ -152,27 +153,23 @@ public class Card {
         g.fillRectangle(new TerminalPosition(x + 1, y + 1), new TerminalSize(7, 5), ' ');
 
         for (int i = 1; i < 8; i++) {
-            {
-                TextCharacter replaced = screen.getBackCharacter(x + i, y);
-                if (replaced != null
-                        && (replaced.getCharacterString().charAt(0) == '█'
-                                || replaced.getCharacterString().charAt(0) == '▄')) {
-                    g.setCharacter(
-                            x + i,
-                            y,
-                            TextCharacter.fromCharacter(
-                                    '▄', TextColor.ANSI.WHITE, BLACK, SGR.REVERSE)[0]);
-                } else g.setCharacter(x + i, y, '─');
-            }
-            {
-                TextCharacter replaced = screen.getBackCharacter(x + i, y + 6);
-                if (replaced != null && replaced.getCharacterString().charAt(0) == '█') {
-                    g.setCharacter(
-                            x + i,
-                            y + 6,
-                            TextCharacter.fromCharacter('▄', TextColor.ANSI.WHITE, BLACK)[0]);
-                } else g.setCharacter(x + i, y + 6, '─');
-            }
+            if (getOS() == OS.WINDOWS)
+                setBoxChar(
+                        x + i,
+                        y,
+                        List.of('█', '▄'),
+                        TextCharacter.fromCharacter(
+                                '▄', TextColor.ANSI.DEFAULT, BLACK, SGR.REVERSE)[0],
+                        TextCharacter.fromCharacter('─')[0]);
+            else g.setCharacter(x + i, y, '─');
+            if (getOS() == OS.WINDOWS)
+                setBoxChar(
+                        x + i,
+                        y + 6,
+                        List.of('█'),
+                        TextCharacter.fromCharacter('▄', color, BLACK)[0],
+                        TextCharacter.fromCharacter('─')[0]);
+            else g.setCharacter(x + i, y + 6, '─');
         }
         g.drawLine(x, y + 1, x, y + 5, '│');
         g.drawLine(x + 8, y + 1, x + 8, y + 5, '│');
@@ -184,11 +181,35 @@ public class Card {
             g.setCharacter(x, y + 6, '╰');
             g.setCharacter(x + 8, y + 6, '╯');
         } else {
-            g.setCharacter(x, y, '┌');
-            g.setCharacter(x + 8, y, '┐');
-            g.setCharacter(x, y + 6, '└');
-            g.setCharacter(x + 8, y + 6, '┘');
+            setBoxChar(x, y, List.of('│', '├'), '├', '┌', color);
+            setBoxChar(x + 8, y, List.of('│', '┤'), '┤', '┐', color);
+            setBoxChar(x, y + 6, List.of('│', '├'), '├', '└', color);
+            setBoxChar(x + 8, y + 6, List.of('│', '┤'), '┤', '┘', color);
         }
+    }
+
+    private static void setBoxChar(
+            int x, int y, List<Character> replaceOptions, TextCharacter ifSo, TextCharacter ifNot) {
+        TextCharacter character = screen.getBackCharacter(x, y);
+        if (character == null) character = screen.getFrontCharacter(x, y);
+        if (character == null) g.setCharacter(x, y, ifNot);
+        else {
+            char c = character.getCharacterString().charAt(0);
+
+            if (replaceOptions.contains(c)) g.setCharacter(x, y, ifSo);
+            else g.setCharacter(x, y, ifNot);
+        }
+    }
+
+    private static void setBoxChar(
+            int x, int y, List<Character> replaceOptions, char ifSo, char ifNot, TextColor color) {
+        g.setForegroundColor(color);
+        setBoxChar(
+                x,
+                y,
+                replaceOptions,
+                TextCharacter.fromCharacter(ifSo)[0],
+                TextCharacter.fromCharacter(ifNot)[0]);
     }
 
     private void drawCard(int x, int y, Rank rank, Suit suit) throws IOException {
@@ -230,8 +251,7 @@ public class Card {
     }
 
     public void flip() {
-        faceup = !faceup;
-        draw(x, y, !faceup);
+        flip(!faceup);
     }
 
     public void setTextColor(TextColor color) {
