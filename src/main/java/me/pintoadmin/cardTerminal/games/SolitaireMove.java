@@ -106,7 +106,7 @@ public class SolitaireMove {
                                                                                 != toIndex)
                                                 .toList()
                                                 .getFirst());
-                LinkedList<Card> stockPile = solitaire.getStock().get(toIndex);
+                LinkedList<Card> stockPile = toIndex != -1 ? solitaire.getStock().get(toIndex) : new LinkedList<>();
                 LinkedList<Card> oldStockPile =
                         solitaire.getStock().stream()
                                 .filter(
