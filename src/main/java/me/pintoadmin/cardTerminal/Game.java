@@ -12,5 +12,5 @@ public abstract class Game {
 
     public abstract void drawCard(boolean logged);
 
-    public abstract void handleInput(KeyStroke keyStroke) throws IOException;
+    public abstract void handleInput(KeyStroke keyStroke) throws Exception;
 }

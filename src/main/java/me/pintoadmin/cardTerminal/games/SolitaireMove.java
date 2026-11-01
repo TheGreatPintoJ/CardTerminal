@@ -46,7 +46,7 @@ public class SolitaireMove {
         } else if (type == Type.SHUFFLE) {
             solitaire.getDeck().clearDiscard();
             solitaire.getDeck().setAllCards(shuffled);
-            solitaire.getDeck().setNextShuffleIndex(shuffleIndex + 1);
+            //            solitaire.getDeck().setNextShuffleIndex(shuffleIndex + 1);
             solitaire.setNextShuffle(false);
             return true;
         } else if (type == Type.EXHAUST) {
@@ -192,7 +192,7 @@ public class SolitaireMove {
         } else if (type == Type.SHUFFLE) {
             // Set deck to old shuffle
             oldDiscard.forEach(c -> solitaire.getDeck().discardCard(c));
-            solitaire.getDeck().setNextShuffleIndex(shuffleIndex);
+            //            solitaire.getDeck().setNextShuffleIndex(shuffleIndex);
             solitaire.setNextShuffle(true);
         } else if (type == Type.EXHAUST) {
             if (solitaire.getDeck().getTopDiscard() != card) return;
