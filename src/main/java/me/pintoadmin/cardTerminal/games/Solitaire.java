@@ -180,6 +180,9 @@ public class Solitaire extends Game {
     }
 
     void drawGame() {
+        g.setBackgroundColor(BLACK);
+        g.setForegroundColor(TextColor.ANSI.WHITE);
+        drawTextRight(WIDTH.get() - 1, HEIGHT.get() - 1, "SEED: " + SEED);
         deck.drawDeck(deckX.get(), deckY.get());
         deck.drawDiscard(deckX.get() + 9, deckY.get());
 
