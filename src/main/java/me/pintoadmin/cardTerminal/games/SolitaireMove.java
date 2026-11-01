@@ -171,6 +171,9 @@ public class SolitaireMove {
                         solitaire.getStock().get(fromIndex).getLast().flip(false);
                     solitaire.getStock().get(fromIndex).add(card);
                     break;
+                case DISCARD:
+                    solitaire.getDeck().discardCard(card);
+                    break;
             }
             switch (location) {
                 case STOCK:
