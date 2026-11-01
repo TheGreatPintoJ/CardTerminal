@@ -1,11 +1,14 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
     id 'java'
     id("com.gradleup.shadow") version "9.3.1"
     id("com.diffplug.spotless") version "6.25.0"
+    id 'org.panteleyev.jpackageplugin' version '2.1.0'
 }
 
 group = 'me.pintoadmin'
-version = 'DEV'
+version = '1.0'
 
 repositories {
     mavenCentral()
@@ -41,10 +44,55 @@ spotless {
     }
 }
 
-tasks.named('shadowJar', com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
+tasks.named('shadowJar', ShadowJar) {
     relocate 'com.googlecode.lanterna', 'me.pintoadmin.lanterna'
     archiveClassifier.set('')
 }
 
 compileJava.dependsOn spotlessApply
 build.dependsOn shadowJar
+
+def jpackageInputDir = layout.buildDirectory.dir("jpackage-input")
+def osName = System.getProperty("os.name").toLowerCase()
+
+tasks.register('stageJpackageInput', Sync) {
+    dependsOn tasks.named('jar'), tasks.named('shadowJar')
+    from(tasks.named('shadowJar', ShadowJar).flatMap { it.archiveFile })
+    into jpackageInputDir
+}
+
+tasks.named('jpackage') {
+    dependsOn tasks.named('build'), tasks.named('stageJpackageInput')
+
+    appName = "CardTerminal"
+    appVersion = "${version}"
+    description = "A card table, but terminal..."
+    vendor = "PintoAdmin"
+    destination = layout.buildDirectory.dir("jpackage")
+
+    input = jpackageInputDir
+    mainClass = 'me.pintoadmin.cardTerminal.Main'
+    mainJar = "CardTerminal-${version}.jar"
+
+//    dependsOn installDist
+
+    // DYNAMIC SPECIFICATION BASED ON RUNTIME ENVIRONMENT
+    if (osName.contains("windows")) {
+        type = org.panteleyev.jpackage.ImageType.MSI // Outputs .msi
+        windows {
+            winConsole = false
+            winMenu = true
+            winShortcut = true
+        }
+    } else if (osName.contains("mac")) {
+        type = org.panteleyev.jpackage.ImageType.DMG // Outputs .dmg
+        mac {
+            macPackageName = "CardTerminal"
+        }
+    } else if (osName.contains("linux")) {
+        type = org.panteleyev.jpackage.ImageType.DEB // Outputs .deb
+        linux {
+            linuxShortcut = true
+        }
+    }
+}
