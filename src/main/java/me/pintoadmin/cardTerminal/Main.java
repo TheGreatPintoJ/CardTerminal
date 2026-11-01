@@ -11,6 +11,7 @@ import com.googlecode.lanterna.terminal.swing.*;
 import java.awt.event.*;
 import java.io.*;
 import me.pintoadmin.cardTerminal.games.*;
+import me.pintoadmin.cardTerminal.screens.*;
 
 // Unicode suits:♠ ♣ ♥ ♦
 // Empty versions: ♤ ♧ ♡ ♢
@@ -100,6 +101,9 @@ public class Main {
             screen.clear();
             g.fill(' ');
 
+            new Startup();
+            Thread.sleep(2000);
+
             currentGame = new Solitaire(); // Dev seed: 4752746607772290783L
             //            currentGame.redraw();
             screen.refresh(Screen.RefreshType.COMPLETE);
@@ -175,7 +179,7 @@ public class Main {
                             }
                         });
             }
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
     }
