@@ -135,14 +135,22 @@ public class Main {
                                             System.exit(0);
                                             break;
                                         } else {
-                                            if (keystroke.getKeyType() == KeyType.Character
-                                                    && keystroke.getCharacter() == 'r') {
-                                                screen.clear();
-                                                currentGame = new Solitaire(currentGame.getSeed());
-                                                screen.refresh(Screen.RefreshType.COMPLETE);
-                                                continue;
+                                            try {
+                                                currentGame.handleInput(keystroke);
+                                            } catch (Exception e) {
+                                                if (e.getMessage() == null)
+                                                    throw new RuntimeException(e);
+                                                if (e.getMessage().equals("reset")) {
+                                                    screen.clear();
+                                                    currentGame =
+                                                            new Solitaire(currentGame.getSeed());
+                                                    screen.refresh(Screen.RefreshType.COMPLETE);
+                                                } else if (e.getMessage().equals("newseed")) {
+                                                    screen.clear();
+                                                    currentGame = new Solitaire();
+                                                    screen.refresh(Screen.RefreshType.COMPLETE);
+                                                } else throw new RuntimeException(e);
                                             }
-                                            currentGame.handleInput(keystroke);
                                         }
                                     } catch (IOException e) {
                                         System.err.println(

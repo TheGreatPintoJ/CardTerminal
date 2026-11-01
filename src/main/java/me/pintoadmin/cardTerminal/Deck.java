@@ -82,6 +82,13 @@ public class Deck {
                 .getFirst();
     }
 
+    public List<Card> restartDiscard() {
+        List<Card> list = List.copyOf(cardsInDiscard);
+        cardsInDeck.addAll(cardsInDiscard);
+        cardsInDiscard.clear();
+        return list;
+    }
+
     public List<Card> shuffleDiscard() {
         List<Card> list = List.copyOf(cardsInDiscard);
         cardsInDeck.addAll(cardsInDiscard);

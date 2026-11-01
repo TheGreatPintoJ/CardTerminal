@@ -116,8 +116,8 @@ public class Solitaire extends Game {
                             Location.DECK,
                             -1,
                             SolitaireMove.Type.SHUFFLE);
-            move.setShuffleIndex(deck.getNextShuffleIndex());
-            move.setOldDiscard(deck.shuffleDiscard());
+            //            move.setShuffleIndex(deck.getNextShuffleIndex());
+            move.setOldDiscard(deck.restartDiscard());
             move.setShuffled(deck.getAllCards());
             moves.add(move);
 
@@ -237,12 +237,13 @@ public class Solitaire extends Game {
     Tab: select discarded card
     1,2,3,4,5,6,7: select column
         1-9,0: select row (card)
+    qwer: select foundation
     -: deselect all
     [/]: undo/redo
      */
     @Override
-    public void handleInput(KeyStroke keyStroke) throws IOException {
-        if (checkHandleWin()) return;
+    public void handleInput(KeyStroke keyStroke) throws Exception {
+        // if (checkHandleWin()) return;
         if (keyStroke.getKeyType() == KeyType.Character) {
             char key = keyStroke.getCharacter();
             try {
@@ -290,26 +291,36 @@ public class Solitaire extends Game {
                     // Redo
                     redo();
                     break;
+                case 'q':
+                    // Foundation 1
+                    if (selectedCard == null) selectCard(Location.FOUNDATION, 0);
+                    else moveSelected(Location.FOUNDATION, -1);
+                    break;
+                case 'w':
+                    // Foundation 2
+                    if (selectedCard == null) selectCard(Location.FOUNDATION, 1);
+                    else moveSelected(Location.FOUNDATION, -1);
+                    break;
+                case 'e':
+                    // Foundation 3
+                    if (selectedCard == null) selectCard(Location.FOUNDATION, 2);
+                    else moveSelected(Location.FOUNDATION, -1);
+                    break;
+                case 'r':
+                    // Foundation 4
+                    if (selectedCard == null) selectCard(Location.FOUNDATION, 3);
+                    else moveSelected(Location.FOUNDATION, -1);
+                    break;
             }
         } else if (keyStroke.getKeyType() == KeyType.Tab) {
             // Top discard
             if (deck.getTopDiscard() != null) selectCard(Location.DISCARD, 0);
-        } else if (keyStroke.getKeyType() == KeyType.F1) {
-            // Foundation 1
-            if (selectedCard == null) selectCard(Location.FOUNDATION, 0);
-            else moveSelected(Location.FOUNDATION, -1);
-        } else if (keyStroke.getKeyType() == KeyType.F2) {
-            // Foundation 2
-            if (selectedCard == null) selectCard(Location.FOUNDATION, 1);
-            else moveSelected(Location.FOUNDATION, -1);
-        } else if (keyStroke.getKeyType() == KeyType.F3) {
-            // Foundation 3
-            if (selectedCard == null) selectCard(Location.FOUNDATION, 2);
-            else moveSelected(Location.FOUNDATION, -1);
-        } else if (keyStroke.getKeyType() == KeyType.F4) {
-            // Foundation 4
-            if (selectedCard == null) selectCard(Location.FOUNDATION, 3);
-            else moveSelected(Location.FOUNDATION, -1);
+        } else if (keyStroke.getKeyType() == KeyType.F12) {
+            // Reset game
+            throw new Exception("reset");
+        } else if (keyStroke.getKeyType() == KeyType.F10) {
+            // New game
+            throw new Exception("newseed");
         }
         drawGame();
         screen.refresh(Screen.RefreshType.DELTA);
