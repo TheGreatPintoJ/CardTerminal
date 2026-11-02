@@ -1,6 +1,10 @@
 # CardTerminal
 _like a card table, but terminal... get it??_
 
+## Description
+This project will eventually be expanded to many different card games.
+
+## How it's built
 __Built with Lanterna, packaged with Jpackage__
 
 
@@ -21,3 +25,9 @@ __Built with Lanterna, packaged with Jpackage__
 
 ## Bugs
 Create an issue on this project's repository
+
+## Roadmap
+- Gaps
+- Freecell
+- Hearts
+- Spades
