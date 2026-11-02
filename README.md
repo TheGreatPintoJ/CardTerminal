@@ -36,3 +36,4 @@ Create an issue on this project's repository
 - Freecell
 - Hearts
 - Spades
+- Gin Rummy

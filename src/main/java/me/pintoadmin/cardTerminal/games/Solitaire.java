@@ -71,6 +71,22 @@ public class Solitaire extends Game {
         drawGame();
     }
 
+    private Solitaire(long SEED, LinkedList<SolitaireMove> moves) {
+        this(SEED);
+
+        for (SolitaireMove move : new LinkedList<>(moves)) {
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException ignored) {
+            }
+            move.execute();
+            try {
+                screen.refresh(Screen.RefreshType.DELTA);
+            } catch (IOException ignored) {
+            }
+        }
+    }
+
     @Override
     public long getSeed() {
         return SEED;
@@ -269,7 +285,7 @@ public class Solitaire extends Game {
                         List<Card> faceupCards =
                                 stock.get(selectedColumn).stream().filter(Card::isFaceup).toList();
                         if (intKey == -1) {
-                            selectedCard = faceupCards.getLast();
+                            if (!faceupCards.isEmpty()) selectedCard = faceupCards.getLast();
                         } else selectedCard = faceupCards.get(intKey);
                     }
                 }
@@ -377,6 +393,15 @@ public class Solitaire extends Game {
             terminal.bell();
             g.disableModifiers(SGR.BLINK);
             screen.refresh(Screen.RefreshType.COMPLETE);
+
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException ignored) {
+            }
+
+            screen.clear();
+            new Solitaire(SEED, moves);
+
             return true;
         }
         return false;

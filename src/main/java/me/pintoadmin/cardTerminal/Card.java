@@ -169,6 +169,8 @@ public class Card {
             g.setCharacter(x + 8, y + 6, '┘');
         }
 
+        g.enableModifiers(SGR.BOLD);
+
         // Draw card rank
         if (rank.toChars().length() == 1) {
             g.setCharacter(x + 1, y + 1, rank.toChars().charAt(0));
@@ -185,6 +187,8 @@ public class Card {
         g.setCharacter(x + 1, y + 2, cardSuit);
         g.setCharacter(x + 4, y + 3, cardSuit);
         g.setCharacter(x + 7, y + 4, cardSuit);
+
+        g.disableModifiers(SGR.BOLD);
     }
 
     private void drawCardBack(int x, int y) throws IOException {
