@@ -103,7 +103,9 @@ tasks.register('copyJpackageArtifact', Copy) {
     into layout.buildDirectory.dir("libs")
 
     if (osName.contains("windows")) {
-        from(jpackageOutputDir.map { it.file("CardTerminal/CardTerminal.exe") })
+        from(jpackageOutputDir){
+            include("*.msi")
+        }
     } else if (osName.contains("mac")) {
         from(jpackageOutputDir) {
             include("*.dmg")
