@@ -13,6 +13,8 @@ MSI for windows, DMG for mac, DEB for linux, and JAR if you have JRE installed.
 
 # Games
 ## Solitaire
+![solitaire.png](img/solitaire.png)
+
 ### Keybinds
 
 - 1-9: Select column, or if column is already selected, select the card (vertically)
