@@ -53,6 +53,7 @@ compileJava.dependsOn spotlessApply
 build.dependsOn shadowJar
 
 def jpackageInputDir = layout.buildDirectory.dir("jpackage-input")
+def jpackageOutputDir = layout.buildDirectory.dir("jpackage")
 def osName = System.getProperty("os.name").toLowerCase()
 
 tasks.register('stageJpackageInput', Sync) {
@@ -68,7 +69,7 @@ tasks.named('jpackage') {
     appVersion = "${version}"
     description = "A card table, but terminal..."
     vendor = "PintoAdmin"
-    destination = layout.buildDirectory.dir("jpackage")
+    destination = jpackageOutputDir
 
     input = jpackageInputDir
     mainClass = 'me.pintoadmin.cardTerminal.Main'
@@ -78,12 +79,7 @@ tasks.named('jpackage') {
 
     // DYNAMIC SPECIFICATION BASED ON RUNTIME ENVIRONMENT
     if (osName.contains("windows")) {
-        type = org.panteleyev.jpackage.ImageType.MSI // Outputs .msi
-        windows {
-            winConsole = false
-            winMenu = true
-            winShortcut = true
-        }
+        type = org.panteleyev.jpackage.ImageType.APP_IMAGE
     } else if (osName.contains("mac")) {
         type = org.panteleyev.jpackage.ImageType.DMG // Outputs .dmg
         mac {
@@ -95,4 +91,25 @@ tasks.named('jpackage') {
             linuxShortcut = true
         }
     }
+}
+
+tasks.register('copyJpackageArtifact', Copy) {
+    dependsOn tasks.named('jpackage')
+    into layout.buildDirectory.dir("libs")
+
+    if (osName.contains("windows")) {
+        from(jpackageOutputDir.map { it.file("CardTerminal/CardTerminal.exe") })
+    } else if (osName.contains("mac")) {
+        from(jpackageOutputDir) {
+            include("*.dmg")
+        }
+    } else if (osName.contains("linux")) {
+        from(jpackageOutputDir) {
+            include("*.deb")
+        }
+    }
+}
+
+tasks.named('jpackage') {
+    finalizedBy tasks.named('copyJpackageArtifact')
 }
