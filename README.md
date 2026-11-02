@@ -7,6 +7,9 @@ This project will eventually be expanded to many different card games.
 ## How it's built
 __Built with Lanterna, packaged with Jpackage__
 
+## Running
+Go to releases, download and execute the suitable file for your operating system.
+MSI for windows, DMG for mac, DEB for linux, and JAR if you have JRE installed.
 
 # Games
 ## Solitaire
