@@ -79,7 +79,12 @@ tasks.named('jpackage') {
 
     // DYNAMIC SPECIFICATION BASED ON RUNTIME ENVIRONMENT
     if (osName.contains("windows")) {
-        type = org.panteleyev.jpackage.ImageType.APP_IMAGE
+        type = org.panteleyev.jpackage.ImageType.MSI // Outputs .msi
+        windows {
+            winConsole = false
+            winMenu = true
+            winShortcut = true
+        }
     } else if (osName.contains("mac")) {
         type = org.panteleyev.jpackage.ImageType.DMG // Outputs .dmg
         mac {
