@@ -119,7 +119,10 @@ public class Main {
             Thread keyHandlers = getKeyHandlers(resizeHandler);
             Thread.sleep(2000);
 
-            currentScreen = new Solitaire(5922791531032266961L); // Dev seed: 5922791531032266961L
+            currentScreen = new MainMenu();
+
+            //            currentScreen = new Solitaire(5922791531032266961L); // Dev seed:
+            // 5922791531032266961L
 
             screen.refresh(Screen.RefreshType.COMPLETE);
 
@@ -243,6 +246,26 @@ public class Main {
         x -= text.length();
         for (char c : text.toCharArray()) {
             g.setCharacter(x++, y, c);
+        }
+    }
+
+    public static void drawRectangle(int startX, int startY, int endX, int endY) {
+        g.drawLine(startX, startY, endX, startY, '─');
+        g.drawLine(startX, endY, endX, endY, '─');
+        g.drawLine(startX, startY, startX, endY, '│');
+        g.drawLine(endX, startY, endX, endY, '│');
+
+        // Switch corner characters to square for windows (curved corner don't display correctly)
+        if (getOS() != OS.WINDOWS) {
+            g.setCharacter(startX, startY, '╭');
+            g.setCharacter(endX, startY, '╮');
+            g.setCharacter(startX, endY, '╰');
+            g.setCharacter(endX, endY, '╯');
+        } else {
+            g.setCharacter(startX, startY, '┌');
+            g.setCharacter(endX, startY, '┐');
+            g.setCharacter(startX, endY, '└');
+            g.setCharacter(endX, endY, '┘');
         }
     }
 
