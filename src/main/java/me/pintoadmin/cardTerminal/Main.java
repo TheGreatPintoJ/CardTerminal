@@ -158,30 +158,29 @@ public class Main {
                                 try {
                                     KeyStroke keystroke = screen.pollInput();
                                     if (keystroke == null) continue;
-                                    if (keystroke.getKeyType() == KeyType.Escape) {
-                                        screen.close();
-                                        Thread.currentThread().interrupt();
-                                        resizeHandler.interrupt();
-                                        System.exit(0);
-                                        break;
-                                    } else {
-                                        try {
-                                            currentScreen.handleInput(keystroke);
-                                        } catch (Exception e) {
-                                            if (e.getMessage() == null)
-                                                throw new RuntimeException(e);
-                                            if (e.getMessage().equals("reset")) {
-                                                screen.clear();
-                                                if (currentGame.get() != null)
-                                                    currentScreen = currentGame.get().restart();
-                                                screen.refresh(Screen.RefreshType.COMPLETE);
-                                            } else if (e.getMessage().equals("newseed")) {
-                                                screen.clear();
-                                                if (currentGame.get() != null)
-                                                    currentScreen = currentGame.get().newGame();
-                                                screen.refresh(Screen.RefreshType.COMPLETE);
-                                            } else throw new RuntimeException(e);
+                                    try {
+                                        currentScreen.handleInput(keystroke);
+                                        if (keystroke.getKeyType() == KeyType.Escape) {
+                                            screen.close();
+                                            Thread.currentThread().interrupt();
+                                            resizeHandler.interrupt();
+                                            System.exit(0);
+                                            break;
                                         }
+                                    } catch (Exception e) {
+                                        if (e.getMessage() == null) throw new RuntimeException(e);
+                                        if (e.getMessage().equals("override")) {
+                                        } else if (e.getMessage().equals("reset")) {
+                                            screen.clear();
+                                            if (currentGame.get() != null)
+                                                currentScreen = currentGame.get().restart();
+                                            screen.refresh(Screen.RefreshType.COMPLETE);
+                                        } else if (e.getMessage().equals("newseed")) {
+                                            screen.clear();
+                                            if (currentGame.get() != null)
+                                                currentScreen = currentGame.get().newGame();
+                                            screen.refresh(Screen.RefreshType.COMPLETE);
+                                        } else throw new RuntimeException(e);
                                     }
                                 } catch (IOException e) {
                                     System.err.println(

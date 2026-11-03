@@ -10,6 +10,7 @@ import java.io.*;
 import java.util.*;
 import java.util.function.*;
 import me.pintoadmin.cardTerminal.*;
+import me.pintoadmin.cardTerminal.screens.MainMenu;
 
 public class Solitaire extends Game {
     private final long SEED;
@@ -311,7 +312,10 @@ public class Solitaire extends Game {
     @Override
     public void handleInput(KeyStroke keyStroke) throws Exception {
         // if (checkHandleWin()) return;
-        if (keyStroke.getKeyType() == KeyType.Character) {
+        if (keyStroke.getKeyType() == KeyType.Escape) {
+            Main.getInstance().setCurrentScreen(new MainMenu());
+            throw new Exception("override");
+        } else if (keyStroke.getKeyType() == KeyType.Character) {
             char key = keyStroke.getCharacter();
             try {
                 if (key == '-') {

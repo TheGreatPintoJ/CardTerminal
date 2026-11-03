@@ -13,6 +13,7 @@ import java.util.Random;
 import java.util.function.Supplier;
 import me.pintoadmin.cardTerminal.Main;
 import me.pintoadmin.cardTerminal.screens.GameOptions;
+import me.pintoadmin.cardTerminal.screens.MainMenu;
 
 public class SolitaireOptions extends GameOptions {
     private final Screen screen = Main.screen;
@@ -111,7 +112,10 @@ public class SolitaireOptions extends GameOptions {
 
     @Override
     public void handleInput(KeyStroke keyStroke) throws Exception {
-        if (keyStroke.getKeyType().name().contains("Arrow")) {
+        if (keyStroke.getKeyType() == KeyType.Escape) {
+            Main.getInstance().setCurrentScreen(new MainMenu());
+            throw new Exception("override");
+        } else if (keyStroke.getKeyType().name().contains("Arrow")) {
             List<Option> optionValues = Arrays.stream(Option.values()).toList();
             List<GameType> typeValues = Arrays.stream(GameType.values()).toList();
             try {
