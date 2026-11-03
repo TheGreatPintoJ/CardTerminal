@@ -236,6 +236,7 @@ public class Solitaire extends Game {
     }
 
     void drawGame() {
+        Arrays.stream(SGR.values()).toList().forEach(g::disableModifiers);
         g.setBackgroundColor(BLACK);
         g.setForegroundColor(TextColor.ANSI.WHITE);
         drawTextRight(WIDTH.get() - 1, HEIGHT.get() - 1, "SEED: " + SEED);

@@ -9,6 +9,7 @@ import java.io.*;
 import java.util.*;
 import java.util.function.*;
 import me.pintoadmin.cardTerminal.*;
+import me.pintoadmin.cardTerminal.games.SolitaireOptions;
 
 public class MainMenu extends CustomScreen {
     private final Screen screen = Main.screen;
@@ -17,7 +18,7 @@ public class MainMenu extends CustomScreen {
     private final Supplier<Integer> W = () -> g.getSize().getColumns();
     private final Supplier<Integer> H = () -> g.getSize().getRows();
 
-    private final Map<String, BiConsumer<Integer, Integer>> allGames = new LinkedHashMap<>();
+    private final Map<GameOptions, BiConsumer<Integer, Integer>> allGames = new LinkedHashMap<>();
 
     private final int gridW = 4;
     private final int gridH = 3;
@@ -26,8 +27,7 @@ public class MainMenu extends CustomScreen {
     private int selectedGame = 0;
 
     public MainMenu() {
-        allGames.put(
-                "Solitaire",
+        BiConsumer<Integer, Integer> s =
                 (x, y) -> {
                     // Solitaire
                     int cw = 4, ch = 3; // card with/height
@@ -43,28 +43,29 @@ public class MainMenu extends CustomScreen {
                             Main.drawRectangle(sX, sY, eX, eY);
                         }
                     }
-                });
-        allGames.put("Solitaire2", allGames.get("Solitaire"));
-        allGames.put("Solitaire3", allGames.get("Solitaire"));
-        allGames.put("Solitaire4", allGames.get("Solitaire"));
-        allGames.put("Solitaire5", allGames.get("Solitaire"));
-        allGames.put("Solitaire6", allGames.get("Solitaire"));
-        allGames.put("Solitaire7", allGames.get("Solitaire"));
-        allGames.put("Solitaire8", allGames.get("Solitaire"));
-        allGames.put("Solitaire9", allGames.get("Solitaire"));
-        allGames.put("Solitaire10", allGames.get("Solitaire"));
-        allGames.put("Solitaire11", allGames.get("Solitaire"));
-        allGames.put("Solitaire12", allGames.get("Solitaire"));
+                };
+        allGames.put(new SolitaireOptions("Solitaire"), s);
+        allGames.put(new SolitaireOptions("Solitaire2"), s);
+        allGames.put(new SolitaireOptions("Solitaire3"), s);
+        allGames.put(new SolitaireOptions("Solitaire4"), s);
+        allGames.put(new SolitaireOptions("Solitaire5"), s);
+        allGames.put(new SolitaireOptions("Solitaire6"), s);
+        allGames.put(new SolitaireOptions("Solitaire7"), s);
+        allGames.put(new SolitaireOptions("Solitaire8"), s);
+        allGames.put(new SolitaireOptions("Solitaire9"), s);
+        allGames.put(new SolitaireOptions("Solitaire10"), s);
+        allGames.put(new SolitaireOptions("Solitaire11"), s);
+        allGames.put(new SolitaireOptions("Solitaire12"), s);
 
         resize();
     }
 
     private void build() throws IOException {
         screen.clear();
+        Arrays.stream(SGR.values()).toList().forEach(g::disableModifiers);
         g.setBackgroundColor(Main.BLACK);
         g.setForegroundColor(TextColor.ANSI.WHITE);
         g.enableModifiers(SGR.BOLD);
-        g.disableModifiers(SGR.REVERSE);
 
         int W = this.W.get(), H = this.H.get();
 
@@ -73,12 +74,13 @@ public class MainMenu extends CustomScreen {
 
         if (allGames.size() > totalSpaces) Main.drawText(W / 2, H - 1, " < --- > ");
 
-        for (Map.Entry<String, BiConsumer<Integer, Integer>> game : allGames.entrySet()) {
+        for (Map.Entry<GameOptions, BiConsumer<Integer, Integer>> game : allGames.entrySet()) {
             g.disableModifiers(SGR.REVERSE);
             int i = allGames.keySet().stream().toList().indexOf(game.getKey());
             // padding + (index mod width * fullWidth / width)
             int x = 1 + (i % gridW * (W / gridW));
             int y = 1 + (i / gridW * H / gridH);
+            if (game.getValue() == null) continue;
             game.getValue().accept(x, y);
 
             if (i == selectedGame) g.enableModifiers(SGR.REVERSE);
@@ -87,7 +89,7 @@ public class MainMenu extends CustomScreen {
             Main.drawText(
                     (x + (W - 2) / gridW / 2 + 1),
                     y + (H - 2) / gridH - 1,
-                    " " + game.getKey() + " ");
+                    " " + game.getKey().getName() + " ");
         }
 
         g.disableModifiers(SGR.BOLD);
@@ -121,6 +123,9 @@ public class MainMenu extends CustomScreen {
                     break;
             }
             build();
+        } else if (keyStroke.getKeyType() == KeyType.Enter) {
+            GameOptions next = allGames.keySet().stream().toList().get(selectedGame);
+            Main.getInstance().setCurrentScreen(next);
         }
     }
 }

@@ -68,6 +68,10 @@ w = 9, h = 7
   ╰───────╯  ╰───────╯  ╰───────╯
  */
 public class Main {
+    private static volatile Main instance;
+
+    public Main() {}
+
     public static Terminal terminal;
     public static Screen screen;
     public static TextGraphics g;
@@ -209,6 +213,10 @@ public class Main {
         return resizeHandler;
     }
 
+    public void setCurrentScreen(CustomScreen screen) {
+        currentScreen = screen;
+    }
+
     public static Card.Rank intToRank(Integer i) {
         return switch (i) {
             case 1 -> ACE;
@@ -280,5 +288,18 @@ public class Main {
         }
 
         return type;
+    }
+
+    public static Main getInstance() {
+        // First check (no locking overhead)
+        if (instance == null) {
+            synchronized (Main.class) {
+                // Second check (inside synchronized block)
+                if (instance == null) {
+                    instance = new Main();
+                }
+            }
+        }
+        return instance;
     }
 }
