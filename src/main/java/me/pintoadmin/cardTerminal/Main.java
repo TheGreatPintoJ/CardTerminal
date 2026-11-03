@@ -94,6 +94,7 @@ public class Main {
     }
 
     void main(String[] args) {
+        instance = this;
         try {
             terminal = new DefaultTerminalFactory().createTerminal();
             screen = new TerminalScreen(terminal);

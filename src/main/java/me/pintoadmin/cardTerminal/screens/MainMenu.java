@@ -125,6 +125,7 @@ public class MainMenu extends CustomScreen {
             build();
         } else if (keyStroke.getKeyType() == KeyType.Enter) {
             GameOptions next = allGames.keySet().stream().toList().get(selectedGame);
+            next.resize();
             Main.getInstance().setCurrentScreen(next);
         }
     }

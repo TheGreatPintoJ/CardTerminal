@@ -57,6 +57,9 @@ public class Solitaire extends Game {
                                         : selectedCard == deck.getTopDiscard()
                                                 ? Location.DISCARD
                                                 : Location.FOUNDATION;
+
+        screen.clear();
+
         System.out.println("Solitaire game seed: " + SEED);
         for (int column = 0; column < stockWidth; column++) {
             LinkedList<Card> thisColumn = new LinkedList<>();
@@ -69,6 +72,10 @@ public class Solitaire extends Game {
         }
 
         drawGame();
+        try {
+            screen.refresh(Screen.RefreshType.AUTOMATIC);
+        } catch (IOException ignored) {
+        }
     }
 
     private Solitaire(long SEED, LinkedList<SolitaireMove> moves) {
