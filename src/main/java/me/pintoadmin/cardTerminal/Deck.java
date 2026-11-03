@@ -36,16 +36,9 @@ public class Deck {
         Collections.shuffle(cardsInDeck, random);
     }
 
-    //    public Card dealCard() {
-    //        if (cardsInDeck.isEmpty()) return null;
-    //        Card randomCard = cardsInDeck.get(random.nextInt(cardsInDeck.size()));
-    //        if (!cardsInDeck.remove(randomCard)) return drawCard();
-    //        return randomCard;
-    //    } // dev seed dealing
-
     public Card drawCard() {
         if (cardsInDeck.isEmpty()) return null;
-        Card card = cardsInDeck.getLast();
+        Card card = cardsInDeck.getFirst();
         if (!cardsInDeck.remove(card)) return drawCard();
         return card;
     }

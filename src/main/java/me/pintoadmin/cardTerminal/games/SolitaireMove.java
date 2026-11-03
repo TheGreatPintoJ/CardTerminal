@@ -206,9 +206,37 @@ public class SolitaireMove {
         return uuid;
     }
 
+    public Card getCard() {
+        return card;
+    }
+
+    Solitaire.Location getFromLocation() {
+        return fromLocation;
+    }
+
+    Solitaire.Location getToLocation() {
+        return location;
+    }
+
+    public int getToIndex() {
+        return toIndex;
+    }
+
+    public int getFromIndex() {
+        return fromIndex;
+    }
+
+    Type getType() {
+        return type;
+    }
+
     public void setOldDiscard(List<Card> oldDiscard) {
         this.oldDiscard.clear();
         this.oldDiscard.addAll(oldDiscard);
+    }
+
+    public List<Card> getOldDiscard() {
+        return oldDiscard;
     }
 
     public void setShuffled(List<Card> shuffled) {
@@ -216,7 +244,15 @@ public class SolitaireMove {
         this.shuffled.addAll(shuffled);
     }
 
+    public List<Card> getShuffled() {
+        return shuffled;
+    }
+
     public void setShuffleIndex(long index) {
         shuffleIndex = index;
+    }
+
+    public long getShuffleIndex() {
+        return shuffleIndex;
     }
 }

@@ -73,10 +73,40 @@ public class Solitaire extends Game {
 
     private Solitaire(long SEED, LinkedList<SolitaireMove> moves) {
         this(SEED);
+        try {
+            screen.refresh(Screen.RefreshType.COMPLETE);
+        } catch (IOException ignored) {
+        }
 
-        for (SolitaireMove move : new LinkedList<>(moves)) {
+        LinkedList<SolitaireMove> newMoves = new LinkedList<>();
+        for (SolitaireMove move : moves) {
+
+            SolitaireMove newMove =
+                    new SolitaireMove(
+                            this,
+                            move.getCard() != null
+                                    ? deck.getCard(
+                                            move.getCard().getRank(), move.getCard().getSuit())
+                                    : null,
+                            move.getFromLocation(),
+                            move.getToLocation(),
+                            move.getToIndex(),
+                            move.getType());
+            newMove.setOldDiscard(
+                    move.getOldDiscard().stream()
+                            .map(c -> deck.getCard(c.getRank(), c.getSuit()))
+                            .toList());
+            newMove.setShuffled(
+                    move.getShuffled().stream()
+                            .map(c -> deck.getCard(c.getRank(), c.getSuit()))
+                            .toList());
+            newMove.setShuffleIndex(move.getShuffleIndex());
+            newMoves.add(newMove);
+        }
+
+        for (SolitaireMove move : new LinkedList<>(newMoves)) {
             try {
-                Thread.sleep(500);
+                Thread.sleep(50);
             } catch (InterruptedException ignored) {
             }
             move.execute();

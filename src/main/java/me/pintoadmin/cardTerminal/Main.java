@@ -104,8 +104,8 @@ public class Main {
             new Startup();
             Thread.sleep(2000);
 
-            currentGame = new Solitaire(); // Dev seed: 4752746607772290783L
-            //            currentGame.redraw();
+            currentGame = new Solitaire(5922791531032266961L); // Dev seed:
+
             screen.refresh(Screen.RefreshType.COMPLETE);
 
             Thread resizeHandler =
