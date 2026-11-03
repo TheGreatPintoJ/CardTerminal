@@ -23,6 +23,8 @@ public class MainMenu extends CustomScreen {
     private final int gridH = 3;
     private final int totalSpaces = (gridW * gridH);
 
+    private int selectedGame = 0;
+
     public MainMenu() {
         allGames.put(
                 "Solitaire",
@@ -33,8 +35,6 @@ public class MainMenu extends CustomScreen {
                         int sX = 1 + x + column * cw + column;
                         int eX = sX + cw;
                         if (eX >= x + W.get() / gridW) break;
-                        if ((cw * column + 1) + cw >= (W.get() / gridW) - 4) break;
-                        System.out.println("Column " + column + " width " + W.get() + " eX " + eX);
                         for (int row = 0; row <= column; row++) {
                             int sY = 1 + y + row * ch - row * 2;
                             int eY = sY + ch;
@@ -64,6 +64,7 @@ public class MainMenu extends CustomScreen {
         g.setBackgroundColor(Main.BLACK);
         g.setForegroundColor(TextColor.ANSI.WHITE);
         g.enableModifiers(SGR.BOLD);
+        g.disableModifiers(SGR.REVERSE);
 
         int W = this.W.get(), H = this.H.get();
 
@@ -73,11 +74,15 @@ public class MainMenu extends CustomScreen {
         if (allGames.size() > totalSpaces) Main.drawText(W / 2, H - 1, " < --- > ");
 
         for (Map.Entry<String, BiConsumer<Integer, Integer>> game : allGames.entrySet()) {
+            g.disableModifiers(SGR.REVERSE);
             int i = allGames.keySet().stream().toList().indexOf(game.getKey());
             // padding + (index mod width * fullWidth / width)
             int x = 1 + (i % gridW * (W / gridW));
             int y = 1 + (i / gridW * H / gridH);
             game.getValue().accept(x, y);
+
+            if (i == selectedGame) g.enableModifiers(SGR.REVERSE);
+
             Main.drawRectangle(x, y, x + (W - 2) / gridW - 1, y + (H - 2) / gridH - 1);
             Main.drawText(
                     (x + (W - 2) / gridW / 2 + 1),
@@ -99,5 +104,23 @@ public class MainMenu extends CustomScreen {
     }
 
     @Override
-    public void handleInput(KeyStroke keyStroke) throws Exception {}
+    public void handleInput(KeyStroke keyStroke) throws Exception {
+        if (keyStroke.getKeyType().name().contains("Arrow")) {
+            switch (keyStroke.getKeyType()) {
+                case ArrowRight:
+                    if (selectedGame + 1 < totalSpaces) selectedGame++;
+                    break;
+                case ArrowLeft:
+                    if (selectedGame - 1 >= 0) selectedGame--;
+                    break;
+                case ArrowDown:
+                    if (selectedGame + gridW < totalSpaces) selectedGame += gridW;
+                    break;
+                case ArrowUp:
+                    if (selectedGame - gridW >= 0) selectedGame -= gridW;
+                    break;
+            }
+            build();
+        }
+    }
 }
