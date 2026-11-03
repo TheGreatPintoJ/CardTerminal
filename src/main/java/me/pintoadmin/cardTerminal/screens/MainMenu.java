@@ -28,12 +28,15 @@ public class MainMenu extends CustomScreen {
                 "Solitaire",
                 (x, y) -> {
                     // Solitaire
-                    for (int column = 0; column < 7; column++) {
+                    int cw = 4, ch = 3; // card with/height
+                    for (int column = 0; column < 20; column++) {
+                        int sX = 1 + x + column * cw + column;
+                        int eX = sX + cw;
+                        if (eX >= x + W.get() / gridW) break;
+                        if ((cw * column + 1) + cw >= (W.get() / gridW) - 4) break;
+                        System.out.println("Column " + column + " width " + W.get() + " eX " + eX);
                         for (int row = 0; row <= column; row++) {
-                            int cw = 4, ch = 3; // card with/height
-                            int sX = 1 + x + column * cw + column;
                             int sY = 1 + y + row * ch - row * 2;
-                            int eX = sX + cw;
                             int eY = sY + ch;
                             g.fillRectangle(
                                     new TerminalPosition(sX, sY), new TerminalSize(cw, ch), ' ');
@@ -63,13 +66,14 @@ public class MainMenu extends CustomScreen {
 
         for (Map.Entry<String, BiConsumer<Integer, Integer>> game : allGames.entrySet()) {
             int i = allGames.keySet().stream().toList().indexOf(game.getKey());
-            int x = 1 + i + (i % gridW * W / gridW);
+            // padding + (index mod width * fullWidth / width)
+            int x = 1 + (i % gridW * (W / gridW));
             int y = 1 + (i / gridW) + (i / totalSpaces * H / gridH);
             game.getValue().accept(x, y);
             Main.drawRectangle(x, y, x + (W - 2) / gridW - 1, y + (H - 2) / gridH - 1);
             Main.drawText(
-                    (i + 1) * (W / gridW) / 2,
-                    ((i + 1) / 4) * (H / gridH),
+                    (x + (W - 2) / gridW / 2 + 1),
+                    y + (H - 2) / gridH - 1,
                     " " + game.getKey() + " ");
         }
 
