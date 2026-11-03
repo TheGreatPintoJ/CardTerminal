@@ -47,8 +47,14 @@ public class MainMenu extends CustomScreen {
         allGames.put("Solitaire2", allGames.get("Solitaire"));
         allGames.put("Solitaire3", allGames.get("Solitaire"));
         allGames.put("Solitaire4", allGames.get("Solitaire"));
-        //        allGames.put("Solitaire5", allGames.get("Solitaire"));
-        //        allGames.put("Solitaire6", allGames.get("Solitaire"));
+        allGames.put("Solitaire5", allGames.get("Solitaire"));
+        allGames.put("Solitaire6", allGames.get("Solitaire"));
+        allGames.put("Solitaire7", allGames.get("Solitaire"));
+        allGames.put("Solitaire8", allGames.get("Solitaire"));
+        allGames.put("Solitaire9", allGames.get("Solitaire"));
+        allGames.put("Solitaire10", allGames.get("Solitaire"));
+        allGames.put("Solitaire11", allGames.get("Solitaire"));
+        allGames.put("Solitaire12", allGames.get("Solitaire"));
 
         resize();
     }
@@ -64,11 +70,13 @@ public class MainMenu extends CustomScreen {
         Main.drawRectangle(0, 0, W - 1, H - 1);
         Main.drawText(W / 2, 0, " Games ");
 
+        if (allGames.size() > totalSpaces) Main.drawText(W / 2, H - 1, " < --- > ");
+
         for (Map.Entry<String, BiConsumer<Integer, Integer>> game : allGames.entrySet()) {
             int i = allGames.keySet().stream().toList().indexOf(game.getKey());
             // padding + (index mod width * fullWidth / width)
             int x = 1 + (i % gridW * (W / gridW));
-            int y = 1 + (i / gridW) + (i / totalSpaces * H / gridH);
+            int y = 1 + (i / gridW * H / gridH);
             game.getValue().accept(x, y);
             Main.drawRectangle(x, y, x + (W - 2) / gridW - 1, y + (H - 2) / gridH - 1);
             Main.drawText(
