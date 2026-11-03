@@ -8,8 +8,10 @@ import com.googlecode.lanterna.input.*;
 import com.googlecode.lanterna.screen.*;
 import com.googlecode.lanterna.terminal.*;
 import com.googlecode.lanterna.terminal.swing.*;
+import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.util.function.*;
 import me.pintoadmin.cardTerminal.games.*;
 import me.pintoadmin.cardTerminal.screens.*;
 
@@ -77,7 +79,9 @@ public class Main {
 
     public static TextColor BLACK;
 
-    private Game currentGame;
+    private CustomScreen currentScreen;
+    private Supplier<Game> currentGame =
+            () -> currentScreen instanceof Game ? (Game) currentScreen : null;
 
     public enum OS {
         WINDOWS,
@@ -91,6 +95,14 @@ public class Main {
             screen = new TerminalScreen(terminal);
             screen.startScreen();
 
+            if (terminal instanceof SwingTerminalFrame swingTerminalFrame) {
+                Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+                swingTerminalFrame.setSize(
+                        (int) (screenSize.getWidth() / 2),
+                        (int) (screenSize.getHeight() / 2)); // width and height in pixels
+                swingTerminalFrame.setLocationRelativeTo(null); // center on screen
+            }
+
             g = screen.newTextGraphics();
             BLACK = g.getBackgroundColor();
             g.setBackgroundColor(BLACK);
@@ -101,69 +113,15 @@ public class Main {
             screen.clear();
             g.fill(' ');
 
-            new Startup();
+            screen.refresh(Screen.RefreshType.COMPLETE);
+            currentScreen = new Startup();
+            Thread resizeHandler = getResizeHandler();
+            Thread keyHandlers = getKeyHandlers(resizeHandler);
             Thread.sleep(2000);
 
-            currentGame = new Solitaire(5922791531032266961L); // Dev seed:
+            currentScreen = new Solitaire(5922791531032266961L); // Dev seed: 5922791531032266961L
 
             screen.refresh(Screen.RefreshType.COMPLETE);
-
-            Thread resizeHandler =
-                    new Thread(
-                            () -> {
-                                while (true) {
-                                    TerminalSize newSize = screen.doResizeIfNecessary();
-                                    if (newSize != null) {
-                                        currentGame.resize();
-                                        try {
-                                            screen.refresh(Screen.RefreshType.DELTA);
-                                        } catch (IOException e) {
-                                            throw new RuntimeException(e);
-                                        }
-                                    }
-                                }
-                            });
-            resizeHandler.start();
-
-            Thread keyHandlers =
-                    new Thread(
-                            () -> {
-                                while (true) {
-                                    try {
-                                        KeyStroke keystroke = screen.pollInput();
-                                        if (keystroke == null) continue;
-                                        if (keystroke.getKeyType() == KeyType.Escape) {
-                                            screen.close();
-                                            Thread.currentThread().interrupt();
-                                            resizeHandler.interrupt();
-                                            System.exit(0);
-                                            break;
-                                        } else {
-                                            try {
-                                                currentGame.handleInput(keystroke);
-                                            } catch (Exception e) {
-                                                if (e.getMessage() == null)
-                                                    throw new RuntimeException(e);
-                                                if (e.getMessage().equals("reset")) {
-                                                    screen.clear();
-                                                    currentGame =
-                                                            new Solitaire(currentGame.getSeed());
-                                                    screen.refresh(Screen.RefreshType.COMPLETE);
-                                                } else if (e.getMessage().equals("newseed")) {
-                                                    screen.clear();
-                                                    currentGame = new Solitaire();
-                                                    screen.refresh(Screen.RefreshType.COMPLETE);
-                                                } else throw new RuntimeException(e);
-                                            }
-                                        }
-                                    } catch (IOException e) {
-                                        System.err.println(
-                                                "Could not read terminal input: " + e.getMessage());
-                                        e.printStackTrace();
-                                    }
-                                }
-                            });
-            keyHandlers.start();
 
             if (terminal instanceof SwingTerminalFrame swingTerminalFrame) {
                 swingTerminalFrame.addWindowListener(
@@ -182,6 +140,70 @@ public class Main {
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private Thread getKeyHandlers(Thread resizeHandler) {
+        Thread keyHandlers =
+                new Thread(
+                        () -> {
+                            while (true) {
+                                try {
+                                    KeyStroke keystroke = screen.pollInput();
+                                    if (keystroke == null) continue;
+                                    if (keystroke.getKeyType() == KeyType.Escape) {
+                                        screen.close();
+                                        Thread.currentThread().interrupt();
+                                        resizeHandler.interrupt();
+                                        System.exit(0);
+                                        break;
+                                    } else {
+                                        try {
+                                            currentScreen.handleInput(keystroke);
+                                        } catch (Exception e) {
+                                            if (e.getMessage() == null)
+                                                throw new RuntimeException(e);
+                                            if (e.getMessage().equals("reset")) {
+                                                screen.clear();
+                                                if (currentGame.get() != null)
+                                                    currentScreen = currentGame.get().restart();
+                                                screen.refresh(Screen.RefreshType.COMPLETE);
+                                            } else if (e.getMessage().equals("newseed")) {
+                                                screen.clear();
+                                                if (currentGame.get() != null)
+                                                    currentScreen = currentGame.get().newGame();
+                                                screen.refresh(Screen.RefreshType.COMPLETE);
+                                            } else throw new RuntimeException(e);
+                                        }
+                                    }
+                                } catch (IOException e) {
+                                    System.err.println(
+                                            "Could not read terminal input: " + e.getMessage());
+                                    e.printStackTrace();
+                                }
+                            }
+                        });
+        keyHandlers.start();
+        return keyHandlers;
+    }
+
+    private Thread getResizeHandler() {
+        Thread resizeHandler =
+                new Thread(
+                        () -> {
+                            while (true) {
+                                TerminalSize newSize = screen.doResizeIfNecessary();
+                                if (newSize != null) {
+                                    currentScreen.resize();
+                                    try {
+                                        screen.refresh(Screen.RefreshType.COMPLETE);
+                                    } catch (IOException e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                }
+                            }
+                        });
+        resizeHandler.start();
+        return resizeHandler;
     }
 
     public static Card.Rank intToRank(Integer i) {

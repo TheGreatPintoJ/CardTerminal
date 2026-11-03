@@ -118,6 +118,16 @@ public class Solitaire extends Game {
     }
 
     @Override
+    public Game newGame() {
+        return new Solitaire();
+    }
+
+    @Override
+    public Game restart() {
+        return new Solitaire(SEED);
+    }
+
+    @Override
     public long getSeed() {
         return SEED;
     }
