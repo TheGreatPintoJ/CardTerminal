@@ -9,7 +9,7 @@ import java.io.*;
 import java.util.*;
 import java.util.function.*;
 import me.pintoadmin.cardTerminal.*;
-import me.pintoadmin.cardTerminal.games.SolitaireOptions;
+import me.pintoadmin.cardTerminal.games.*;
 
 public class MainMenu extends CustomScreen {
     private final Screen screen = Main.screen;
@@ -27,7 +27,8 @@ public class MainMenu extends CustomScreen {
     private int selectedGame = 0;
 
     public MainMenu() {
-        BiConsumer<Integer, Integer> s =
+        allGames.put(
+                new SolitaireOptions("Solitaire"),
                 (x, y) -> {
                     // Solitaire
                     int cw = 4, ch = 3; // card with/height
@@ -43,19 +44,25 @@ public class MainMenu extends CustomScreen {
                             Main.drawRectangle(sX, sY, eX, eY);
                         }
                     }
-                };
-        allGames.put(new SolitaireOptions("Solitaire"), s);
-        allGames.put(new SolitaireOptions("Solitaire2"), s);
-        allGames.put(new SolitaireOptions("Solitaire3"), s);
-        allGames.put(new SolitaireOptions("Solitaire4"), s);
-        allGames.put(new SolitaireOptions("Solitaire5"), s);
-        allGames.put(new SolitaireOptions("Solitaire6"), s);
-        allGames.put(new SolitaireOptions("Solitaire7"), s);
-        allGames.put(new SolitaireOptions("Solitaire8"), s);
-        allGames.put(new SolitaireOptions("Solitaire9"), s);
-        allGames.put(new SolitaireOptions("Solitaire10"), s);
-        allGames.put(new SolitaireOptions("Solitaire11"), s);
-        allGames.put(new SolitaireOptions("Solitaire12"), s);
+                });
+        allGames.put(
+                new SpiderOptions("Spider"),
+                (x, y) -> {
+                    // Spider
+                    int cw = 4, ch = 3; // card with/height
+                    for (int column = 0; column < 20; column++) {
+                        int sX = 1 + x + column * cw + column;
+                        int eX = sX + cw;
+                        if (eX >= x + W.get() / gridW) break;
+                        for (int row = 0; row <= column; row++) {
+                            int sY = 1 + y + row * ch - row * 2;
+                            int eY = sY + ch;
+                            g.fillRectangle(
+                                    new TerminalPosition(sX, sY), new TerminalSize(cw, ch), ' ');
+                            Main.drawRectangle(sX, sY, eX, eY);
+                        }
+                    }
+                });
 
         resize();
     }
