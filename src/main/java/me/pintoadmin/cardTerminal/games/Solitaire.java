@@ -428,6 +428,11 @@ public class Solitaire extends Game {
 
             screen.clear();
             new Solitaire(type, SEED, moves);
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException ignored) {
+            }
+            Main.getInstance().setCurrentScreen(new MainMenu());
 
             return true;
         }

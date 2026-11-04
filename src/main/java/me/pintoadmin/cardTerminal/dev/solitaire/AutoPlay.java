@@ -7,9 +7,9 @@ import com.googlecode.lanterna.screen.*;
 import com.googlecode.lanterna.terminal.*;
 import com.googlecode.lanterna.terminal.swing.*;
 import java.awt.event.*;
-import java.util.*;
+import java.util.*;import java.util.concurrent.*;
 import me.pintoadmin.cardTerminal.*;
-import me.pintoadmin.cardTerminal.games.*;
+import me.pintoadmin.cardTerminal.games.*;import me.pintoadmin.cardTerminal.screens.*;
 
 /**
  * Starts Solitaire on a seed, solves it with Solver, and plays every move except the last one by
@@ -26,11 +26,30 @@ public class AutoPlay {
         int delay = args.length > 1 ? Integer.parseInt(args[1]) : 60;
         Solitaire.GameType type = args.length > 2 ? Solitaire.GameType.valueOf(args[2]) : Solitaire.GameType.KLONDIKE1;
 
+        if(Main.terminal == null) Main.terminal = new DefaultTerminalFactory().createTerminal();
+        if(Main.screen == null) {
+            Main.screen = new TerminalScreen(Main.terminal);
+            Main.screen.startScreen();
+        }
+        if(Main.g == null) Main.g = Main.screen.newTextGraphics();
+        if(Main.BLACK == null) Main.BLACK = Main.g.getBackgroundColor();
+        Main.g.setBackgroundColor(Main.BLACK);
+        Main.g.setForegroundColor(TextColor.ANSI.WHITE);
+        Main.screen.setCursorPosition(null);
+        Main.screen.clear();
+
+        Main.drawRectangle(0, 0, Main.g.getSize().getColumns() - 1, Main.g.getSize().getRows() - 1);
+        Main.drawText(Main.g.getSize().getColumns()/2, 3, "Solving seed: "+seed+"...");
         System.out.println("Solving seed " + seed + "...");
+        Main.screen.refresh(Screen.RefreshType.AUTOMATIC);
         Solver.S sol = Solver.solve(Solver.deal(seed, type), 20000, 3.0);
         if (sol == null) sol = Solver.solve(Solver.deal(seed, type), 2000000, 1.5);
         if (sol == null) {
+            Main.drawText(Main.g.getSize().getColumns()/2, 3, "No solution found for seed: "+seed);
             System.out.println("No solution found for seed " + seed);
+            Main.screen.refresh(Screen.RefreshType.AUTOMATIC);
+            Thread.sleep(1000);
+            Main.getInstance().setCurrentScreen(new SolitaireOptions("Solitaire"));
             return;
         }
         List<Solver.S> path = new ArrayList<>();
@@ -38,15 +57,6 @@ public class AutoPlay {
         Collections.reverse(path);
         System.out.println("Solution has " + (path.size() - 1) + " moves; playing all but the last");
 
-        Main.terminal = new DefaultTerminalFactory().createTerminal();
-        Main.screen = new TerminalScreen(Main.terminal);
-        Main.screen.startScreen();
-        Main.g = Main.screen.newTextGraphics();
-        Main.BLACK = Main.g.getBackgroundColor();
-        Main.g.setBackgroundColor(Main.BLACK);
-        Main.g.setForegroundColor(TextColor.ANSI.WHITE);
-        Main.screen.setCursorPosition(null);
-        Main.screen.clear();
 
         game = new Solitaire(type, seed);
         Main.screen.refresh(Screen.RefreshType.COMPLETE);
