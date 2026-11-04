@@ -101,6 +101,7 @@ public class Main {
             screen.startScreen();
 
             if (terminal instanceof SwingTerminalFrame swingTerminalFrame) {
+                swingTerminalFrame.setTitle("CardTerminal");
                 Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
                 swingTerminalFrame.setSize(
                         (int) (screenSize.getWidth() / 2),
