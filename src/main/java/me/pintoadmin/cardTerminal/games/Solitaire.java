@@ -193,35 +193,37 @@ public class Solitaire extends Game {
             return;
         }
 
-        Card drawnCard = deck.drawCard();
-        if (drawnCard == null) {
-            // Deck has run out
-            if (logged) {
+        for (int i = 0; i < (type == GameType.KLONDIKE3 ? 3 : 1); i++) {
+            Card drawnCard = deck.drawCard();
+            if (drawnCard == null) {
+                // Deck has run out
+                if (logged && i == 0) {
+                    SolitaireMove move =
+                            new SolitaireMove(
+                                    this,
+                                    deck.getTopDiscard(),
+                                    Location.DECK,
+                                    Location.DISCARD,
+                                    -1,
+                                    SolitaireMove.Type.EXHAUST);
+                    moves.add(move);
+                }
+                deck.redrawDeck();
+                nextDrawShuffles = true;
+                return;
+            }
+            deck.discardCard(drawnCard);
+            if (logged && i == 0) {
                 SolitaireMove move =
                         new SolitaireMove(
                                 this,
-                                deck.getTopDiscard(),
+                                drawnCard,
                                 Location.DECK,
                                 Location.DISCARD,
                                 -1,
-                                SolitaireMove.Type.EXHAUST);
+                                SolitaireMove.Type.DRAW);
                 moves.add(move);
             }
-            deck.redrawDeck();
-            nextDrawShuffles = true;
-            return;
-        }
-        deck.discardCard(drawnCard);
-        if (logged) {
-            SolitaireMove move =
-                    new SolitaireMove(
-                            this,
-                            drawnCard,
-                            Location.DECK,
-                            Location.DISCARD,
-                            -1,
-                            SolitaireMove.Type.DRAW);
-            moves.add(move);
         }
         deck.redrawDiscard();
     }
@@ -452,9 +454,10 @@ public class Solitaire extends Game {
 
     private void undo() {
         if (moves.isEmpty()) return;
-        moves.getLast().undo();
-        movesUndone.add(moves.getLast());
-        moves.removeLast();
+        SolitaireMove move = moves.getLast();
+        move.undo();
+        movesUndone.add(move);
+        moves.remove(move);
     }
 
     private void redo() {
