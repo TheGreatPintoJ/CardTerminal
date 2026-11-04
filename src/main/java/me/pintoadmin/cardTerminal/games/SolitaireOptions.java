@@ -81,8 +81,11 @@ public class SolitaireOptions extends GameOptions {
         Main.drawTextLeft(2, 8, "AutoPlay:");
 
         if (selectedOption == Option.PLAY) g.enableModifiers(SGR.REVERSE);
-        Main.drawText(W / 2, H - 2, " Play ");
+        Main.drawText(W / 2, H - 1, " Play ");
         g.disableModifiers(SGR.REVERSE);
+
+        Main.drawRectangle(W / 2, 1, W - 2, H - 2);
+        Main.drawText(3 * W / 4, 1, " History (coming soon) ");
 
         screen.refresh(Screen.RefreshType.AUTOMATIC);
     }
