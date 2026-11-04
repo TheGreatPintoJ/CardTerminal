@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.function.Supplier;
 import me.pintoadmin.cardTerminal.Main;
+import me.pintoadmin.cardTerminal.dev.solitaire.*;
 import me.pintoadmin.cardTerminal.screens.GameOptions;
 import me.pintoadmin.cardTerminal.screens.MainMenu;
 
@@ -137,11 +138,19 @@ public class SolitaireOptions extends GameOptions {
                 autoPlay = !autoPlay;
                 build();
             } else if (selectedOption == Option.PLAY) {
-                Main.getInstance()
-                        .setCurrentScreen(
-                                SEED != 0
-                                        ? new Solitaire(type, SEED)
-                                        : new Solitaire(type, suggestedSeed));
+                if (autoPlay)
+                    AutoPlay.main(
+                            new String[] {
+                                String.valueOf(SEED != 0 ? SEED : suggestedSeed),
+                                String.valueOf(60),
+                                type.name()
+                            });
+                else
+                    Main.getInstance()
+                            .setCurrentScreen(
+                                    SEED != 0
+                                            ? new Solitaire(type, SEED)
+                                            : new Solitaire(type, suggestedSeed));
             }
         } else if (keyStroke.getKeyType() == KeyType.Character) {
             Character c = keyStroke.getCharacter();

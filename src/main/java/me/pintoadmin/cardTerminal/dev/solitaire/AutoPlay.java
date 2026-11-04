@@ -1,5 +1,5 @@
 // @formatter:off
-package me.pintoadmin.cardTerminal.dev;
+package me.pintoadmin.cardTerminal.dev.solitaire;
 
 import com.googlecode.lanterna.*;
 import com.googlecode.lanterna.input.*;
@@ -16,7 +16,7 @@ import me.pintoadmin.cardTerminal.games.*;
  * feeding keystrokes into Solitaire.handleInput. Afterwards you play normally (Esc to quit).
  *
  * <p>Run via autoplay.ps1 / autoplay.sh, or: java -cp build/autoplay-classes;lanterna.jar
- * AutoPlay.java [seed] [delayMs]
+ * AutoPlay.java [seed] [delayMs] [gameType]
  */
 public class AutoPlay {
     static Game game;
@@ -24,10 +24,11 @@ public class AutoPlay {
     public static void main(String[] args) throws Exception {
         long seed = args.length > 0 ? Long.parseLong(args[0]) : 4154672263252710606L;
         int delay = args.length > 1 ? Integer.parseInt(args[1]) : 60;
+        Solitaire.GameType type = args.length > 2 ? Solitaire.GameType.valueOf(args[2]) : Solitaire.GameType.KLONDIKE1;
 
         System.out.println("Solving seed " + seed + "...");
-        Solver.S sol = Solver.solve(Solver.deal(seed), 20000, 3.0);
-        if (sol == null) sol = Solver.solve(Solver.deal(seed), 2000000, 1.5);
+        Solver.S sol = Solver.solve(Solver.deal(seed, type), 20000, 3.0);
+        if (sol == null) sol = Solver.solve(Solver.deal(seed, type), 2000000, 1.5);
         if (sol == null) {
             System.out.println("No solution found for seed " + seed);
             return;
@@ -47,22 +48,12 @@ public class AutoPlay {
         Main.screen.setCursorPosition(null);
         Main.screen.clear();
 
-        game = new Solitaire(Solitaire.GameType.KLONDIKE1, seed);
+        game = new Solitaire(type, seed);
         Main.screen.refresh(Screen.RefreshType.COMPLETE);
         Thread.sleep(500);
 
-        for (int i = 1; i < path.size() - 1; i++) {
-            Solver.S from = path.get(i - 1), to = path.get(i);
-            for (KeyStroke key : keysFor(from, to)) {
-                game.handleInput(key);
-                Thread.sleep(delay);
-            }
-            String err = diff(to);
-            if (err != null) {
-                System.out.println("Desync after move " + i + " (" + to.mv + "): " + err);
-                break;
-            }
-        }
+        String err = playAllButLast(path, delay);
+        if (err != null) System.out.println(err);
         System.out.println("Last move: " + sol.mv);
 
         if (Main.terminal instanceof SwingTerminalFrame frame) {
@@ -91,12 +82,41 @@ public class AutoPlay {
             try {
                 game.handleInput(key);
             } catch (Exception e) {
-                if ("reset".equals(e.getMessage())) game = new Solitaire(Solitaire.GameType.KLONDIKE1, game.getSeed());
-                else if ("newseed".equals(e.getMessage())) game = new Solitaire();
+                if ("reset".equals(e.getMessage())) game = new Solitaire(type, game.getSeed());
+                else if ("newseed".equals(e.getMessage())) game = new Solitaire(type, new Random().nextLong());
                 else throw e;
                 Main.screen.clear();
                 Main.screen.refresh(Screen.RefreshType.COMPLETE);
             }
+        }
+    }
+
+    /** Returns null on success, or a description of the first desync between model and game. */
+    static String playAllButLast(List<Solver.S> path, int delay) throws Exception {
+        for (int i = 1; i < path.size() - 1; i++) {
+            Solver.S from = path.get(i - 1), to = path.get(i);
+            if (to.mv.equals("redeal")) {
+                redeal(delay);
+            } else {
+                for (KeyStroke key : keysFor(from, to)) {
+                    game.handleInput(key);
+                    Thread.sleep(delay);
+                }
+            }
+            String err = diff(to);
+            if (err != null) return "Desync after move " + i + " (" + to.mv + "): " + err;
+        }
+        return null;
+    }
+
+    // Once the deck is empty, the game restarts it on the next press if the last draw came up short
+    // of a full deal (only possible in 3-deal), or the press after that if it was a full one (exhaust,
+    // then restart). Earlier waste plays decide which, so watch the discard rather than predict it.
+    static void redeal(int delay) throws Exception {
+        Deck deck = ((Solitaire) game).getDeck();
+        for (int press = 0; press < 2 && deck.getTopDiscard() != null; press++) {
+            game.handleInput(ch('`'));
+            Thread.sleep(delay);
         }
     }
 
@@ -112,16 +132,11 @@ public class AutoPlay {
         String mv = to.mv;
         List<KeyStroke> keys = new ArrayList<>();
         if (mv.equals("draw")) return List.of(ch('`'));
-        // Model redeal = discard last drawn card (exhaust), then restart the deck
-        if (mv.equals("redeal")) return List.of(ch('`'), ch('`'));
 
         String[] parts = mv.split(" ");
         String[] fromTo = parts[1].split("->");
         if (fromTo[0].equals("waste")) {
-            int c = from.stock[from.pos - 1];
-            Card top = ((Solitaire) game).getDeck().getTopDiscard();
-            boolean onDiscard = top != null && matches(top, c);
-            keys.add(onDiscard ? new KeyStroke(KeyType.Tab) : ch(' '));
+            keys.add(ch(' '));
         } else {
             int col = Integer.parseInt(fromTo[0].substring(3)) - 1;
             int k = -1;
@@ -158,6 +173,12 @@ public class AutoPlay {
             int have = top == null ? 0 : top.getRank().ordinal() + 1;
             if (have != s.fnd[suit.ordinal()]) return "foundation " + suit + " at " + have + " != " + s.fnd[suit.ordinal()];
         }
+        Card top = sol.getDeck().getTopDiscard();
+        if (s.pos == 0 ? top != null : top == null || !matches(top, s.stock[s.pos - 1])) return "waste top differs";
+        List<Card> left = sol.getDeck().getAllCards(); // cards still in the deck, despite the name
+        if (left.size() != s.stock.length - s.pos) return "deck size " + left.size() + " != " + (s.stock.length - s.pos);
+        for (int k = 0; k < left.size(); k++)
+            if (!matches(left.get(k), s.stock[s.pos + k])) return "deck card " + k + " differs";
         return null;
     }
 }

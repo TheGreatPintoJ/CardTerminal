@@ -1,7 +1,8 @@
 // @formatter:off
-package me.pintoadmin.cardTerminal.dev;
+package me.pintoadmin.cardTerminal.dev.solitaire;
 
 import java.util.*;
+import me.pintoadmin.cardTerminal.games.Solitaire;
 
 public class Solver {
     // card = suit*13 + rank (rank 0=Ace..12=King); suits SPADE,CLUB,HEART,DIAMOND as in Card.Suit
@@ -14,12 +15,13 @@ public class Solver {
     static final class S {
         byte[][] col = new byte[7][]; int[] down = new int[7];
         byte[] stock; int pos; int[] fnd = new int[4];
+        int draw = 1; // cards turned per draw; constant within a search, so not part of key()
         int g; S parent; String mv;
         S copy() {
             S s = new S();
             for (int i = 0; i < 7; i++) s.col[i] = col[i];
             s.down = down.clone(); s.stock = stock; s.pos = pos; s.fnd = fnd.clone();
-            s.g = g; return s;
+            s.draw = draw; s.g = g; return s;
         }
         int found() { return fnd[0] + fnd[1] + fnd[2] + fnd[3]; }
         String key() {
@@ -31,11 +33,13 @@ public class Solver {
         }
     }
 
-    static S deal(long seed) {
+    static int drawCount(Solitaire.GameType type) { return type == Solitaire.GameType.KLONDIKE3 ? 3 : 1; }
+
+    static S deal(long seed, Solitaire.GameType type) {
         List<Integer> d = new LinkedList<>();
         for (int s = 0; s < 4; s++) for (int r = 0; r < 13; r++) d.add(s * 13 + r);
         Collections.shuffle(d, new Random(seed));
-        S s = new S(); int k = 0;
+        S s = new S(); int k = 0; s.draw = drawCount(type);
         for (int c = 0; c < 7; c++) { s.col[c] = new byte[c + 1]; for (int r = 0; r <= c; r++) s.col[c][r] = (byte) (int) d.get(k++); s.down[c] = c; }
         s.stock = new byte[24]; for (int i = 0; i < 24; i++) s.stock[i] = (byte) (int) d.get(k++);
         return s;
@@ -63,13 +67,14 @@ public class Solver {
         for (int i = 0; i < 7; i++) for (int k = s.down[i]; k < s.col[i].length; k++) {
             int c = s.col[i][k];
             if (k == 0 && rank(c) == 12) continue; // pointless king shuffle
+            if (k - s.down[i] >= 9 && k < s.col[i].length - 1) continue; // the game's row keys only reach 1-9 and last
             for (int j = 0; j < 7; j++) if (j != i && fits(s.col[j], c)) {
                 S t = s.copy(); t.col[j] = app(s.col[j], s.col[i], k); t.col[i] = Arrays.copyOf(s.col[i], k); flip(t, i);
                 t.mv = n(c) + " col" + (i + 1) + "->col" + (j + 1); out.add(t); break;
             }
         }
         // draw / redeal
-        if (s.stock.length > 0) { S t = s.copy(); if (s.pos < s.stock.length) { t.pos++; t.mv = "draw"; } else { t.pos = 0; t.mv = "redeal"; } out.add(t); }
+        if (s.stock.length > 0) { S t = s.copy(); if (s.pos < s.stock.length) { t.pos = Math.min(s.pos + s.draw, s.stock.length); t.mv = "draw"; } else { t.pos = 0; t.mv = "redeal"; } out.add(t); }
         for (S t : out) { t.g = s.g + 1; t.parent = s; }
         return out;
     }
@@ -95,20 +100,22 @@ public class Solver {
     public static void main(String[] a) {
         int tries = Integer.parseInt(a[0]);
         SplittableRandom r = new SplittableRandom(Long.parseLong(a[1]));
+        Solitaire.GameType type = a.length > 2 ? Solitaire.GameType.valueOf(a[2]) : Solitaire.GameType.KLONDIKE1;
         long best = 0; int bestLen = Integer.MAX_VALUE; int solved = 0;
         for (int i = 0; i < tries; i++) {
             long seed = r.nextLong();
-            S sol = solve(deal(seed), 20000, 3.0);
+            S sol = solve(deal(seed, type), 20000, 3.0);
             if (sol == null) continue;
             solved++;
             if (sol.g < bestLen) { bestLen = sol.g; best = seed; System.out.println("seed " + seed + " len " + sol.g); }
         }
         System.out.println("solved " + solved + "/" + tries + " best " + best + " len " + bestLen);
-        S sol = solve(deal(best), 2000000, 1.5);
-        if (sol == null) sol = solve(deal(best), 20000, 3.0);
+        if (solved == 0) return;
+        S sol = solve(deal(best, type), 2000000, 1.5);
+        if (sol == null) sol = solve(deal(best, type), 20000, 3.0);
         List<String> path = new ArrayList<>(); for (S s = sol; s.parent != null; s = s.parent) path.add(s.mv);
         Collections.reverse(path);
-        S d = deal(best);
+        S d = deal(best, type);
         StringBuilder b = new StringBuilder();
         for (int i = 0; i < 7; i++) { b.append("col" + (i + 1) + ": "); for (int k = 0; k < d.col[i].length; k++) b.append(k < d.down[i] ? "[" + n(d.col[i][k]) + "] " : n(d.col[i][k]) + " "); b.append('\n'); }
         b.append("stock: "); for (byte c : d.stock) b.append(n(c) + " ");
