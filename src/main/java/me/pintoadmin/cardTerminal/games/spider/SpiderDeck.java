@@ -9,8 +9,6 @@ public class SpiderDeck extends Deck {
     }
 
     public List<Card> getCards(Card.Rank rank, Card.Suit suit) {
-        return allCards.stream()
-                .filter(c -> c.getRank() == rank && c.getSuit() == suit)
-                .toList();
+        return allCards.stream().filter(c -> c.getRank() == rank && c.getSuit() == suit).toList();
     }
 }

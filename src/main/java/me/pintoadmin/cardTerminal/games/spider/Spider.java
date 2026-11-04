@@ -10,6 +10,7 @@ import java.io.*;
 import java.util.*;
 import java.util.function.*;
 import me.pintoadmin.cardTerminal.*;
+import me.pintoadmin.cardTerminal.games.solitaire.*;
 import me.pintoadmin.cardTerminal.screens.*;
 
 public class Spider extends Game {
@@ -22,6 +23,8 @@ public class Spider extends Game {
                     new LinkedList<>(), new LinkedList<>(),
                     new LinkedList<>(), new LinkedList<>(),
                     new LinkedList<>(), new LinkedList<>()); // Ten piles
+    private final LinkedList<SolitaireMove> moves = new LinkedList<>();
+    private final LinkedList<SolitaireMove> movesUndone = new LinkedList<>();
 
     private final Supplier<Integer> WIDTH = () -> g.getSize().getColumns();
     private final Supplier<Integer> HEIGHT = () -> g.getSize().getRows();
@@ -31,6 +34,8 @@ public class Spider extends Game {
 
     private int selectedColumn = -1;
     private Card selectedCard;
+
+    private int drawCount = 0;
 
     enum GameType {
         SUIT1,
@@ -67,7 +72,7 @@ public class Spider extends Game {
         g.setForegroundColor(TextColor.ANSI.WHITE);
         drawTextRight(WIDTH.get() - 1, HEIGHT.get() - 1, "SEED: " + SEED);
         deck.drawDeck(deckX.get(), deckY.get());
-        deck.drawDiscard(deckX.get() + 9, deckY.get());
+        g.setCharacter(deckX.get() + 4, deckY.get() + 3, String.valueOf(8 - drawCount).charAt(0));
 
         int startingX = g.getSize().getColumns() - 90;
         int startingY = 0;
@@ -115,6 +120,7 @@ public class Spider extends Game {
     public void redraw() {
         Main.screen.clear();
         deck.redrawDeck();
+        g.setCharacter(deckX.get() + 4, deckY.get() + 3, String.valueOf(8 - drawCount).charAt(0));
         deck.redrawDiscard();
 
         for (List<Card> list : stock) {
@@ -129,64 +135,16 @@ public class Spider extends Game {
         }
     }
 
-    private boolean nextDrawShuffles = false;
-
     @Override
     public void drawCard(boolean logged) {
-        if (nextDrawShuffles) {
-            //            SpiderMove move =
-            //                    new SpiderMove(
-            //                            this,
-            //                            deck.getTopDiscard(),
-            //                            Solitaire.Location.DISCARD,
-            //                            Solitaire.Location.DECK,
-            //                            -1,
-            //                            SolitaireMove.Type.SHUFFLE);
-            //            move.setOldDiscard(deck.restartDiscard());
-            //            move.setShuffled(deck.getAllCards());
-            //            moves.add(move);
-
-            deck.restartDiscard();
-
-            deck.redrawDiscard();
-            deck.redrawDeck();
-
-            nextDrawShuffles = false;
-            return;
+        for (int column = 0; column < 10; column++) {
+            Card card = deck.drawCard();
+            if (card == null) break;
+            stock.get(column).add(card);
         }
+        drawCount++;
 
-        Card drawnCard = deck.drawCard();
-        if (drawnCard == null) {
-            // Deck has run out
-            if (logged) {
-                //                    SpiderMove move =
-                //                            new SpiderMove(
-                //                                    this,
-                //                                    deck.getTopDiscard(),
-                //                                    Solitaire.Location.DECK,
-                //                                    Solitaire.Location.DISCARD,
-                //                                    -1,
-                //                                    SpiderMove.Type.EXHAUST);
-                //                    moves.add(move);
-            }
-            deck.redrawDeck();
-            nextDrawShuffles = true;
-            return;
-        } else {
-            deck.discardCard(drawnCard);
-            if (logged) {
-                //                    SpiderMove move =
-                //                            new SpiderMove(
-                //                                    this,
-                //                                    drawnCard,
-                //                                    Solitaire.Location.DECK,
-                //                                    Solitaire.Location.DISCARD,
-                //                                    -1,
-                //                                    SpiderMove.Type.DRAW);
-                //                    moves.add(move);
-            }
-        }
-        deck.redrawDiscard();
+        resize();
     }
 
     @Override
@@ -206,14 +164,17 @@ public class Spider extends Game {
         } else if (keyStroke.getKeyType() == KeyType.Character) {
             Character c = keyStroke.getCharacter();
             if (Character.isDigit(c)) {
-                selectCard(null, -1);
                 int i = Integer.parseInt(c.toString()) - 1;
                 if (i == -1) i = 10;
                 // move corresponding stock piles
-                if (selectedColumn == -1) {
-                    selectedColumn = i;
+                if (selectedCard == null) {
+                    if (selectedColumn == -1) {
+                        selectedColumn = i;
+                    } else {
+                        if (stock.size() < i) selectCard(Location.STOCK, i);
+                    }
                 } else {
-                    selectCard(Location.STOCK, i - 1);
+                    moveSelectedCard(i);
                 }
             } else {
                 switch (c) {
@@ -254,5 +215,23 @@ public class Spider extends Game {
         if (selectedCard != null)
             selectedCard.setTextColor(
                     selectedCard.isFaceup() ? TextColor.ANSI.GREEN : TextColor.ANSI.RED);
+    }
+
+    private void moveSelectedCard(int index) {
+        selectedCard.setTextColor(TextColor.ANSI.WHITE);
+        //        SpiderMove move =
+        //                new SpiderMove(
+        //                        this,
+        //                        selectedCard,
+        //                        selectedCardLocation.get(),
+        //                        toLocation,
+        //                        index,
+        //                        SpiderMove.Type.MOVE);
+        //        if (move.execute()) {
+        //            moves.add(move);
+        //            movesUndone.clear();
+        //        }
+
+        selectCard(null, -1);
     }
 }
