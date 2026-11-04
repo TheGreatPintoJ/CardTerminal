@@ -4,12 +4,12 @@ import com.googlecode.lanterna.*;
 import com.googlecode.lanterna.graphics.*;
 import com.googlecode.lanterna.input.*;
 import com.googlecode.lanterna.screen.*;
-import com.googlecode.lanterna.terminal.*;
 import java.io.*;
 import java.util.*;
 import java.util.function.*;
 import me.pintoadmin.cardTerminal.*;
-import me.pintoadmin.cardTerminal.games.*;
+import me.pintoadmin.cardTerminal.games.solitaire.*;
+import me.pintoadmin.cardTerminal.games.spider.*;
 
 public class MainMenu extends CustomScreen {
     private final Screen screen = Main.screen;

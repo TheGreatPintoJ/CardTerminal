@@ -1,4 +1,4 @@
-package me.pintoadmin.cardTerminal.games;
+package me.pintoadmin.cardTerminal.games.solitaire;
 
 import java.util.*;
 import me.pintoadmin.cardTerminal.*;

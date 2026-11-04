@@ -9,12 +9,12 @@ import java.util.*;
 
 public class Deck {
     private final TextGraphics g = Main.g;
-    private final List<Card> allCards = new ArrayList<>();
-    private final List<Card> cardsInDeck = new LinkedList<>();
-    private final List<Card> cardsInDiscard = new LinkedList<>();
+    protected final List<Card> allCards = new ArrayList<>();
+    protected final List<Card> cardsInDeck = new LinkedList<>();
+    protected final List<Card> cardsInDiscard = new LinkedList<>();
 
-    private long SEED;
-    private Random random;
+    private final long SEED;
+    protected Random random;
     private long nextShuffleIndex;
 
     private int deckX;
@@ -23,14 +23,20 @@ public class Deck {
     private int discardY;
 
     public Deck(long SEED) {
+        this(SEED, Arrays.stream(Card.Suit.values()).toList(), 1);
+    }
+
+    public Deck(long SEED, List<Card.Suit> suits, int deckMultiplier) {
         this.SEED = SEED;
         random = new Random(SEED);
-        for (Card.Suit suit : Card.Suit.values()) {
-            for (Card.Rank rank : Card.Rank.values()) {
-                if (rank == Card.Rank.JOKER) continue;
-                Card card = new Card(rank, suit);
-                allCards.add(card);
-                cardsInDeck.add(card);
+        for (int i = 0; i < deckMultiplier; i++) {
+            for (Card.Suit suit : suits) {
+                for (Card.Rank rank : Card.Rank.values()) {
+                    if (rank == Card.Rank.JOKER) continue;
+                    Card card = new Card(rank, suit);
+                    allCards.add(card);
+                    cardsInDeck.add(card);
+                }
             }
         }
         Collections.shuffle(cardsInDeck, random);
@@ -106,6 +112,10 @@ public class Deck {
     }
 
     public List<Card> getAllCards() {
+        return allCards;
+    }
+
+    public List<Card> getCardsInDeck() {
         return cardsInDeck;
     }
 

@@ -7,9 +7,9 @@ import com.googlecode.lanterna.screen.*;
 import com.googlecode.lanterna.terminal.*;
 import com.googlecode.lanterna.terminal.swing.*;
 import java.awt.event.*;
-import java.util.*;import java.util.concurrent.*;
+import java.util.*;
 import me.pintoadmin.cardTerminal.*;
-import me.pintoadmin.cardTerminal.games.*;import me.pintoadmin.cardTerminal.screens.*;
+import me.pintoadmin.cardTerminal.games.solitaire.*;
 
 /**
  * Starts Solitaire on a seed, solves it with Solver, and plays every move except the last one by
@@ -185,7 +185,7 @@ public class AutoPlay {
         }
         Card top = sol.getDeck().getTopDiscard();
         if (s.pos == 0 ? top != null : top == null || !matches(top, s.stock[s.pos - 1])) return "waste top differs";
-        List<Card> left = sol.getDeck().getAllCards(); // cards still in the deck, despite the name
+        List<Card> left = sol.getDeck().getCardsInDeck(); // cards still in the deck, despite the name
         if (left.size() != s.stock.length - s.pos) return "deck size " + left.size() + " != " + (s.stock.length - s.pos);
         for (int k = 0; k < left.size(); k++)
             if (!matches(left.get(k), s.stock[s.pos + k])) return "deck card " + k + " differs";

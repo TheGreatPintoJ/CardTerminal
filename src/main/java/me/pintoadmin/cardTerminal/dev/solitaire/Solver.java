@@ -2,7 +2,7 @@
 package me.pintoadmin.cardTerminal.dev.solitaire;
 
 import java.util.*;
-import me.pintoadmin.cardTerminal.games.Solitaire;
+import me.pintoadmin.cardTerminal.games.solitaire.Solitaire;
 
 public class Solver {
     // card = suit*13 + rank (rank 0=Ace..12=King); suits SPADE,CLUB,HEART,DIAMOND as in Card.Suit

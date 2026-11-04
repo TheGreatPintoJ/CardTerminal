@@ -1,17 +1,22 @@
-package me.pintoadmin.cardTerminal.games;
+package me.pintoadmin.cardTerminal.games.solitaire;
 
-import com.googlecode.lanterna.*;
-import com.googlecode.lanterna.graphics.*;
-import com.googlecode.lanterna.input.*;
-import com.googlecode.lanterna.screen.*;
-import java.io.*;
-import java.util.*;
-import java.util.function.*;
-import me.pintoadmin.cardTerminal.*;
+import com.googlecode.lanterna.SGR;
+import com.googlecode.lanterna.TextColor;
+import com.googlecode.lanterna.graphics.TextGraphics;
+import com.googlecode.lanterna.input.KeyStroke;
+import com.googlecode.lanterna.input.KeyType;
+import com.googlecode.lanterna.screen.Screen;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
+import java.util.function.Supplier;
+import me.pintoadmin.cardTerminal.Main;
 import me.pintoadmin.cardTerminal.dev.solitaire.*;
-import me.pintoadmin.cardTerminal.screens.*;
+import me.pintoadmin.cardTerminal.screens.GameOptions;
+import me.pintoadmin.cardTerminal.screens.MainMenu;
 
-public class SpiderOptions extends GameOptions {
+public class SolitaireOptions extends GameOptions {
     private final Screen screen = Main.screen;
     private final TextGraphics g = Main.g;
 
@@ -21,18 +26,19 @@ public class SpiderOptions extends GameOptions {
     private long suggestedSeed = new Random().nextLong();
     private long SEED = 0;
     private final Supplier<String> seedString = () -> String.valueOf(SEED);
-    private Spider.GameType type = Spider.GameType.SUIT1;
+    private Solitaire.GameType type = Solitaire.GameType.KLONDIKE1;
+    private boolean autoPlay = false;
 
-    private SpiderOptions.Option selectedOption = SpiderOptions.Option.SEED;
+    private Option selectedOption = Option.SEED;
 
     private enum Option {
         SEED,
         TYPE,
-        //        AUTOPLAY,
+        AUTOPLAY,
         PLAY
     }
 
-    public SpiderOptions(String name) {
+    public SolitaireOptions(String name) {
         super(name);
     }
 
@@ -46,7 +52,7 @@ public class SpiderOptions extends GameOptions {
         Main.drawRectangle(0, 0, W - 1, H - 1);
         Main.drawText(W / 2, 0, " " + getName() + " ");
 
-        if (selectedOption == SpiderOptions.Option.SEED) g.enableModifiers(SGR.REVERSE);
+        if (selectedOption == Option.SEED) g.enableModifiers(SGR.REVERSE);
         Main.drawRectangle(8, 1, (W - 2) / 2, 3);
         g.disableModifiers(SGR.REVERSE);
         Main.drawTextLeft(2, 2, "SEED:");
@@ -54,7 +60,7 @@ public class SpiderOptions extends GameOptions {
         Main.drawTextLeft(9, 2, String.valueOf(SEED == 0 ? suggestedSeed : SEED));
         if (SEED == 0) g.setForegroundColor(TextColor.ANSI.WHITE);
 
-        if (selectedOption == SpiderOptions.Option.TYPE) g.enableModifiers(SGR.REVERSE);
+        if (selectedOption == Option.TYPE) g.enableModifiers(SGR.REVERSE);
         Main.drawRectangle(8, 4, (W - 2) / 2, 6);
         g.disableModifiers(SGR.REVERSE);
         Main.drawTextLeft(2, 5, "TYPE:");
@@ -62,14 +68,13 @@ public class SpiderOptions extends GameOptions {
         Main.drawText(Math.abs((8 + W) / 4), 5, type.name());
         g.setCharacter(W / 2 - 2, 5, '>');
 
-        //        if (selectedOption == SpiderOptions.Option.AUTOPLAY)
-        // g.enableModifiers(SGR.REVERSE);
-        //        Main.drawRectangle((W / 2) - 5, 7, W / 2 - 1, 9);
-        //        Main.drawText((W / 2) - 3, 8, autoPlay ? " X " : "   ");
-        //        g.disableModifiers(SGR.REVERSE);
-        //        Main.drawTextLeft(2, 8, "AutoPlay:");
+        if (selectedOption == Option.AUTOPLAY) g.enableModifiers(SGR.REVERSE);
+        Main.drawRectangle((W / 2) - 5, 7, W / 2 - 1, 9);
+        Main.drawText((W / 2) - 3, 8, autoPlay ? " X " : "   ");
+        g.disableModifiers(SGR.REVERSE);
+        Main.drawTextLeft(2, 8, "AutoPlay:");
 
-        if (selectedOption == SpiderOptions.Option.PLAY) g.enableModifiers(SGR.REVERSE);
+        if (selectedOption == Option.PLAY) g.enableModifiers(SGR.REVERSE);
         Main.drawText(W / 2, H - 1, " Play ");
         g.disableModifiers(SGR.REVERSE);
 
@@ -86,7 +91,8 @@ public class SpiderOptions extends GameOptions {
 
     @Override
     public void start() {
-        Main.getInstance().setCurrentScreen(SEED != 0 ? new Spider(SEED) : new Spider());
+        Main.getInstance()
+                .setCurrentScreen(SEED != 0 ? new Solitaire(type, SEED) : new Solitaire());
     }
 
     @Override
@@ -94,7 +100,7 @@ public class SpiderOptions extends GameOptions {
         try {
             build();
         } catch (IOException e) {
-            System.err.println("Could not draw spider options screen: " + e.getMessage());
+            System.err.println("Could not draw solitaire options screen: " + e.getMessage());
         }
     }
 
@@ -104,9 +110,9 @@ public class SpiderOptions extends GameOptions {
             Main.getInstance().setCurrentScreen(new MainMenu());
             throw new Exception("override");
         } else if (keyStroke.getKeyType().name().contains("Arrow")) {
-            List<SpiderOptions.Option> optionValues =
-                    Arrays.stream(SpiderOptions.Option.values()).toList();
-            List<Spider.GameType> typeValues = Arrays.stream(Spider.GameType.values()).toList();
+            List<Option> optionValues = Arrays.stream(Option.values()).toList();
+            List<Solitaire.GameType> typeValues =
+                    Arrays.stream(Solitaire.GameType.values()).toList();
             try {
                 switch (keyStroke.getKeyType()) {
                     case ArrowUp:
@@ -116,11 +122,11 @@ public class SpiderOptions extends GameOptions {
                         selectedOption = optionValues.get(optionValues.indexOf(selectedOption) + 1);
                         break;
                     case ArrowLeft:
-                        if (selectedOption == SpiderOptions.Option.TYPE)
+                        if (selectedOption == Option.TYPE)
                             type = typeValues.get(typeValues.indexOf(type) - 1);
                         break;
                     case ArrowRight:
-                        if (selectedOption == SpiderOptions.Option.TYPE)
+                        if (selectedOption == Option.TYPE)
                             type = typeValues.get(typeValues.indexOf(type) + 1);
                         break;
                 }
@@ -128,30 +134,33 @@ public class SpiderOptions extends GameOptions {
             }
             build();
         } else if (keyStroke.getKeyType() == KeyType.Enter) {
-            /*if (selectedOption == SpiderOptions.Option.AUTOPLAY) {
+            if (selectedOption == Option.AUTOPLAY) {
                 autoPlay = !autoPlay;
                 build();
-            } else */ if (selectedOption == SpiderOptions.Option.PLAY) {
-                /*if (autoPlay)
+            } else if (selectedOption == Option.PLAY) {
+                if (autoPlay)
                     AutoPlay.main(
                             new String[] {
-                                    String.valueOf(SEED != 0 ? SEED : suggestedSeed),
-                                    String.valueOf(60),
-                                    type.name()
+                                String.valueOf(SEED != 0 ? SEED : suggestedSeed),
+                                String.valueOf(60),
+                                type.name()
                             });
-                else*/
-                Main.getInstance()
-                        .setCurrentScreen(SEED != 0 ? new Spider(SEED) : new Spider(suggestedSeed));
+                else
+                    Main.getInstance()
+                            .setCurrentScreen(
+                                    SEED != 0
+                                            ? new Solitaire(type, SEED)
+                                            : new Solitaire(type, suggestedSeed));
             }
         } else if (keyStroke.getKeyType() == KeyType.Character) {
             Character c = keyStroke.getCharacter();
             // Update vars and print chars
-            if (selectedOption == SpiderOptions.Option.SEED && Character.isDigit(c)) {
+            if (selectedOption == Option.SEED && Character.isDigit(c)) {
                 SEED = Long.parseLong(String.valueOf(SEED) + c);
             }
             build();
         } else if (keyStroke.getKeyType() == KeyType.Backspace) {
-            if (selectedOption == SpiderOptions.Option.SEED) {
+            if (selectedOption == Option.SEED) {
                 String s = seedString.get();
                 if (s.length() == 1) SEED = 0;
                 else SEED = Long.parseLong(s.substring(0, s.length() - 1));

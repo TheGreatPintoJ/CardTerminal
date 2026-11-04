@@ -1,9 +1,8 @@
-package me.pintoadmin.cardTerminal.games;
+package me.pintoadmin.cardTerminal.games.solitaire;
 
 import static me.pintoadmin.cardTerminal.Main.*;
 
 import com.googlecode.lanterna.*;
-import com.googlecode.lanterna.graphics.*;
 import com.googlecode.lanterna.input.*;
 import com.googlecode.lanterna.screen.*;
 import java.io.*;
@@ -188,7 +187,7 @@ public class Solitaire extends Game {
                             -1,
                             SolitaireMove.Type.SHUFFLE);
             move.setOldDiscard(deck.restartDiscard());
-            move.setShuffled(deck.getAllCards());
+            move.setShuffled(deck.getCardsInDeck());
             moves.add(move);
 
             deck.redrawDiscard();
