@@ -13,13 +13,13 @@ import me.pintoadmin.cardTerminal.*;
 import me.pintoadmin.cardTerminal.screens.MainMenu;
 
 public class Solitaire extends Game {
+    private final GameType type;
     private final long SEED;
     private final Deck deck;
     private final Foundation foundation;
     private final LinkedList<LinkedList<Card>> stock = new LinkedList<>(); // 2d, column:row:card
     private final LinkedList<SolitaireMove> moves = new LinkedList<>();
     private final LinkedList<SolitaireMove> movesUndone = new LinkedList<>();
-    private Card drawnCard;
 
     private final Supplier<Integer> WIDTH = () -> g.getSize().getColumns();
     private final Supplier<Integer> HEIGHT = () -> g.getSize().getRows();
@@ -34,6 +34,12 @@ public class Solitaire extends Game {
     private Card selectedCard;
     private final Supplier<Location> selectedCardLocation;
 
+    public enum GameType {
+        KLONDIKE1,
+        KLONDIKE3,
+        VEGAS,
+    }
+
     enum Location {
         DECK,
         DISCARD,
@@ -42,10 +48,11 @@ public class Solitaire extends Game {
     }
 
     public Solitaire() {
-        this(new Random().nextLong());
+        this(GameType.KLONDIKE1, new Random().nextLong());
     }
 
-    public Solitaire(long SEED) {
+    public Solitaire(GameType type, long SEED) {
+        this.type = type;
         this.SEED = SEED;
         this.deck = new Deck(SEED);
         this.foundation = new Foundation(deck);
@@ -53,11 +60,9 @@ public class Solitaire extends Game {
                 () ->
                         stock.stream().map(l -> l.contains(selectedCard)).toList().contains(true)
                                 ? Location.STOCK
-                                : selectedCard == drawnCard
-                                        ? Location.DECK
-                                        : selectedCard == deck.getTopDiscard()
-                                                ? Location.DISCARD
-                                                : Location.FOUNDATION;
+                                : selectedCard == deck.getTopDiscard()
+                                        ? Location.DISCARD
+                                        : Location.FOUNDATION;
 
         screen.clear();
 
@@ -79,8 +84,8 @@ public class Solitaire extends Game {
         }
     }
 
-    private Solitaire(long SEED, LinkedList<SolitaireMove> moves) {
-        this(SEED);
+    private Solitaire(GameType type, long SEED, LinkedList<SolitaireMove> moves) {
+        this(type, SEED);
         try {
             screen.refresh(Screen.RefreshType.COMPLETE);
         } catch (IOException ignored) {
@@ -88,7 +93,6 @@ public class Solitaire extends Game {
 
         LinkedList<SolitaireMove> newMoves = new LinkedList<>();
         for (SolitaireMove move : moves) {
-
             SolitaireMove newMove =
                     new SolitaireMove(
                             this,
@@ -132,7 +136,7 @@ public class Solitaire extends Game {
 
     @Override
     public Game restart() {
-        return new Solitaire(SEED);
+        return new Solitaire(type, SEED);
     }
 
     @Override
@@ -151,6 +155,7 @@ public class Solitaire extends Game {
         Main.screen.clear();
         deck.redrawDeck();
         deck.redrawDiscard();
+        foundation.redraw();
 
         for (List<Card> list : stock) {
             for (Card card : list) {
@@ -162,9 +167,6 @@ public class Solitaire extends Game {
             if (list.isEmpty()) continue;
             list.getLast().flip(true);
         }
-
-        foundation.redraw();
-        if (drawnCard != null) drawnCard.redraw();
     }
 
     private boolean nextDrawShuffles = false;
@@ -175,12 +177,11 @@ public class Solitaire extends Game {
             SolitaireMove move =
                     new SolitaireMove(
                             this,
-                            drawnCard,
+                            deck.getTopDiscard(),
                             Location.DISCARD,
                             Location.DECK,
                             -1,
                             SolitaireMove.Type.SHUFFLE);
-            //            move.setShuffleIndex(deck.getNextShuffleIndex());
             move.setOldDiscard(deck.restartDiscard());
             move.setShuffled(deck.getAllCards());
             moves.add(move);
@@ -191,27 +192,8 @@ public class Solitaire extends Game {
             nextDrawShuffles = false;
             return;
         }
-        if (drawnCard != null) {
-            if (!drawnCard.isFaceup()) {
-                drawnCard.draw(deckX.get(), deckY.get(), true);
-                if (logged) {
-                    SolitaireMove move =
-                            new SolitaireMove(
-                                    this,
-                                    drawnCard,
-                                    Location.DECK,
-                                    Location.DISCARD,
-                                    -1,
-                                    SolitaireMove.Type.DRAW);
-                    moves.add(move);
-                }
-                return;
-            }
-            deck.discardCard(drawnCard);
-        }
-        deck.redrawDiscard();
 
-        drawnCard = deck.drawCard();
+        Card drawnCard = deck.drawCard();
         if (drawnCard == null) {
             // Deck has run out
             if (logged) {
@@ -229,6 +211,7 @@ public class Solitaire extends Game {
             nextDrawShuffles = true;
             return;
         }
+        deck.discardCard(drawnCard);
         if (logged) {
             SolitaireMove move =
                     new SolitaireMove(
@@ -240,7 +223,7 @@ public class Solitaire extends Game {
                             SolitaireMove.Type.DRAW);
             moves.add(move);
         }
-        drawnCard.draw(deckX.get(), deckY.get(), true);
+        deck.redrawDiscard();
     }
 
     void drawGame() {
@@ -293,9 +276,6 @@ public class Solitaire extends Game {
         int foundationY = HEIGHT.get() - 7;
 
         foundation.draw(foundationX, foundationY);
-
-        if (drawnCard != null) drawnCard.draw(deckX.get(), deckY.get());
-        else deck.redrawDeck();
     }
 
     /*
@@ -351,7 +331,7 @@ public class Solitaire extends Game {
                     break;
                 case ' ':
                     // Select drawn card
-                    if (selectedCard == drawnCard) clearSelected();
+                    if (selectedCard == deck.getTopDiscard()) clearSelected();
                     else selectCard(Location.DECK, 0);
                     break;
                 case '[':
@@ -383,9 +363,6 @@ public class Solitaire extends Game {
                     else moveSelected(Location.FOUNDATION, -1);
                     break;
             }
-        } else if (keyStroke.getKeyType() == KeyType.Tab) {
-            // Top discard
-            if (deck.getTopDiscard() != null) selectCard(Location.DISCARD, 0);
         } else if (keyStroke.getKeyType() == KeyType.F12) {
             // Reset game
             throw new Exception("reset");
@@ -406,10 +383,7 @@ public class Solitaire extends Game {
         }
         if (selectedCard != null) selectedCard.setTextColor(TextColor.ANSI.WHITE);
         switch (loc) {
-            case DECK:
-                selectedCard = drawnCard;
-                break;
-            case DISCARD:
+            case DECK, DISCARD:
                 selectedCard = deck.getTopDiscard();
                 break;
             case FOUNDATION:
@@ -430,7 +404,6 @@ public class Solitaire extends Game {
             // Player won
             screen.clear();
             clearSelected();
-            setDrawnCard(null);
 
             g.enableModifiers(SGR.BLINK);
             g.setBackgroundColor(BLACK);
@@ -452,7 +425,7 @@ public class Solitaire extends Game {
             }
 
             screen.clear();
-            new Solitaire(SEED, moves);
+            new Solitaire(type, SEED, moves);
 
             return true;
         }
@@ -518,14 +491,6 @@ public class Solitaire extends Game {
         selectedColumn = -1;
         if (selectedCard != null) selectedCard.setTextColor(TextColor.ANSI.WHITE);
         selectedCard = null;
-    }
-
-    void nullDrawnCard() {
-        drawnCard = null;
-    }
-
-    void setDrawnCard(Card card) {
-        drawnCard = card;
     }
 
     void setNextShuffle(boolean state) {

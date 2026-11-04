@@ -51,7 +51,6 @@ public class SolitaireMove {
             return true;
         } else if (type == Type.EXHAUST) {
             solitaire.getDeck().discardCard(card);
-            solitaire.setDrawnCard(null);
             solitaire.setNextShuffle(true);
         } else {
             switch (location) {
@@ -152,7 +151,6 @@ public class SolitaireMove {
                 break;
             case DECK:
                 fromIndex = 0;
-                solitaire.nullDrawnCard();
                 solitaire.getDeck().redrawDeck();
                 break;
         }
@@ -186,7 +184,6 @@ public class SolitaireMove {
         } else if (type == Type.DRAW) {
             // Add to top of deck
             solitaire.getDeck().addTopDeck(card);
-            solitaire.setDrawnCard(solitaire.getDeck().getTopDiscard());
             solitaire.getDeck().removeTopDiscard();
             solitaire.setNextShuffle(false);
         } else if (type == Type.SHUFFLE) {
@@ -197,7 +194,6 @@ public class SolitaireMove {
         } else if (type == Type.EXHAUST) {
             if (solitaire.getDeck().getTopDiscard() != card) return;
             solitaire.getDeck().removeTopDiscard();
-            solitaire.setDrawnCard(card);
             solitaire.setNextShuffle(false);
         }
     }

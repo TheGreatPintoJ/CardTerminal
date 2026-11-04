@@ -25,7 +25,7 @@ public class SolitaireOptions extends GameOptions {
     private long suggestedSeed = new Random().nextLong();
     private long SEED = 0;
     private final Supplier<String> seedString = () -> String.valueOf(SEED);
-    private GameType type = GameType.KLONDIKE1;
+    private Solitaire.GameType type = Solitaire.GameType.KLONDIKE1;
     private boolean autoPlay = false;
 
     private Option selectedOption = Option.SEED;
@@ -35,12 +35,6 @@ public class SolitaireOptions extends GameOptions {
         TYPE,
         AUTOPLAY,
         PLAY
-    }
-
-    public enum GameType {
-        KLONDIKE1,
-        KLONDIKE3,
-        VEGAS,
     }
 
     public SolitaireOptions(String name) {
@@ -74,9 +68,8 @@ public class SolitaireOptions extends GameOptions {
         g.setCharacter(W / 2 - 2, 5, '>');
 
         if (selectedOption == Option.AUTOPLAY) g.enableModifiers(SGR.REVERSE);
-        Main.drawRectangle((W / 2) - 3, 7, W / 2 - 1, 9);
-        if (autoPlay) g.setCharacter((W / 2) - 2, 8, 'X');
-        else g.setCharacter((W / 2) - 2, 8, ' ');
+        Main.drawRectangle((W / 2) - 5, 7, W / 2 - 1, 9);
+        Main.drawText((W / 2) - 3, 8, autoPlay ? " X " : "   ");
         g.disableModifiers(SGR.REVERSE);
         Main.drawTextLeft(2, 8, "AutoPlay:");
 
@@ -90,10 +83,6 @@ public class SolitaireOptions extends GameOptions {
         screen.refresh(Screen.RefreshType.AUTOMATIC);
     }
 
-    public void selectType(GameType type) {
-        this.type = type;
-    }
-
     @Override
     public void setSeed(long seed) {
         SEED = seed;
@@ -101,7 +90,8 @@ public class SolitaireOptions extends GameOptions {
 
     @Override
     public void start() {
-        Main.getInstance().setCurrentScreen(SEED != 0 ? new Solitaire(SEED) : new Solitaire());
+        Main.getInstance()
+                .setCurrentScreen(SEED != 0 ? new Solitaire(type, SEED) : new Solitaire());
     }
 
     @Override
@@ -120,7 +110,8 @@ public class SolitaireOptions extends GameOptions {
             throw new Exception("override");
         } else if (keyStroke.getKeyType().name().contains("Arrow")) {
             List<Option> optionValues = Arrays.stream(Option.values()).toList();
-            List<GameType> typeValues = Arrays.stream(GameType.values()).toList();
+            List<Solitaire.GameType> typeValues =
+                    Arrays.stream(Solitaire.GameType.values()).toList();
             try {
                 switch (keyStroke.getKeyType()) {
                     case ArrowUp:
@@ -148,7 +139,9 @@ public class SolitaireOptions extends GameOptions {
             } else if (selectedOption == Option.PLAY) {
                 Main.getInstance()
                         .setCurrentScreen(
-                                SEED != 0 ? new Solitaire(SEED) : new Solitaire(suggestedSeed));
+                                SEED != 0
+                                        ? new Solitaire(type, SEED)
+                                        : new Solitaire(type, suggestedSeed));
             }
         } else if (keyStroke.getKeyType() == KeyType.Character) {
             Character c = keyStroke.getCharacter();

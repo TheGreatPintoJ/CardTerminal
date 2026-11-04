@@ -45,7 +45,7 @@ public class Deck {
 
     public void addTopDeck(Card card) {
         if (cardsInDeck.contains(card)) return;
-        cardsInDeck.addLast(card);
+        cardsInDeck.addFirst(card);
     }
 
     public void discardCard(Card card) {

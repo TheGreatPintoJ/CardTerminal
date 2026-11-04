@@ -126,9 +126,6 @@ public class Main {
 
             currentScreen = new MainMenu();
 
-            //            currentScreen = new Solitaire(5922791531032266961L); // Dev seed:
-            // 5922791531032266961L
-
             screen.refresh(Screen.RefreshType.COMPLETE);
 
             if (terminal instanceof SwingTerminalFrame swingTerminalFrame) {
