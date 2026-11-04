@@ -34,10 +34,13 @@ public class Solitaire extends Game {
     private Card selectedCard;
     private final Supplier<Location> selectedCardLocation;
 
+    private int shuffleCounter = 0;
+
     public enum GameType {
         KLONDIKE1,
         KLONDIKE3,
-        VEGAS,
+        VEGAS1,
+        VEGAS3,
     }
 
     enum Location {
@@ -173,7 +176,9 @@ public class Solitaire extends Game {
 
     @Override
     public void drawCard(boolean logged) {
+        int drawCt = type.name().contains("3") ? 3 : 1;
         if (nextDrawShuffles) {
+            if (type.name().contains("VEGAS") && shuffleCounter >= drawCt - 1) return;
             SolitaireMove move =
                     new SolitaireMove(
                             this,
@@ -190,10 +195,11 @@ public class Solitaire extends Game {
             deck.redrawDeck();
 
             nextDrawShuffles = false;
+            shuffleCounter++;
             return;
         }
 
-        for (int i = 0; i < (type == GameType.KLONDIKE3 ? 3 : 1); i++) {
+        for (int i = 0; i < (drawCt); i++) {
             Card drawnCard = deck.drawCard();
             if (drawnCard == null) {
                 // Deck has run out
@@ -211,18 +217,19 @@ public class Solitaire extends Game {
                 deck.redrawDeck();
                 nextDrawShuffles = true;
                 return;
-            }
-            deck.discardCard(drawnCard);
-            if (logged && i == 0) {
-                SolitaireMove move =
-                        new SolitaireMove(
-                                this,
-                                drawnCard,
-                                Location.DECK,
-                                Location.DISCARD,
-                                -1,
-                                SolitaireMove.Type.DRAW);
-                moves.add(move);
+            } else if (drawnCard != null) {
+                deck.discardCard(drawnCard);
+                if (logged && i == 0) {
+                    SolitaireMove move =
+                            new SolitaireMove(
+                                    this,
+                                    drawnCard,
+                                    Location.DECK,
+                                    Location.DISCARD,
+                                    -1,
+                                    SolitaireMove.Type.DRAW);
+                    moves.add(move);
+                }
             }
         }
         deck.redrawDiscard();
