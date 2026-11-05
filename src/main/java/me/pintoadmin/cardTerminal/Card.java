@@ -1,6 +1,7 @@
 package me.pintoadmin.cardTerminal;
 
 import static me.pintoadmin.cardTerminal.Main.*;
+import static me.pintoadmin.cardTerminal.Main.g;
 
 import com.googlecode.lanterna.*;
 import com.googlecode.lanterna.graphics.*;
@@ -230,6 +231,29 @@ public class Card {
     public void flip() {
         faceup = !faceup;
         draw(x, y, !faceup);
+    }
+
+    public static void drawCardSpace(int x, int y) throws IOException {
+        Main.g.setBackgroundColor(Main.BLACK);
+        Main.g.setForegroundColor(new TextColor.RGB(50, 50, 50));
+
+        Main.g.drawLine(x + 1, y, x + 7, y, '─');
+        Main.g.drawLine(x + 1, y + 6, x + 7, y + 6, '─');
+        Main.g.drawLine(x, y + 1, x, y + 5, '│');
+        Main.g.drawLine(x + 8, y + 1, x + 8, y + 5, '│');
+
+        // Switch corner characters to square for windows (curved corner don't display correctly)
+        if (getOS() != Main.OS.WINDOWS) {
+            Main.g.setCharacter(x, y, '╭');
+            Main.g.setCharacter(x + 8, y, '╮');
+            Main.g.setCharacter(x, y + 6, '╰');
+            Main.g.setCharacter(x + 8, y + 6, '╯');
+        } else {
+            Main.g.setCharacter(x, y, '┌');
+            Main.g.setCharacter(x + 8, y, '┐');
+            Main.g.setCharacter(x, y + 6, '└');
+            Main.g.setCharacter(x + 8, y + 6, '┘');
+        }
     }
 
     public void setTextColor(TextColor color) {

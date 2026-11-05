@@ -249,7 +249,7 @@ public class Solitaire extends Game {
             List<Card> thisColumn = stock.get(column);
             if (thisColumn.isEmpty()) {
                 try {
-                    drawCardSpace(startingX + (column) * 9, startingY);
+                    Card.drawCardSpace(startingX + (column) * 9, startingY);
                 } catch (IOException _) {
                 }
                 continue;
@@ -274,7 +274,7 @@ public class Solitaire extends Game {
         for (List<Card> list : stock) {
             if (list.isEmpty())
                 try {
-                    drawCardSpace(startingX + (stock.indexOf(list)) * 9, startingY);
+                    Card.drawCardSpace(startingX + (stock.indexOf(list)) * 9, startingY);
                 } catch (IOException _) {
                 }
             else list.getLast().flip(true);
@@ -476,29 +476,6 @@ public class Solitaire extends Game {
         movesUndone.getLast().execute();
         moves.add(movesUndone.getLast());
         movesUndone.removeLast();
-    }
-
-    private void drawCardSpace(int x, int y) throws IOException {
-        g.setBackgroundColor(Main.BLACK);
-        g.setForegroundColor(new TextColor.RGB(50, 50, 50));
-
-        g.drawLine(x + 1, y, x + 7, y, '─');
-        g.drawLine(x + 1, y + 6, x + 7, y + 6, '─');
-        g.drawLine(x, y + 1, x, y + 5, '│');
-        g.drawLine(x + 8, y + 1, x + 8, y + 5, '│');
-
-        // Switch corner characters to square for windows (curved corner don't display correctly)
-        if (getOS() != Main.OS.WINDOWS) {
-            g.setCharacter(x, y, '╭');
-            g.setCharacter(x + 8, y, '╮');
-            g.setCharacter(x, y + 6, '╰');
-            g.setCharacter(x + 8, y + 6, '╯');
-        } else {
-            g.setCharacter(x, y, '┌');
-            g.setCharacter(x + 8, y, '┐');
-            g.setCharacter(x, y + 6, '└');
-            g.setCharacter(x + 8, y + 6, '┘');
-        }
     }
 
     private void clearSelected() {

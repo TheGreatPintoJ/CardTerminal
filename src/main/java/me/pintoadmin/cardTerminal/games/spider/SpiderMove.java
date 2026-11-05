@@ -27,6 +27,7 @@ public class SpiderMove {
         boolean res = true;
         switch (type) {
             case MOVE:
+                card.clear();
                 fromIndex =
                         spider.getStock()
                                 .indexOf(
@@ -41,17 +42,14 @@ public class SpiderMove {
                         && toPile.getLast().getRank().toInt() != card.getRank().toInt() + 1)
                     return false;
 
-                LinkedList<Card> afterCards =
-                        new LinkedList<>(spider.getRun(fromPile, fromPile.indexOf(card) + 1));
+                LinkedList<Card> movingCards =
+                        new LinkedList<>(spider.getRun(fromPile, fromPile.indexOf(card)));
 
-                fromPile.remove(card);
-                res = toPile.add(card);
+                //                fromPile.remove(card);
+                //                res = toPile.add(card);
 
-                if (!afterCards.isEmpty()) {
-                    // moving more than one card
-                    if (!fromPile.removeAll(afterCards)) res = false;
-                    if (!toPile.addAll(afterCards)) res = false;
-                }
+                if (!fromPile.removeAll(movingCards)) res = false;
+                if (!toPile.addAll(movingCards)) res = false;
                 break;
             case DEAL:
                 for (int column = 0; column < 10; column++) {
@@ -67,14 +65,16 @@ public class SpiderMove {
     public void undo() {
         switch (type) {
             case MOVE:
+                card.clear();
                 spider.getStock().get(toIndex).remove(card);
                 spider.getStock().get(fromIndex).add(card);
                 break;
             case DEAL:
-                for (int column = 0; column < 10; column++) {
-                    Card card = spider.getDeck().drawCard();
+                for (int column = 9; column > -1; column--) {
+                    Card card = spider.getStock().get(column).getLast();
                     if (card == null) break;
-                    spider.getStock().get(column).add(card);
+                    spider.getStock().get(column).remove(card);
+                    spider.getDeck().addTopDeck(card);
                 }
                 break;
         }
