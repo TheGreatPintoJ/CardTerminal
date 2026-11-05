@@ -23,7 +23,7 @@ public class SolitaireMove {
         MOVE
     }
 
-    public SolitaireMove(
+    SolitaireMove(
             Solitaire solitaire,
             Card card,
             Solitaire.Location fromLocation,

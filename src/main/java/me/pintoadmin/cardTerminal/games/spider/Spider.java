@@ -16,15 +16,9 @@ import me.pintoadmin.cardTerminal.screens.*;
 public class Spider extends Game {
     private final long SEED;
     private final Deck deck;
-    private final List<List<Card>> stock =
-            List.of(
-                    new LinkedList<>(), new LinkedList<>(),
-                    new LinkedList<>(), new LinkedList<>(),
-                    new LinkedList<>(), new LinkedList<>(),
-                    new LinkedList<>(), new LinkedList<>(),
-                    new LinkedList<>(), new LinkedList<>()); // Ten piles
-    private final LinkedList<SolitaireMove> moves = new LinkedList<>();
-    private final LinkedList<SolitaireMove> movesUndone = new LinkedList<>();
+    private final LinkedList<LinkedList<Card>> stock = new LinkedList<>(); // Ten piles
+    private final LinkedList<SpiderMove> moves = new LinkedList<>();
+    private final LinkedList<SpiderMove> movesUndone = new LinkedList<>();
 
     private final Supplier<Integer> WIDTH = () -> g.getSize().getColumns();
     private final Supplier<Integer> HEIGHT = () -> g.getSize().getRows();
@@ -59,7 +53,12 @@ public class Spider extends Game {
 
         for (int row = 0; row < 5; row++) {
             for (int column = 0; column < 10; column++) {
-                stock.get(column).add(deck.drawCard());
+                try {
+                    stock.get(column).add(deck.drawCard());
+                } catch (IndexOutOfBoundsException e) {
+                    stock.add(new LinkedList<>());
+                    stock.get(column).add(deck.drawCard());
+                }
             }
         }
         resize();
@@ -141,6 +140,8 @@ public class Spider extends Game {
             Card card = deck.drawCard();
             if (card == null) break;
             stock.get(column).add(card);
+            SpiderMove move = new SpiderMove(this, null, null, SpiderMove.Type.DEAL);
+            moves.add(move);
         }
         drawCount++;
 
@@ -189,6 +190,12 @@ public class Spider extends Game {
                     case '-':
                         selectCard(null, -1);
                         break;
+                    case '[':
+                        undo();
+                        break;
+                    case ']':
+                        redo();
+                        break;
                 }
             }
         }
@@ -219,19 +226,35 @@ public class Spider extends Game {
 
     private void moveSelectedCard(int index) {
         selectedCard.setTextColor(TextColor.ANSI.WHITE);
-        //        SpiderMove move =
-        //                new SpiderMove(
-        //                        this,
-        //                        selectedCard,
-        //                        selectedCardLocation.get(),
-        //                        toLocation,
-        //                        index,
-        //                        SpiderMove.Type.MOVE);
-        //        if (move.execute()) {
-        //            moves.add(move);
-        //            movesUndone.clear();
-        //        }
+        SpiderMove move = new SpiderMove(this, selectedCard, index, SpiderMove.Type.MOVE);
+        if (move.execute()) {
+            moves.add(move);
+            movesUndone.clear();
+        }
 
         selectCard(null, -1);
+    }
+
+    private void undo() {
+        if (moves.isEmpty()) return;
+        SpiderMove move = moves.getLast();
+        move.undo();
+        movesUndone.add(move);
+        moves.remove(move);
+    }
+
+    private void redo() {
+        if (movesUndone.isEmpty()) return;
+        movesUndone.getLast().execute();
+        moves.add(movesUndone.getLast());
+        movesUndone.removeLast();
+    }
+
+    public Deck getDeck() {
+        return deck;
+    }
+
+    public LinkedList<LinkedList<Card>> getStock() {
+        return stock;
     }
 }
