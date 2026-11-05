@@ -1,7 +1,6 @@
 package me.pintoadmin.cardTerminal.games.spider;
 
-import java.util.LinkedList;
-import java.util.UUID;
+import java.util.*;
 import me.pintoadmin.cardTerminal.Card;
 
 public class SpiderMove {
@@ -28,12 +27,31 @@ public class SpiderMove {
         boolean res = true;
         switch (type) {
             case MOVE:
-                int i = 0;
-                for (LinkedList<Card> list : spider.getStock()) {
-                    if (list.remove(card)) fromIndex = i;
-                    i++;
+                fromIndex =
+                        spider.getStock()
+                                .indexOf(
+                                        spider.getStock().stream()
+                                                .filter(l -> l.contains(card))
+                                                .toList()
+                                                .getFirst());
+                LinkedList<Card> fromPile = spider.getStock().get(fromIndex);
+                LinkedList<Card> toPile = spider.getStock().get(toIndex);
+
+                if (!toPile.isEmpty()
+                        && toPile.getLast().getRank().toInt() != card.getRank().toInt() + 1)
+                    return false;
+
+                LinkedList<Card> afterCards =
+                        new LinkedList<>(spider.getRun(fromPile, fromPile.indexOf(card) + 1));
+
+                fromPile.remove(card);
+                res = toPile.add(card);
+
+                if (!afterCards.isEmpty()) {
+                    // moving more than one card
+                    if (!fromPile.removeAll(afterCards)) res = false;
+                    if (!toPile.addAll(afterCards)) res = false;
                 }
-                res = spider.getStock().get(toIndex).add(card);
                 break;
             case DEAL:
                 for (int column = 0; column < 10; column++) {

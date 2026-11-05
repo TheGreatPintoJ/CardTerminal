@@ -166,13 +166,18 @@ public class Spider extends Game {
             Character c = keyStroke.getCharacter();
             if (Character.isDigit(c)) {
                 int i = Integer.parseInt(c.toString()) - 1;
-                if (i == -1) i = 10;
+                if (i == -1) i = 9;
                 // move corresponding stock piles
                 if (selectedCard == null) {
                     if (selectedColumn == -1) {
                         selectedColumn = i;
+                        LinkedList<Card> column = stock.get(selectedColumn);
+                        if (getLastRun(column).getLast() == column.getLast()
+                                || column.stream().filter(Card::isFaceup).count() == 1)
+                            selectCard(Location.STOCK, 0);
                     } else {
-                        if (stock.size() < i) selectCard(Location.STOCK, i);
+                        if (stock.get(selectedColumn).stream().filter(Card::isFaceup).count() > i)
+                            selectCard(Location.STOCK, i);
                     }
                 } else {
                     moveSelectedCard(i);
@@ -198,6 +203,12 @@ public class Spider extends Game {
                         break;
                 }
             }
+        } else if (keyStroke.getKeyType() == KeyType.F12) {
+            // Reset game
+            throw new Exception("reset");
+        } else if (keyStroke.getKeyType() == KeyType.F10) {
+            // New game
+            throw new Exception("newseed");
         }
         drawGame();
         screen.refresh(Screen.RefreshType.DELTA);
@@ -216,7 +227,11 @@ public class Spider extends Game {
                 break;
             case STOCK:
                 if (selectedColumn == -1) return;
-                selectedCard = stock.get(selectedColumn).get(index);
+                selectedCard =
+                        stock.get(selectedColumn).stream()
+                                .filter(Card::isFaceup)
+                                .toList()
+                                .get(index);
                 break;
         }
         if (selectedCard != null)
@@ -248,6 +263,31 @@ public class Spider extends Game {
         movesUndone.getLast().execute();
         moves.add(movesUndone.getLast());
         movesUndone.removeLast();
+    }
+
+    public LinkedList<Card> getRun(LinkedList<Card> input, int afterIndex) {
+        LinkedList<Card> sublist = new LinkedList<>(input.subList(afterIndex, input.size()));
+        if(sublist.isEmpty()) return new LinkedList<>();
+        Card.Rank startingRank = sublist.getFirst().getRank();
+
+        for (Card card : sublist) {
+            if (card.getRank().toInt() == startingRank.toInt() - 1)
+                return new LinkedList<>(sublist.subList(0, sublist.indexOf(card) - 1));
+        }
+
+        return sublist;
+    }
+
+    public LinkedList<Card> getLastRun(LinkedList<Card> input) {
+        LinkedList<Card> currentList = new LinkedList<>();
+        Card.Rank startingRank = input.getFirst().getRank();
+
+        for (Card card : input) {
+            if (card.getRank().toInt() != startingRank.toInt() - 1) currentList.clear();
+            currentList.add(card);
+        }
+
+        return currentList;
     }
 
     public Deck getDeck() {
