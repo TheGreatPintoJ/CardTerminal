@@ -95,15 +95,12 @@ public class Spider extends Game {
         g.setBackgroundColor(BLACK);
         g.setForegroundColor(TextColor.ANSI.WHITE);
         drawTextRight(WIDTH.get() - 1, HEIGHT.get() - 1, "SEED: " + SEED);
-        deck.drawDeck(deckX.get(), deckY.get());
+        Card.drawCardBack(deckX.get(), deckY.get(), TextColor.ANSI.WHITE);
         g.setCharacter(
                 deckX.get() + 4,
                 deckY.get() + 3,
                 TextCharacter.fromCharacter(
-                        String.valueOf(6 - drawCount).charAt(0),
-                        g.getForegroundColor(),
-                        g.getBackgroundColor(),
-                        SGR.REVERSE)[0]);
+                        String.valueOf(6 - drawCount).charAt(0), null, null, SGR.REVERSE)[0]);
 
         for (int i = 0; i < finishedRuns; i++) {
             Card.drawCardBack(2 * i, 0, TextColor.ANSI.WHITE);
@@ -131,15 +128,13 @@ public class Spider extends Game {
                         lastRun.contains(card)
                                 ? TextColor.ANSI.WHITE
                                 : new TextColor.RGB(75, 75, 75));
-                if (stock.indexOf(column) == selectedColumn) {
-                    if (selectedCard == null) {
-                        if (card.isFaceup()
-                                && lastRun.contains(card)
-                                && selectedRow == lastRun.indexOf(card))
-                            card.setTextColor(new TextColor.RGB(255, 200, 0));
-                    }
-                    if (card == selectedCard) card.setTextColor(TextColor.ANSI.GREEN);
+                if (stock.indexOf(column) == selectedColumn && selectedCard == null) {
+                    if (card.isFaceup()
+                            && lastRun.contains(card)
+                            && selectedRow == lastRun.indexOf(card))
+                        card.setTextColor(new TextColor.RGB(255, 200, 0));
                 }
+                if (card == selectedCard) card.setTextColor(TextColor.ANSI.GREEN);
                 card.draw(startingX, startingY + (column.indexOf(card) * 3));
             }
 
