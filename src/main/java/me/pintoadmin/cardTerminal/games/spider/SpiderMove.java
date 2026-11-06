@@ -78,4 +78,16 @@ public class SpiderMove {
                 break;
         }
     }
+
+    public Card getCard() {
+        return card;
+    }
+
+    public Integer getToIndex() {
+        return toIndex;
+    }
+
+    Type getType() {
+        return type;
+    }
 }

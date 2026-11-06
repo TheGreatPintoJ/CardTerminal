@@ -10,6 +10,7 @@ import java.io.*;
 import java.util.*;
 import java.util.function.*;
 import me.pintoadmin.cardTerminal.*;
+import me.pintoadmin.cardTerminal.games.solitaire.*;
 import me.pintoadmin.cardTerminal.screens.*;
 
 public class Spider extends Game {
@@ -61,6 +62,33 @@ public class Spider extends Game {
         resize();
     }
 
+    private Spider(long SEED, LinkedList<SpiderMove> moves) {
+        this(SEED);
+        try {
+            screen.refresh(Screen.RefreshType.COMPLETE);
+        } catch (IOException ignored) {
+        }
+
+        LinkedList<SpiderMove> newMoves = new LinkedList<>();
+        for (SpiderMove move : moves) {
+            SpiderMove newMove =
+                    new SpiderMove(this, move.getCard(), move.getToIndex(), move.getType());
+            newMoves.add(newMove);
+        }
+
+        for (SpiderMove move : new LinkedList<>(newMoves)) {
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException ignored) {
+            }
+            move.execute();
+            try {
+                screen.refresh(Screen.RefreshType.DELTA);
+            } catch (IOException ignored) {
+            }
+        }
+    }
+
     private void drawGame() throws IOException {
         screen.clear();
         Arrays.stream(SGR.values()).toList().forEach(g::disableModifiers);
@@ -83,7 +111,7 @@ public class Spider extends Game {
                     2 * i + 4,
                     3,
                     TextCharacter.fromCharacter(
-                            Integer.valueOf(i).toString().charAt(0),
+                            Integer.valueOf(i + 1).toString().charAt(0),
                             TextColor.ANSI.WHITE,
                             BLACK,
                             SGR.REVERSE)[0]);
@@ -281,6 +309,16 @@ public class Spider extends Game {
         if (!stock.equals(stockSnap)) {
             drawGame();
             screen.refresh(Screen.RefreshType.DELTA);
+        }
+
+        if (finishedRuns == 8) {
+            win();
+            new Spider(SEED, moves);
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException ignored) {
+            }
+            Main.getInstance().setCurrentScreen(new MainMenu());
         }
     }
 
