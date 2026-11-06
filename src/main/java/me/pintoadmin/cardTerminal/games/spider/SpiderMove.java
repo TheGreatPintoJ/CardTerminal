@@ -27,7 +27,6 @@ public class SpiderMove {
         boolean res = true;
         switch (type) {
             case MOVE:
-                card.clear();
                 fromIndex =
                         spider.getStock()
                                 .indexOf(
@@ -47,7 +46,7 @@ public class SpiderMove {
 
                 //                fromPile.remove(card);
                 //                res = toPile.add(card);
-
+                movingCards.forEach(Card::clear);
                 if (!fromPile.removeAll(movingCards)) res = false;
                 if (!toPile.addAll(movingCards)) res = false;
                 break;

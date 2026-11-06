@@ -193,44 +193,52 @@ public class Card {
     }
 
     private void drawCardBack(int x, int y) throws IOException {
-        g.setBackgroundColor(BLACK);
-        g.setForegroundColor(cardTextColor);
+        drawCardBack(x, y, cardTextColor);
+    }
 
-        g.drawLine(x + 1, y, x + 7, y, '─');
-        g.drawLine(x + 1, y + 6, x + 7, y + 6, '─');
-        g.drawLine(x, y + 1, x, y + 5, '│');
-        g.drawLine(x + 8, y + 1, x + 8, y + 5, '│');
+    public static void drawCardBack(int x, int y, TextColor color) throws IOException {
+        Main.g.setBackgroundColor(BLACK);
+        Main.g.setForegroundColor(color);
+
+        Main.g.drawLine(x + 1, y, x + 7, y, '─');
+        Main.g.drawLine(x + 1, y + 6, x + 7, y + 6, '─');
+        Main.g.drawLine(x, y + 1, x, y + 5, '│');
+        Main.g.drawLine(x + 8, y + 1, x + 8, y + 5, '│');
 
         // Switch corner characters to square for windows (curved corner don't display correctly)
         if (getOS() != OS.WINDOWS) {
-            g.setCharacter(x, y, '╭');
-            g.setCharacter(x + 8, y, '╮');
-            g.setCharacter(x, y + 6, '╰');
-            g.setCharacter(x + 8, y + 6, '╯');
+            Main.g.setCharacter(x, y, '╭');
+            Main.g.setCharacter(x + 8, y, '╮');
+            Main.g.setCharacter(x, y + 6, '╰');
+            Main.g.setCharacter(x + 8, y + 6, '╯');
         } else {
-            g.setCharacter(x, y, '┌');
-            g.setCharacter(x + 8, y, '┐');
-            g.setCharacter(x, y + 6, '└');
-            g.setCharacter(x + 8, y + 6, '┘');
+            Main.g.setCharacter(x, y, '┌');
+            Main.g.setCharacter(x + 8, y, '┐');
+            Main.g.setCharacter(x, y + 6, '└');
+            Main.g.setCharacter(x + 8, y + 6, '┘');
         }
 
         for (int xi = 1; xi < 8; xi++) {
             for (int yi = 1; yi < 6; yi++) {
-                g.setCharacter(x + xi, y + yi, '█');
+                Main.g.setCharacter(x + xi, y + yi, '█');
             }
         }
     }
 
     public void flip(boolean faceup) {
-        if (this.faceup != faceup) {
-            this.faceup = !this.faceup;
-        }
+        setFlipped(faceup);
         draw(x, y, faceup);
     }
 
     public void flip() {
         faceup = !faceup;
         draw(x, y, !faceup);
+    }
+
+    public void setFlipped(boolean faceup) {
+        if (this.faceup != faceup) {
+            this.faceup = !this.faceup;
+        }
     }
 
     public static void drawCardSpace(int x, int y) throws IOException {

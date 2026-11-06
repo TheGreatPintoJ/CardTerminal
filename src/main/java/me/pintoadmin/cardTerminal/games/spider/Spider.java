@@ -10,7 +10,6 @@ import java.io.*;
 import java.util.*;
 import java.util.function.*;
 import me.pintoadmin.cardTerminal.*;
-import me.pintoadmin.cardTerminal.games.solitaire.*;
 import me.pintoadmin.cardTerminal.screens.*;
 
 public class Spider extends Game {
@@ -27,6 +26,7 @@ public class Spider extends Game {
     private final Supplier<Integer> deckY = () -> HEIGHT.get() - 7;
 
     private int selectedColumn = -1;
+    private int selectedRow = -1;
     private Card selectedCard;
 
     private int drawCount = 0;
@@ -38,11 +38,6 @@ public class Spider extends Game {
         SUIT2,
         SUIT3,
         SUIT4,
-    }
-
-    enum Location {
-        DISCARD,
-        STOCK,
     }
 
     public Spider() {
@@ -73,14 +68,34 @@ public class Spider extends Game {
         g.setForegroundColor(TextColor.ANSI.WHITE);
         drawTextRight(WIDTH.get() - 1, HEIGHT.get() - 1, "SEED: " + SEED);
         deck.drawDeck(deckX.get(), deckY.get());
-        g.setCharacter(deckX.get() + 4, deckY.get() + 3, String.valueOf(8 - drawCount).charAt(0));
+        g.setCharacter(
+                deckX.get() + 4,
+                deckY.get() + 3,
+                TextCharacter.fromCharacter(
+                        String.valueOf(6 - drawCount).charAt(0),
+                        g.getForegroundColor(),
+                        g.getBackgroundColor(),
+                        SGR.REVERSE)[0]);
+
+        for (int i = 0; i < finishedRuns; i++) {
+            Card.drawCardBack(2 * i, 0, TextColor.ANSI.WHITE);
+            g.setCharacter(
+                    2 * i + 4,
+                    3,
+                    TextCharacter.fromCharacter(
+                            Integer.valueOf(i).toString().charAt(0),
+                            TextColor.ANSI.WHITE,
+                            BLACK,
+                            SGR.REVERSE)[0]);
+        }
 
         int startingX = g.getSize().getColumns() - 90;
         int startingY = 0;
 
         for (LinkedList<Card> column : stock) {
-            if (!column.isEmpty()) column.getLast().flip(true);
+            if (!column.isEmpty()) column.getLast().setFlipped(true);
             else Card.drawCardSpace(startingX, startingY);
+            int index = stock.indexOf(column);
             LinkedList<Card> lastRun =
                     getLastRun(new LinkedList<>(column.stream().filter(Card::isFaceup).toList()));
             for (Card card : column) {
@@ -90,12 +105,22 @@ public class Spider extends Game {
                                 : new TextColor.RGB(75, 75, 75));
                 if (stock.indexOf(column) == selectedColumn) {
                     if (selectedCard == null) {
-                        if (card.isFaceup() && lastRun.contains(card))
+                        if (card.isFaceup()
+                                && lastRun.contains(card)
+                                && selectedRow == lastRun.indexOf(card))
                             card.setTextColor(new TextColor.RGB(255, 200, 0));
                     }
                     if (card == selectedCard) card.setTextColor(TextColor.ANSI.GREEN);
                 }
                 card.draw(startingX, startingY + (column.indexOf(card) * 3));
+            }
+
+            if (selectedCard != null && selectedColumn == index) {
+                g.setCharacter(
+                        startingX + 4,
+                        column.size() * 3 + 5,
+                        TextCharacter.fromCharacter(
+                                '▲', TextColor.ANSI.WHITE_BRIGHT, BLACK, SGR.BOLD)[0]);
             }
 
             startingX += 9;
@@ -170,34 +195,20 @@ public class Spider extends Game {
             if (Character.isDigit(c)) {
                 int i = Integer.parseInt(c.toString()) - 1;
                 if (i == -1) i = 9;
-                // move corresponding stock piles
-                if (selectedCard == null) {
-                    if (selectedColumn == -1) {
-                        LinkedList<Card> column = stock.get(i);
-                        if (!column.isEmpty()) {
-                            selectedColumn = i;
-                            if (column.stream().filter(Card::isFaceup).count() == 1)
-                                selectCard(Location.STOCK, 0);
-                        }
-                    } else {
-                        if (stock.get(selectedColumn).stream().filter(Card::isFaceup).count() > i)
-                            selectCard(Location.STOCK, i);
-                    }
-                } else {
-                    moveSelectedCard(i);
-                }
+                selectedColumn = i;
             } else {
                 switch (c) {
                     case '`':
-                        selectCard(null, -1);
+                        selectedCard = null;
                         drawCard(true);
                         break;
                     case ' ':
-                        // select discard card
-                        selectCard(Location.DISCARD, 0);
+                        if (selectedCard != null) {
+                            moveSelectedCard(selectedColumn);
+                        } else selectCard();
                         break;
                     case '-':
-                        selectCard(null, -1);
+                        selectedCard = null;
                         break;
                     case '[':
                         undo();
@@ -217,30 +228,38 @@ public class Spider extends Game {
             switch (keyStroke.getKeyType()) {
                 case ArrowRight:
                     if (selectedColumn < 10) selectedColumn++;
-                    selectCard(Location.STOCK, 0);
+                    selectedRow = 0;
                     break;
                 case ArrowLeft:
                     if (selectedColumn >= 0) selectedColumn--;
-                    selectCard(Location.STOCK, 0);
+                    selectedRow = 0;
                     break;
                 case ArrowUp:
+                    if (selectedCard != null) break;
                     if (selectedColumn == -1) break;
-                    {
-                        LinkedList<Card> column = stock.get(selectedColumn);
-                        LinkedList<Card> thisRun = getLastRun(column);
-                        int cardIndex = thisRun.indexOf(selectedCard);
-                        if (cardIndex >= 0) selectCard(Location.STOCK, cardIndex - 1);
-                    }
+                    if (selectedRow <= 0) break;
+                    selectedRow--;
+                    //                    {
+                    //                        LinkedList<Card> column = stock.get(selectedColumn);
+                    //                        LinkedList<Card> thisRun = getLastRun(column);
+                    //                        int cardIndex = thisRun.indexOf(selectedCard);
+                    //                        if (cardIndex >= 0) selectCard(Location.STOCK,
+                    // cardIndex - 1);
+                    //                    }
                     break;
                 case ArrowDown:
+                    if (selectedCard != null) break;
                     if (selectedColumn == -1) break;
-                    {
-                        LinkedList<Card> column = stock.get(selectedColumn);
-                        LinkedList<Card> thisRun = getLastRun(column);
-                        int cardIndex = thisRun.indexOf(selectedCard);
-                        if (thisRun.size() - 1 > cardIndex)
-                            selectCard(Location.STOCK, cardIndex + 1);
-                    }
+                    LinkedList<Card> column = getLastRun(stock.get(selectedColumn));
+                    if (column.size() - 1 <= selectedRow) break;
+                    selectedRow++;
+                    //                    {
+                    //                        LinkedList<Card> column = stock.get(selectedColumn);
+                    //                        LinkedList<Card> thisRun = getLastRun(column);
+                    //                        int cardIndex = thisRun.indexOf(selectedCard);
+                    //                        if (thisRun.size() - 1 > cardIndex)
+                    //                            selectCard(Location.STOCK, cardIndex + 1);
+                    //                    }
                     break;
             }
         }
@@ -265,26 +284,16 @@ public class Spider extends Game {
         }
     }
 
-    private void selectCard(Spider.Location loc, int index) {
-        if (loc == null || index == -1) {
-            selectedCard = null;
-            selectedColumn = -1;
-            return;
-        }
+    private void selectCard() {
         if (selectedCard != null) selectedCard.setTextColor(TextColor.ANSI.WHITE);
-        switch (loc) {
-            case DISCARD:
-                selectedCard = deck.getTopDiscard();
-                break;
-            case STOCK:
-                if (selectedColumn == -1) return;
-                selectedCard =
+        if (selectedColumn <= -1 || selectedRow <= -1) return;
+        LinkedList<Card> thisRun =
+                new LinkedList<>(
                         getLastRun(stock.get(selectedColumn)).stream()
                                 .filter(Card::isFaceup)
-                                .toList()
-                                .get(index);
-                break;
-        }
+                                .toList());
+        if (selectedRow >= thisRun.size()) return;
+        selectedCard = thisRun.get(selectedRow);
         if (selectedCard != null)
             selectedCard.setTextColor(
                     selectedCard.isFaceup() ? TextColor.ANSI.GREEN : TextColor.ANSI.RED);
@@ -298,7 +307,7 @@ public class Spider extends Game {
             movesUndone.clear();
         }
 
-        selectCard(null, -1);
+        selectedCard = null;
     }
 
     private void undo() {
@@ -320,12 +329,11 @@ public class Spider extends Game {
         LinkedList<Card> subList = new LinkedList<>(input.subList(afterIndex, input.size()));
         if (subList.isEmpty()) return new LinkedList<>();
         LinkedList<Card> currentList = new LinkedList<>();
-        Card.Rank lastRank = subList.getFirst().getRank();
+        int lastRank = subList.getFirst().getRank().toInt() + 1;
 
-        currentList.add(subList.getFirst());
         for (Card card : subList) {
-            if (card.getRank().toInt() != lastRank.toInt() - 1) break;
-            lastRank = card.getRank();
+            if (card.getRank().toInt() != lastRank - 1) break;
+            lastRank = card.getRank().toInt();
             currentList.add(card);
         }
 

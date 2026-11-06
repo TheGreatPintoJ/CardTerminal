@@ -410,29 +410,8 @@ public class Solitaire extends Game {
     private boolean checkHandleWin() throws IOException {
         if (foundation.checkWin()) { // || true for testing
             // Player won
-            screen.clear();
             clearSelected();
-
-            g.enableModifiers(SGR.BLINK);
-            g.setBackgroundColor(BLACK);
-            g.setForegroundColor(TextColor.ANSI.WHITE);
-            // @formatter:off
-            Main.drawText(WIDTH.get()/2, HEIGHT.get()/2-2, "▄▄▄   ▄▄▄   ▄▄▄▄▄   ▄▄▄  ▄▄▄   ▄▄▄▄  ▄▄▄  ▄▄▄▄ ▄▄▄▄▄ ▄▄▄    ▄▄▄");
-            Main.drawText(WIDTH.get()/2, HEIGHT.get()/2-1, "███   ███ ▄███████▄ ███  ███   ▀███  ███  ███▀  ███  ████▄  ███");
-            Main.drawText(WIDTH.get()/2, HEIGHT.get()/2,   "▀███▄███▀ ███   ███ ███  ███    ███  ███  ███   ███  ███▀██▄███");
-            Main.drawText(WIDTH.get()/2, HEIGHT.get()/2+1, "  ▀███▀   ███▄▄▄███ ███▄▄███    ███▄▄███▄▄███   ███  ███  ▀████");
-            Main.drawText(WIDTH.get()/2, HEIGHT.get()/2+2, "   ███     ▀█████▀  ▀██████▀     ▀████▀████▀   ▄███▄ ███    ███");
-            // @formatter:on
-            terminal.bell();
-            g.disableModifiers(SGR.BLINK);
-            screen.refresh(Screen.RefreshType.COMPLETE);
-
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException ignored) {
-            }
-
-            screen.clear();
+            win();
             new Solitaire(type, SEED, moves);
             try {
                 Thread.sleep(1000);
