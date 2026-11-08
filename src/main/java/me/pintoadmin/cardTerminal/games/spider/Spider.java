@@ -71,8 +71,12 @@ public class Spider extends Game {
 
         LinkedList<SpiderMove> newMoves = new LinkedList<>();
         for (SpiderMove move : moves) {
-            SpiderMove newMove =
-                    new SpiderMove(this, move.getCard(), move.getToIndex(), move.getType());
+            Card card =
+                    deck.getCard(
+                            move.getCard().getRank(),
+                            move.getCard().getSuit(),
+                            move.getCard().getIndex());
+            SpiderMove newMove = new SpiderMove(this, card, move.getToIndex(), move.getType());
             newMoves.add(newMove);
         }
 
@@ -191,7 +195,7 @@ public class Spider extends Game {
             Card card = deck.drawCard();
             if (card == null) break;
             stock.get(column).add(card);
-            SpiderMove move = new SpiderMove(this, null, null, SpiderMove.Type.DEAL);
+            SpiderMove move = new SpiderMove(this, card, column, SpiderMove.Type.DEAL);
             moves.add(move);
         }
         drawCount++;
@@ -250,11 +254,11 @@ public class Spider extends Game {
         } else if (keyStroke.getKeyType().name().contains("Arrow")) {
             switch (keyStroke.getKeyType()) {
                 case ArrowRight:
-                    if (selectedColumn < 10) selectedColumn++;
+                    if (selectedColumn < 9) selectedColumn++;
                     selectedRow = 0;
                     break;
                 case ArrowLeft:
-                    if (selectedColumn >= 0) selectedColumn--;
+                    if (selectedColumn > 0) selectedColumn--;
                     selectedRow = 0;
                     break;
                 case ArrowUp:

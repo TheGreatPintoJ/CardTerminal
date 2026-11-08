@@ -33,7 +33,7 @@ public class Deck {
             for (Card.Suit suit : suits) {
                 for (Card.Rank rank : Card.Rank.values()) {
                     if (rank == Card.Rank.JOKER) continue;
-                    Card card = new Card(rank, suit);
+                    Card card = new Card(rank, suit, i);
                     allCards.add(card);
                     cardsInDeck.add(card);
                 }
@@ -75,8 +75,12 @@ public class Deck {
     }
 
     public Card getCard(Card.Rank rank, Card.Suit suit) {
+        return getCard(rank, suit, 0);
+    }
+
+    public Card getCard(Card.Rank rank, Card.Suit suit, int index) {
         return allCards.stream()
-                .filter(c -> c.getRank() == rank && c.getSuit() == suit)
+                .filter(c -> c.getRank() == rank && c.getSuit() == suit && c.getIndex() == index)
                 .toList()
                 .getFirst();
     }

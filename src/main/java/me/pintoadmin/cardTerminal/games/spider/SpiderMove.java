@@ -69,12 +69,14 @@ public class SpiderMove {
                 spider.getStock().get(fromIndex).add(card);
                 break;
             case DEAL:
-                for (int column = 9; column > -1; column--) {
-                    Card card = spider.getStock().get(column).getLast();
-                    if (card == null) break;
-                    spider.getStock().get(column).remove(card);
-                    spider.getDeck().addTopDeck(card);
-                }
+                spider.getStock().get(toIndex).remove(card);
+                spider.getDeck().addTopDeck(card);
+                //                for (int column = 9; column > -1; column--) {
+                //                    Card card = spider.getStock().get(column).getLast();
+                //                    if (card == null) break;
+                //                    spider.getStock().get(column).remove(card);
+                //                    spider.getDeck().addTopDeck(card);
+                //                }
                 break;
         }
     }

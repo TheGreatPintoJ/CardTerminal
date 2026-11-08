@@ -12,6 +12,7 @@ public class Card {
     private final TextGraphics g = Main.g;
 
     private final UUID uuid;
+    private int index;
     private final Rank rank;
     private final Suit suit;
 
@@ -109,9 +110,14 @@ public class Card {
     }
 
     public Card(Rank rank, Suit suit) {
+        this(rank, suit, 0);
+    }
+
+    public Card(Rank rank, Suit suit, int index) {
         uuid = UUID.randomUUID();
         this.rank = rank;
         this.suit = suit;
+        this.index = index;
     }
 
     public void redraw() {
@@ -274,6 +280,10 @@ public class Card {
 
     public Suit getSuit() {
         return suit;
+    }
+
+    public int getIndex() {
+        return index;
     }
 
     public boolean isFaceup() {
