@@ -294,20 +294,24 @@ public class Spider extends Game {
         drawGame();
         screen.refresh(Screen.RefreshType.DELTA);
 
-        LinkedList<LinkedList<Card>> stockSnap = new LinkedList<>(stock);
-        for (LinkedList<Card> pile : stock) {
-            if (pile.size() >= 13) {
-                LinkedList<Card> lastRun = getLastRun(pile);
-                if (lastRun.getFirst().getRank() == Card.Rank.KING
-                        && lastRun.getLast().getRank() == Card.Rank.ACE) {
-                    pile.removeAll(lastRun);
-                    finishedRuns++;
+        {
+            boolean didSomething = false;
+            for (LinkedList<Card> pile : stock) {
+                if (pile.size() >= 13) {
+                    LinkedList<Card> lastRun = getLastRun(pile);
+                    if (lastRun.getFirst().getRank() == Card.Rank.KING
+                            && lastRun.getLast().getRank() == Card.Rank.ACE) {
+                        pile.removeAll(lastRun);
+                        finishedRuns++;
+                        didSomething = true;
+                    }
                 }
             }
-        }
-        if (!stock.equals(stockSnap)) {
-            drawGame();
-            screen.refresh(Screen.RefreshType.DELTA);
+            if (didSomething) {
+                Thread.sleep(250);
+                drawGame();
+                screen.refresh(Screen.RefreshType.DELTA);
+            }
         }
 
         if (finishedRuns == 8) {
