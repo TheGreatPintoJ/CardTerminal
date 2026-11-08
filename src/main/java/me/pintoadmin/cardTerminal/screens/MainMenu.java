@@ -117,13 +117,13 @@ public class MainMenu extends CustomScreen {
         if (keyStroke.getKeyType().name().contains("Arrow")) {
             switch (keyStroke.getKeyType()) {
                 case ArrowRight:
-                    if (selectedGame + 1 < totalSpaces) selectedGame++;
+                    if (selectedGame + 1 < allGames.size()) selectedGame++;
                     break;
                 case ArrowLeft:
                     if (selectedGame - 1 >= 0) selectedGame--;
                     break;
                 case ArrowDown:
-                    if (selectedGame + gridW < totalSpaces) selectedGame += gridW;
+                    if (selectedGame + gridW < allGames.size()) selectedGame += gridW;
                     break;
                 case ArrowUp:
                     if (selectedGame - gridW >= 0) selectedGame -= gridW;
