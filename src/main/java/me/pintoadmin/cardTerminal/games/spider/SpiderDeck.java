@@ -17,7 +17,7 @@ public class SpiderDeck extends Deck {
                                 ? List.of(Card.Suit.SPADE, Card.Suit.HEART)
                                 : type == Spider.GameType.SUIT3
                                         ? List.of(Card.Suit.SPADE, Card.Suit.HEART, Card.Suit.CLUB)
-                                        : List.of(Card.Suit.DIAMOND),
+                                        : List.of(Card.Suit.SPADE, Card.Suit.HEART, Card.Suit.CLUB, Card.Suit.DIAMOND),
                 type == Spider.GameType.SUIT1 ? 8 : type == Spider.GameType.SUIT2 ? 4 : 2);
     }
 

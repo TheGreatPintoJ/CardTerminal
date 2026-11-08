@@ -26,6 +26,10 @@ public class Deck {
         this(SEED, Arrays.stream(Card.Suit.values()).toList(), 1);
     }
 
+    public Deck(long SEED, int deckMultiplier) {
+        this(SEED, Arrays.stream(Card.Suit.values()).toList(), deckMultiplier);
+    }
+
     public Deck(long SEED, List<Card.Suit> suits, int deckMultiplier) {
         this.SEED = SEED;
         random = new Random(SEED);
