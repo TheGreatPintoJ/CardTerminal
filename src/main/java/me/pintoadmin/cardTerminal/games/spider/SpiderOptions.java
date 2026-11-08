@@ -85,7 +85,7 @@ public class SpiderOptions extends GameOptions {
 
     @Override
     public void start() {
-        Main.getInstance().setCurrentScreen(SEED != 0 ? new Spider(SEED) : new Spider());
+        Main.getInstance().setCurrentScreen(SEED != 0 ? new Spider(SEED, type) : new Spider());
     }
 
     @Override
@@ -140,7 +140,10 @@ public class SpiderOptions extends GameOptions {
                             });
                 else*/
                 Main.getInstance()
-                        .setCurrentScreen(SEED != 0 ? new Spider(SEED) : new Spider(suggestedSeed));
+                        .setCurrentScreen(
+                                SEED != 0
+                                        ? new Spider(SEED, type)
+                                        : new Spider(suggestedSeed, type));
             }
         } else if (keyStroke.getKeyType() == KeyType.Character) {
             Character c = keyStroke.getCharacter();

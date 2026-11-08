@@ -10,11 +10,11 @@ import java.io.*;
 import java.util.*;
 import java.util.function.*;
 import me.pintoadmin.cardTerminal.*;
-import me.pintoadmin.cardTerminal.games.solitaire.*;
 import me.pintoadmin.cardTerminal.screens.*;
 
 public class Spider extends Game {
     private final long SEED;
+    private final GameType type;
     private final Deck deck;
     private final LinkedList<LinkedList<Card>> stock = new LinkedList<>(); // Ten piles
     private final LinkedList<SpiderMove> moves = new LinkedList<>();
@@ -30,11 +30,11 @@ public class Spider extends Game {
     private int selectedRow = -1;
     private Card selectedCard;
 
-    private int drawCount = 0;
+    int dealCount = 0;
 
     private int finishedRuns = 0;
 
-    enum GameType {
+    public enum GameType {
         SUIT1,
         SUIT2,
         SUIT3,
@@ -42,12 +42,13 @@ public class Spider extends Game {
     }
 
     public Spider() {
-        this(new Random().nextLong());
+        this(new Random().nextLong(), GameType.SUIT1);
     }
 
-    public Spider(long seed) {
+    public Spider(long seed, GameType type) {
         SEED = seed;
-        deck = new SpiderDeck(SEED);
+        this.type = type;
+        deck = new SpiderDeck(SEED, type);
 
         for (int row = 0; row < 5; row++) {
             for (int column = 0; column < 10; column++) {
@@ -62,8 +63,8 @@ public class Spider extends Game {
         resize();
     }
 
-    private Spider(long SEED, LinkedList<SpiderMove> moves) {
-        this(SEED);
+    private Spider(long SEED, GameType type, LinkedList<SpiderMove> moves) {
+        this(SEED, type);
         try {
             screen.refresh(Screen.RefreshType.COMPLETE);
         } catch (IOException ignored) {
@@ -105,7 +106,7 @@ public class Spider extends Game {
                 deckX.get() + 4,
                 deckY.get() + 3,
                 TextCharacter.fromCharacter(
-                        String.valueOf(6 - drawCount).charAt(0), null, null, SGR.REVERSE)[0]);
+                        String.valueOf(6 - dealCount).charAt(0), null, null, SGR.REVERSE)[0]);
 
         for (int i = 0; i < finishedRuns; i++) {
             Card.drawCardBack(2 * i, 0, TextColor.ANSI.WHITE);
@@ -164,7 +165,7 @@ public class Spider extends Game {
 
     @Override
     public Game restart() {
-        return new Spider(SEED);
+        return new Spider(SEED, type);
     }
 
     @Override
@@ -176,7 +177,7 @@ public class Spider extends Game {
     public void redraw() {
         Main.screen.clear();
         deck.redrawDeck();
-        g.setCharacter(deckX.get() + 4, deckY.get() + 3, String.valueOf(8 - drawCount).charAt(0));
+        g.setCharacter(deckX.get() + 4, deckY.get() + 3, String.valueOf(8 - dealCount).charAt(0));
         deck.redrawDiscard();
 
         for (List<Card> list : stock) {
@@ -200,7 +201,7 @@ public class Spider extends Game {
             SpiderMove move = new SpiderMove(this, card, column, SpiderMove.Type.DEAL);
             moves.add(move);
         }
-        drawCount++;
+        dealCount++;
 
         resize();
     }
@@ -234,6 +235,7 @@ public class Spider extends Game {
                     case ' ':
                         if (selectedCard != null) {
                             moveSelectedCard(selectedColumn);
+                            movesUndone.clear();
                         } else selectCard();
                         break;
                     case '-':
@@ -318,7 +320,7 @@ public class Spider extends Game {
 
         if (finishedRuns == 8) {
             win();
-            new Spider(SEED, moves);
+            new Spider(SEED, type, moves);
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException ignored) {
@@ -359,6 +361,7 @@ public class Spider extends Game {
         move.undo();
         movesUndone.add(move);
         moves.remove(move);
+        if (move.getType() == SpiderMove.Type.DEAL) dealCount--;
     }
 
     private void redo() {
