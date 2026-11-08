@@ -44,8 +44,6 @@ public class SpiderMove {
                 LinkedList<Card> movingCards =
                         new LinkedList<>(spider.getRun(fromPile, fromPile.indexOf(card)));
 
-                //                fromPile.remove(card);
-                //                res = toPile.add(card);
                 movingCards.forEach(Card::clear);
                 if (!fromPile.removeAll(movingCards)) res = false;
                 if (!toPile.addAll(movingCards)) res = false;
@@ -64,9 +62,15 @@ public class SpiderMove {
     public void undo() {
         switch (type) {
             case MOVE:
-                card.clear();
-                spider.getStock().get(toIndex).remove(card);
-                spider.getStock().get(fromIndex).add(card);
+                LinkedList<Card> fromPile = spider.getStock().get(fromIndex);
+                LinkedList<Card> toPile = spider.getStock().get(toIndex);
+
+                LinkedList<Card> movingCards =
+                        new LinkedList<>(spider.getRun(toPile, toPile.indexOf(card)));
+
+                movingCards.forEach(Card::clear);
+                fromPile.addAll(movingCards);
+                toPile.removeAll(movingCards);
                 break;
             case DEAL:
                 spider.getStock().get(toIndex).remove(card);
