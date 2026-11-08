@@ -87,6 +87,7 @@ public class Spider extends Game {
             }
             move.execute();
             try {
+                drawGame();
                 screen.refresh(Screen.RefreshType.DELTA);
             } catch (IOException ignored) {
             }
@@ -121,10 +122,10 @@ public class Spider extends Game {
         int startingX = g.getSize().getColumns() - 90;
         int startingY = 0;
 
+        int index = 0;
         for (LinkedList<Card> column : stock) {
             if (!column.isEmpty()) column.getLast().setFlipped(true);
             else Card.drawCardSpace(startingX, startingY);
-            int index = stock.indexOf(column);
             LinkedList<Card> lastRun =
                     getLastRun(new LinkedList<>(column.stream().filter(Card::isFaceup).toList()));
             for (Card card : column) {
@@ -142,7 +143,7 @@ public class Spider extends Game {
                 card.draw(startingX, startingY + (column.indexOf(card) * 3));
             }
 
-            if (selectedCard != null && selectedColumn == index) {
+            if (selectedColumn == index) {
                 g.setCharacter(
                         startingX + 4,
                         column.size() * 3 + 5,
@@ -151,6 +152,7 @@ public class Spider extends Game {
             }
 
             startingX += 9;
+            index++;
         }
         screen.refresh(Screen.RefreshType.AUTOMATIC);
     }
