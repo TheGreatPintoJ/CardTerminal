@@ -26,7 +26,21 @@ MSI for windows, DMG for mac, DEB for linux, and JAR if you have JRE installed.
 - dash (-): deselect
 - F10: Restart game with new seed
 - F12: Restart game with same seed
-- Escape: Instantly closes application
+- Escape: Back to main menu
+
+## Spider (Spider solitaire)
+![spider.png](img/spider.png)
+
+### Keybinds
+
+- 1-9: Select column
+- Arrows: move cursor (yellow)
+- Space: Select/deselect card (turns card green)
+- Backtick (`): Deal row
+- dash (-): deselect
+- F10: Restart game with new seed
+- F12: Restart game with same seed
+- Escape: Back to main menu
 
 ## Bugs
 Create an issue on this project's repository
