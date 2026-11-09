@@ -32,12 +32,11 @@ public class Spider extends Game {
 
     int dealCount = 0;
 
-    private int finishedRuns = 0;
+    int finishedRuns = 0;
 
     public enum GameType {
         SUIT1,
         SUIT2,
-        SUIT3,
         SUIT4,
     }
 
@@ -194,13 +193,8 @@ public class Spider extends Game {
 
     @Override
     public void drawCard(boolean logged) {
-        for (int column = 0; column < 10; column++) {
-            Card card = deck.drawCard();
-            if (card == null) break;
-            stock.get(column).add(card);
-            SpiderMove move = new SpiderMove(this, card, column, SpiderMove.Type.DEAL);
-            moves.add(move);
-        }
+        SpiderMove move = new SpiderMove(this, null, null, SpiderMove.Type.DEAL);
+        if (move.execute()) moves.add(move);
         dealCount++;
 
         resize();
@@ -305,9 +299,15 @@ public class Spider extends Game {
                     LinkedList<Card> lastRun = getLastRun(pile);
                     if (lastRun.getFirst().getRank() == Card.Rank.KING
                             && lastRun.getLast().getRank() == Card.Rank.ACE) {
-                        pile.removeAll(lastRun);
-                        finishedRuns++;
-                        didSomething = true;
+                        SpiderMove move =
+                                new SpiderMove(
+                                        this, null, stock.indexOf(pile), SpiderMove.Type.RUN);
+                        move.setRunCards(lastRun);
+                        if (move.execute()) {
+                            moves.add(move);
+                            finishedRuns++;
+                            didSomething = true;
+                        }
                     }
                 }
             }
@@ -356,19 +356,27 @@ public class Spider extends Game {
     }
 
     private void undo() {
+        selectedCard = null;
         if (moves.isEmpty()) return;
         SpiderMove move = moves.getLast();
         move.undo();
         movesUndone.add(move);
         moves.remove(move);
         if (move.getType() == SpiderMove.Type.DEAL) dealCount--;
+        if (move.getType() == SpiderMove.Type.RUN) undo();
     }
 
     private void redo() {
+        selectedCard = null;
         if (movesUndone.isEmpty()) return;
-        movesUndone.getLast().execute();
-        moves.add(movesUndone.getLast());
-        movesUndone.removeLast();
+        SpiderMove move = movesUndone.removeLast();
+        if (!move.execute()) {
+            movesUndone.clear();
+            return;
+        }
+        moves.add(move);
+        if (!movesUndone.isEmpty() && movesUndone.getLast().getType() == SpiderMove.Type.RUN)
+            redo();
     }
 
     public LinkedList<Card> getRun(LinkedList<Card> input, int afterIndex) {
