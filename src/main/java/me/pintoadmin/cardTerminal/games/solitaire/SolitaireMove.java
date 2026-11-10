@@ -45,7 +45,7 @@ public class SolitaireMove {
             return true;
         } else if (type == Type.SHUFFLE) {
             solitaire.getDeck().clearDiscard();
-            solitaire.getDeck().setAllCards(shuffled);
+            solitaire.getDeck().setCardsInDeck(shuffled);
             //            solitaire.getDeck().setNextShuffleIndex(shuffleIndex + 1);
             solitaire.setNextShuffle(false);
             return true;
@@ -85,7 +85,7 @@ public class SolitaireMove {
 
     private boolean handleRemove() {
         card.clear();
-        solitaire.getFoundation().clear();
+        solitaire.getFoundation().drawEmpty();
         switch (fromLocation) {
             case STOCK:
                 fromIndex =
@@ -145,7 +145,7 @@ public class SolitaireMove {
                 break;
             case FOUNDATION:
                 fromIndex = 0;
-                solitaire.getFoundation().clear();
+                solitaire.getFoundation().drawEmpty();
                 solitaire.getFoundation().removeCard(card);
                 solitaire.getFoundation().redraw();
                 break;
@@ -161,7 +161,7 @@ public class SolitaireMove {
         if (type == Type.MOVE) {
             // Clear
             card.clear();
-            solitaire.getFoundation().clear();
+            solitaire.getFoundation().drawEmpty();
             // Move to fromLocation
             switch (fromLocation) {
                 case STOCK:

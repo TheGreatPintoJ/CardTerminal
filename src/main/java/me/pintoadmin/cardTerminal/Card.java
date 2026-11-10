@@ -1,7 +1,6 @@
 package me.pintoadmin.cardTerminal;
 
 import static me.pintoadmin.cardTerminal.Main.*;
-import static me.pintoadmin.cardTerminal.Main.g;
 
 import com.googlecode.lanterna.*;
 import com.googlecode.lanterna.graphics.*;
@@ -12,7 +11,7 @@ public class Card {
     private final TextGraphics g = Main.g;
 
     private final UUID uuid;
-    private int index;
+    private int deckNumber;
     private final Rank rank;
     private final Suit suit;
 
@@ -113,11 +112,11 @@ public class Card {
         this(rank, suit, 0);
     }
 
-    public Card(Rank rank, Suit suit, int index) {
+    public Card(Rank rank, Suit suit, int deckNumber) {
         uuid = UUID.randomUUID();
         this.rank = rank;
         this.suit = suit;
-        this.index = index;
+        this.deckNumber = deckNumber;
     }
 
     public void redraw() {
@@ -238,7 +237,7 @@ public class Card {
 
     public void flip() {
         faceup = !faceup;
-        draw(x, y, !faceup);
+        draw(x, y, faceup);
     }
 
     public void setFlipped(boolean faceup) {
@@ -282,8 +281,8 @@ public class Card {
         return suit;
     }
 
-    public int getIndex() {
-        return index;
+    public int getDeckNumber() {
+        return deckNumber;
     }
 
     public boolean isFaceup() {

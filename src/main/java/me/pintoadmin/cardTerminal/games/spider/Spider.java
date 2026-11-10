@@ -76,7 +76,7 @@ public class Spider extends Game {
                     deck.getCard(
                             move.getCard().getRank(),
                             move.getCard().getSuit(),
-                            move.getCard().getIndex());
+                            move.getCard().getDeckNumber());
             SpiderMove newMove = new SpiderMove(this, card, move.getToIndex(), move.getType());
             newMoves.add(newMove);
         }

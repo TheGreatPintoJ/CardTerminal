@@ -68,6 +68,7 @@ w = 9, h = 7
  */
 public class Main {
     private static volatile Main instance;
+    private static OS thisOS;
 
     public Main() {}
 
@@ -94,6 +95,18 @@ public class Main {
 
     void main(String[] args) {
         instance = this;
+
+        String os = System.getProperty("os.name").toLowerCase();
+        OS type = OS.LINUX;
+
+        if (os.contains("win")) {
+            type = OS.WINDOWS;
+        } else if (os.contains("mac")) {
+            type = OS.MAC;
+        }
+
+        thisOS = type;
+
         try {
             terminal = new DefaultTerminalFactory().createTerminal();
             screen = new TerminalScreen(terminal);
@@ -276,16 +289,7 @@ public class Main {
     }
 
     public static OS getOS() {
-        String os = System.getProperty("os.name").toLowerCase();
-        OS type = OS.LINUX;
-
-        if (os.contains("win")) {
-            type = OS.WINDOWS;
-        } else if (os.contains("mac")) {
-            type = OS.MAC;
-        }
-
-        return type;
+        return thisOS;
     }
 
     public static Main getInstance() {

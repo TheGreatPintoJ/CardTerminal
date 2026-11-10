@@ -14,6 +14,7 @@ public class Deck {
     protected final List<Card> cardsInDiscard = new LinkedList<>();
 
     private final long SEED;
+    private final int deckMultiplier;
     protected Random random;
     private long nextShuffleIndex;
 
@@ -32,6 +33,7 @@ public class Deck {
 
     public Deck(long SEED, List<Card.Suit> suits, int deckMultiplier) {
         this.SEED = SEED;
+        this.deckMultiplier = deckMultiplier;
         random = new Random(SEED);
         for (int i = 0; i < deckMultiplier; i++) {
             for (Card.Suit suit : suits) {
@@ -84,9 +86,8 @@ public class Deck {
 
     public Card getCard(Card.Rank rank, Card.Suit suit, int index) {
         return allCards.stream()
-                .filter(c -> c.getRank() == rank && c.getSuit() == suit && c.getIndex() == index)
-                .toList()
-                .getFirst();
+                .filter(c -> c.getRank() == rank && c.getSuit() == suit && c.getDeckNumber() == index)
+                .findFirst().orElse(null);
     }
 
     public List<Card> restartDiscard() {
@@ -127,7 +128,7 @@ public class Deck {
         return cardsInDeck;
     }
 
-    public void setAllCards(List<Card> cards) {
+    public void setCardsInDeck(List<Card> cards) {
         cardsInDeck.clear();
         cardsInDeck.addAll(cards);
     }
@@ -166,7 +167,6 @@ public class Deck {
             } catch (NoSuchElementException _) {
                 drawCardSpaceFilled(x, y);
             }
-            drawCardSpace(x, y);
         } catch (IOException e) {
             System.err.println("Could not draw discard: " + e.getMessage());
             e.printStackTrace();
@@ -174,35 +174,7 @@ public class Deck {
     }
 
     private void drawCardBack(int x, int y) throws IOException {
-        g.setBackgroundColor(Main.BLACK);
-        g.setForegroundColor(TextColor.ANSI.WHITE);
-
-        g.drawLine(x + 1, y, x + 7, y, '─');
-        g.drawLine(x + 1, y + 6, x + 7, y + 6, '─');
-        g.drawLine(x, y + 1, x, y + 5, '│');
-        g.drawLine(x + 8, y + 1, x + 8, y + 5, '│');
-
-        // Switch corner characters to square for windows (curved corner don't display correctly)
-        if (getOS() != Main.OS.WINDOWS) {
-            g.setCharacter(x, y, '╭');
-            g.setCharacter(x + 8, y, '╮');
-            g.setCharacter(x, y + 6, '╰');
-            g.setCharacter(x + 8, y + 6, '╯');
-        } else {
-            g.setCharacter(x, y, '┌');
-            g.setCharacter(x + 8, y, '┐');
-            g.setCharacter(x, y + 6, '└');
-            g.setCharacter(x + 8, y + 6, '┘');
-        }
-
-        for (int xi = 1; xi < 8; xi++) {
-            for (int yi = 1; yi < 6; yi++) {
-                g.setBackgroundColor(TextColor.ANSI.WHITE);
-                g.setForegroundColor(Main.BLACK);
-                g.setCharacter(x + xi, y + yi, ' ');
-                //                g.setCharacter(x + xi, y + yi, xi + yi % 2 == 0 ? '░' : '▒');
-            }
-        }
+        Card.drawCardBack(x, y, TextColor.ANSI.WHITE);
     }
 
     private void drawCardSpaceFilled(int x, int y) throws IOException {
@@ -213,10 +185,7 @@ public class Deck {
                 g.setCharacter(x + xi, y + yi, ' ');
             }
         }
-        drawCardSpace(x, y);
-    }
 
-    private void drawCardSpace(int x, int y) throws IOException {
         g.setBackgroundColor(Main.BLACK);
         g.setForegroundColor(new TextColor.RGB(50, 50, 50));
 
@@ -237,5 +206,9 @@ public class Deck {
             g.setCharacter(x, y + 6, '└');
             g.setCharacter(x + 8, y + 6, '┘');
         }
+    }
+
+    public int getDeckMultiplier() {
+        return deckMultiplier;
     }
 }

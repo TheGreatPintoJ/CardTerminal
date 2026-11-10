@@ -11,8 +11,8 @@ import java.util.*;
 public class Foundation {
     private final TextGraphics g = Main.g;
     private final List<Card> cards = new ArrayList<>();
-    private final Map<Card.Suit, Integer> piles =
-            new HashMap<>(Map.of(HEART, 0, SPADE, 0, DIAMOND, 0, CLUB, 0));
+    private final Map<Card.Suit, LinkedList<Card>> piles =
+            new HashMap<>(Map.of(HEART, new LinkedList<>(), SPADE, new LinkedList<>(), DIAMOND, new LinkedList<>(), CLUB, new LinkedList<>()));
     private final Deck deck;
 
     private int x;
@@ -30,21 +30,21 @@ public class Foundation {
         this.x = x;
         this.y = y;
         try {
-            if (piles.get(HEART) == 0) drawCardSpace(x, y, HEART);
-            else deck.getCard(Main.intToRank(piles.get(HEART)), HEART).draw(x, y);
-            if (piles.get(SPADE) == 0) drawCardSpace(x + 9, y, SPADE);
-            else deck.getCard(Main.intToRank(piles.get(SPADE)), SPADE).draw(x + 9, y);
-            if (piles.get(DIAMOND) == 0) drawCardSpace(x + 18, y, DIAMOND);
-            else deck.getCard(Main.intToRank(piles.get(DIAMOND)), DIAMOND).draw(x + 18, y);
-            if (piles.get(CLUB) == 0) drawCardSpace(x + 27, y, CLUB);
-            else deck.getCard(Main.intToRank(piles.get(CLUB)), CLUB).draw(x + 27, y);
+            if (piles.get(HEART).isEmpty()) drawCardSpace(x, y, HEART);
+            else deck.getCard(piles.get(HEART).getLast().getRank(), HEART).draw(x, y);
+            if (piles.get(SPADE).isEmpty()) drawCardSpace(x + 9, y, SPADE);
+            else deck.getCard(piles.get(HEART).getLast().getRank(), SPADE).draw(x + 9, y);
+            if (piles.get(DIAMOND).isEmpty()) drawCardSpace(x + 18, y, DIAMOND);
+            else deck.getCard(piles.get(HEART).getLast().getRank(), DIAMOND).draw(x + 18, y);
+            if (piles.get(CLUB).isEmpty()) drawCardSpace(x + 27, y, CLUB);
+            else deck.getCard(piles.get(HEART).getLast().getRank(), CLUB).draw(x + 27, y);
         } catch (IOException e) {
             System.err.println("Could not draw foundation: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
-    public void clear() {
+    public void drawEmpty() {
         try {
             drawCardSpace(x, y, HEART);
             drawCardSpace(x + 9, y, SPADE);
@@ -86,8 +86,8 @@ public class Foundation {
 
     public boolean addCard(Card card) {
         if (cards.contains(card)) return false;
-        if (card.getRank().toInt() - 1 == piles.get(card.getSuit())) {
-            piles.compute(card.getSuit(), (_, v) -> v + 1);
+        if (card.getRank().toInt() - 1 == piles.get(card.getSuit()).getLast().getRank().toInt()) {
+            piles.get(card.getSuit()).add(card);
             cards.add(card);
             return true;
         }
@@ -96,8 +96,8 @@ public class Foundation {
 
     public boolean removeCard(Card card) {
         if (!cards.contains(card)) return false;
-        if (card.getRank().toInt() == piles.get(card.getSuit())) {
-            piles.compute(card.getSuit(), (_, v) -> v - 1);
+        if (card.getRank().toInt() == piles.get(card.getSuit()).getLast().getRank().toInt()) {
+            piles.get(card.getSuit()).remove(card);
             cards.remove(card);
             return true;
         }
@@ -105,14 +105,14 @@ public class Foundation {
     }
 
     public boolean checkWin() {
-        return piles.get(HEART) == 13
-                && piles.get(SPADE) == 13
-                && piles.get(DIAMOND) == 13
-                && piles.get(CLUB) == 13;
+        return piles.get(HEART).getLast().getRank() == Card.Rank.KING
+                && piles.get(SPADE).getLast().getRank() == Card.Rank.KING
+                && piles.get(DIAMOND).getLast().getRank() == Card.Rank.KING
+                && piles.get(CLUB).getLast().getRank() == Card.Rank.KING;
     }
 
     public Card getTopCard(Card.Suit suit) {
-        Card.Rank rank = Main.intToRank(piles.get(suit));
+        Card.Rank rank = piles.get(suit).getLast().getRank();
         if (rank == null) return null;
         return deck.getCard(rank, suit);
     }
