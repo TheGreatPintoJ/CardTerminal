@@ -82,7 +82,7 @@ public class Main {
 
     public static TextColor BLACK;
 
-    private CustomScreen currentScreen;
+    private volatile CustomScreen currentScreen;
     private Supplier<Game> currentGame =
             () -> currentScreen instanceof Game ? (Game) currentScreen : null;
 
@@ -147,13 +147,13 @@ public class Main {
         }
     }
 
-    private Thread getKeyHandlers(Thread resizeHandler) {
+    private synchronized Thread getKeyHandlers(Thread resizeHandler) {
         Thread keyHandlers =
                 new Thread(
                         () -> {
                             while (true) {
                                 try {
-                                    KeyStroke keystroke = screen.pollInput();
+                                    KeyStroke keystroke = screen.readInput();
                                     if (keystroke == null) continue;
                                     try {
                                         currentScreen.handleInput(keystroke);
@@ -190,7 +190,7 @@ public class Main {
         return keyHandlers;
     }
 
-    private Thread getResizeHandler() {
+    private synchronized Thread getResizeHandler() {
         Thread resizeHandler =
                 new Thread(
                         () -> {
@@ -200,8 +200,9 @@ public class Main {
                                     currentScreen.resize();
                                     try {
                                         screen.refresh(Screen.RefreshType.COMPLETE);
-                                    } catch (IOException e) {
-                                        throw new RuntimeException(e);
+                                        Thread.sleep(50);
+                                    } catch (IOException | InterruptedException e) {
+                                        System.out.println("Ignored Exception: "+e.getMessage());
                                     }
                                 }
                             }

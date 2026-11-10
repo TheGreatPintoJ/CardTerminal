@@ -82,7 +82,8 @@ public class Solitaire extends Game {
         drawGame();
         try {
             screen.refresh(Screen.RefreshType.AUTOMATIC);
-        } catch (IOException ignored) {
+        } catch (IOException e) {
+            System.out.println("Ignored exception: " + e.getMessage());
         }
     }
 
@@ -90,7 +91,8 @@ public class Solitaire extends Game {
         this(type, SEED);
         try {
             screen.refresh(Screen.RefreshType.COMPLETE);
-        } catch (IOException ignored) {
+        } catch (IOException e) {
+            System.out.println("Ignored exception: " + e.getMessage());
         }
 
         LinkedList<SolitaireMove> newMoves = new LinkedList<>();
@@ -121,12 +123,14 @@ public class Solitaire extends Game {
         for (SolitaireMove move : new LinkedList<>(newMoves)) {
             try {
                 Thread.sleep(50);
-            } catch (InterruptedException ignored) {
+            } catch (InterruptedException e) {
+                System.out.println("Ignored exception: " + e.getMessage());
             }
             move.execute();
             try {
                 screen.refresh(Screen.RefreshType.DELTA);
-            } catch (IOException ignored) {
+            } catch (IOException e) {
+                System.out.println("Ignored exception: " + e.getMessage());
             }
         }
     }
@@ -298,11 +302,11 @@ public class Solitaire extends Game {
     [/]: undo/redo
      */
     @Override
-    public void handleInput(KeyStroke keyStroke) throws Exception {
+    public Action handleInput(KeyStroke keyStroke) {
         // if (checkHandleWin()) return;
         if (keyStroke.getKeyType() == KeyType.Escape) {
             Main.getInstance().setCurrentScreen(new MainMenu());
-            throw new Exception("override");
+            return Action.BACK_TO_MENU;
         } else if (keyStroke.getKeyType() == KeyType.Character) {
             char key = keyStroke.getCharacter();
             try {
@@ -373,14 +377,19 @@ public class Solitaire extends Game {
             }
         } else if (keyStroke.getKeyType() == KeyType.F12) {
             // Reset game
-            throw new Exception("reset");
+            return Action.RESTART;
         } else if (keyStroke.getKeyType() == KeyType.F10) {
             // New game
-            throw new Exception("newseed");
+            return Action.NEW_GAME;
         }
         drawGame();
-        screen.refresh(Screen.RefreshType.DELTA);
-        checkHandleWin();
+        try {
+            screen.refresh(Screen.RefreshType.DELTA);
+            checkHandleWin();
+        } catch (IOException e) {
+            System.out.println("Ignored exception: " + e.getMessage());
+        }
+        return Action.NONE;
     }
 
     private void selectCard(Location loc, int index) {
@@ -415,7 +424,8 @@ public class Solitaire extends Game {
             new Solitaire(type, SEED, moves);
             try {
                 Thread.sleep(1000);
-            } catch (InterruptedException ignored) {
+            } catch (InterruptedException e) {
+                System.out.println("Ignored exception: " + e.getMessage());
             }
             Main.getInstance().setCurrentScreen(new MainMenu());
 

@@ -113,7 +113,7 @@ public class MainMenu extends CustomScreen {
     }
 
     @Override
-    public void handleInput(KeyStroke keyStroke) throws Exception {
+    public Action handleInput(KeyStroke keyStroke) {
         if (keyStroke.getKeyType().name().contains("Arrow")) {
             switch (keyStroke.getKeyType()) {
                 case ArrowRight:
@@ -129,11 +129,16 @@ public class MainMenu extends CustomScreen {
                     if (selectedGame - gridW >= 0) selectedGame -= gridW;
                     break;
             }
-            build();
+            try {
+                build();
+            } catch (IOException e) {
+                System.out.println("Ignored Exception: " + e.getMessage());
+            }
         } else if (keyStroke.getKeyType() == KeyType.Enter) {
             GameOptions next = allGames.keySet().stream().toList().get(selectedGame);
             next.resize();
             Main.getInstance().setCurrentScreen(next);
         }
+        return Action.NONE;
     }
 }

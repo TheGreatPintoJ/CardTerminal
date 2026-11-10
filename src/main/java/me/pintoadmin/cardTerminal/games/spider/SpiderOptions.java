@@ -98,67 +98,76 @@ public class SpiderOptions extends GameOptions {
     }
 
     @Override
-    public void handleInput(KeyStroke keyStroke) throws Exception {
-        if (keyStroke.getKeyType() == KeyType.Escape) {
-            Main.getInstance().setCurrentScreen(new MainMenu());
-            throw new Exception("override");
-        } else if (keyStroke.getKeyType().name().contains("Arrow")) {
-            List<SpiderOptions.Option> optionValues =
-                    Arrays.stream(SpiderOptions.Option.values()).toList();
-            List<Spider.GameType> typeValues = Arrays.stream(Spider.GameType.values()).toList();
-            try {
-                switch (keyStroke.getKeyType()) {
-                    case ArrowUp:
-                        selectedOption = optionValues.get(optionValues.indexOf(selectedOption) - 1);
-                        break;
-                    case ArrowDown:
-                        selectedOption = optionValues.get(optionValues.indexOf(selectedOption) + 1);
-                        break;
-                    case ArrowLeft:
-                        if (selectedOption == SpiderOptions.Option.TYPE)
-                            type = typeValues.get(typeValues.indexOf(type) - 1);
-                        break;
-                    case ArrowRight:
-                        if (selectedOption == SpiderOptions.Option.TYPE)
-                            type = typeValues.get(typeValues.indexOf(type) + 1);
-                        break;
+    public Action handleInput(KeyStroke keyStroke) {
+        try {
+            if (keyStroke.getKeyType() == KeyType.Escape) {
+                Main.getInstance().setCurrentScreen(new MainMenu());
+                return Action.BACK_TO_MENU;
+            } else if (keyStroke.getKeyType().name().contains("Arrow")) {
+                List<SpiderOptions.Option> optionValues =
+                        Arrays.stream(SpiderOptions.Option.values()).toList();
+                List<Spider.GameType> typeValues = Arrays.stream(Spider.GameType.values()).toList();
+                try {
+                    switch (keyStroke.getKeyType()) {
+                        case ArrowUp:
+                            selectedOption =
+                                    optionValues.get(optionValues.indexOf(selectedOption) - 1);
+                            break;
+                        case ArrowDown:
+                            selectedOption =
+                                    optionValues.get(optionValues.indexOf(selectedOption) + 1);
+                            break;
+                        case ArrowLeft:
+                            if (selectedOption == SpiderOptions.Option.TYPE)
+                                type = typeValues.get(typeValues.indexOf(type) - 1);
+                            break;
+                        case ArrowRight:
+                            if (selectedOption == SpiderOptions.Option.TYPE)
+                                type = typeValues.get(typeValues.indexOf(type) + 1);
+                            break;
+                    }
+                } catch (IndexOutOfBoundsException e) {
+                    System.out.println("Ignored exception: " + e.getMessage());
                 }
-            } catch (IndexOutOfBoundsException ignored) {
-            }
-            build();
-        } else if (keyStroke.getKeyType() == KeyType.Enter) {
-            /*if (selectedOption == SpiderOptions.Option.AUTOPLAY) {
-                autoPlay = !autoPlay;
                 build();
-            } else */ if (selectedOption == SpiderOptions.Option.PLAY) {
-                /*if (autoPlay)
-                    AutoPlay.main(
-                            new String[] {
-                                    String.valueOf(SEED != 0 ? SEED : suggestedSeed),
-                                    String.valueOf(60),
-                                    type.name()
-                            });
-                else*/
-                Main.getInstance()
-                        .setCurrentScreen(
-                                SEED != 0
-                                        ? new Spider(SEED, type)
-                                        : new Spider(suggestedSeed, type));
+            } else if (keyStroke.getKeyType() == KeyType.Enter) {
+                /*if (selectedOption == SpiderOptions.Option.AUTOPLAY) {
+                    autoPlay = !autoPlay;
+                    build();
+                } else */
+                if (selectedOption == SpiderOptions.Option.PLAY) {
+                    /*if (autoPlay)
+                        AutoPlay.main(
+                                new String[] {
+                                        String.valueOf(SEED != 0 ? SEED : suggestedSeed),
+                                        String.valueOf(60),
+                                        type.name()
+                                });
+                    else*/
+                    Main.getInstance()
+                            .setCurrentScreen(
+                                    SEED != 0
+                                            ? new Spider(SEED, type)
+                                            : new Spider(suggestedSeed, type));
+                }
+            } else if (keyStroke.getKeyType() == KeyType.Character) {
+                Character c = keyStroke.getCharacter();
+                // Update vars and print chars
+                if (selectedOption == SpiderOptions.Option.SEED && Character.isDigit(c)) {
+                    SEED = Long.parseLong(String.valueOf(SEED) + c);
+                }
+                build();
+            } else if (keyStroke.getKeyType() == KeyType.Backspace) {
+                if (selectedOption == SpiderOptions.Option.SEED) {
+                    String s = seedString.get();
+                    if (s.length() == 1) SEED = 0;
+                    else SEED = Long.parseLong(s.substring(0, s.length() - 1));
+                }
+                build();
             }
-        } else if (keyStroke.getKeyType() == KeyType.Character) {
-            Character c = keyStroke.getCharacter();
-            // Update vars and print chars
-            if (selectedOption == SpiderOptions.Option.SEED && Character.isDigit(c)) {
-                SEED = Long.parseLong(String.valueOf(SEED) + c);
-            }
-            build();
-        } else if (keyStroke.getKeyType() == KeyType.Backspace) {
-            if (selectedOption == SpiderOptions.Option.SEED) {
-                String s = seedString.get();
-                if (s.length() == 1) SEED = 0;
-                else SEED = Long.parseLong(s.substring(0, s.length() - 1));
-            }
-            build();
+        } catch (IOException e) {
+            System.out.println("Ignored exception: " + e.getMessage());
         }
+        return Action.NONE;
     }
 }

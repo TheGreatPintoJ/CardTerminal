@@ -31,6 +31,8 @@ jar {
     }
 }
 
+tasks.named('jar') { enabled = false }
+
 spotless {
     java {
         googleJavaFormat("1.28.0").aosp()

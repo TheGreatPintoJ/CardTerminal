@@ -41,7 +41,8 @@ public abstract class Game extends CustomScreen {
 
         try {
             Thread.sleep(2000);
-        } catch (InterruptedException ignored) {
+        } catch (InterruptedException e) {
+            System.out.println("Ignored exception: " + e.getMessage());
         }
 
         screen.clear();

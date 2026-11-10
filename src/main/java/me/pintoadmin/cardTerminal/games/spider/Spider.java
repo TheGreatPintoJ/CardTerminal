@@ -66,7 +66,8 @@ public class Spider extends Game {
         this(SEED, type);
         try {
             screen.refresh(Screen.RefreshType.COMPLETE);
-        } catch (IOException ignored) {
+        } catch (IOException e) {
+            System.out.println("Ignored exception: " + e.getMessage());
         }
 
         LinkedList<SpiderMove> newMoves = new LinkedList<>();
@@ -83,13 +84,15 @@ public class Spider extends Game {
         for (SpiderMove move : new LinkedList<>(newMoves)) {
             try {
                 Thread.sleep(50);
-            } catch (InterruptedException ignored) {
+            } catch (InterruptedException e) {
+                System.out.println("Ignored exception: " + e.getMessage());
             }
             move.execute();
             try {
                 drawGame();
                 screen.refresh(Screen.RefreshType.DELTA);
-            } catch (IOException ignored) {
+            } catch (IOException e) {
+                System.out.println("Ignored exception: " + e.getMessage());
             }
         }
     }
@@ -210,10 +213,10 @@ public class Spider extends Game {
     }
 
     @Override
-    public void handleInput(KeyStroke keyStroke) throws Exception {
+    public Action handleInput(KeyStroke keyStroke) {
         if (keyStroke.getKeyType() == KeyType.Escape) {
             Main.getInstance().setCurrentScreen(new MainMenu());
-            throw new Exception("override");
+            return Action.BACK_TO_MENU;
         } else if (keyStroke.getKeyType() == KeyType.Character) {
             Character c = keyStroke.getCharacter();
             if (Character.isDigit(c)) {
@@ -245,10 +248,10 @@ public class Spider extends Game {
             }
         } else if (keyStroke.getKeyType() == KeyType.F12) {
             // Reset game
-            throw new Exception("reset");
+            return Action.RESTART;
         } else if (keyStroke.getKeyType() == KeyType.F10) {
             // New game
-            throw new Exception("newseed");
+            return Action.NEW_GAME;
         } else if (keyStroke.getKeyType().name().contains("Arrow")) {
             switch (keyStroke.getKeyType()) {
                 case ArrowRight:
@@ -289,44 +292,48 @@ public class Spider extends Game {
             }
         }
 
-        drawGame();
-        screen.refresh(Screen.RefreshType.DELTA);
+        try {
 
-        {
-            boolean didSomething = false;
-            for (LinkedList<Card> pile : stock) {
-                if (pile.size() >= 13) {
-                    LinkedList<Card> lastRun = getLastRun(pile);
-                    if (lastRun.getFirst().getRank() == Card.Rank.KING
-                            && lastRun.getLast().getRank() == Card.Rank.ACE) {
-                        SpiderMove move =
-                                new SpiderMove(
-                                        this, null, stock.indexOf(pile), SpiderMove.Type.RUN);
-                        move.setRunCards(lastRun);
-                        if (move.execute()) {
-                            moves.add(move);
-                            finishedRuns++;
-                            didSomething = true;
+            drawGame();
+            screen.refresh(Screen.RefreshType.DELTA);
+
+            {
+                boolean didSomething = false;
+                for (LinkedList<Card> pile : stock) {
+                    if (pile.size() >= 13) {
+                        LinkedList<Card> lastRun = getLastRun(pile);
+                        if (lastRun.getFirst().getRank() == Card.Rank.KING
+                                && lastRun.getLast().getRank() == Card.Rank.ACE) {
+                            SpiderMove move =
+                                    new SpiderMove(
+                                            this, null, stock.indexOf(pile), SpiderMove.Type.RUN);
+                            move.setRunCards(lastRun);
+                            if (move.execute()) {
+                                moves.add(move);
+                                finishedRuns++;
+                                didSomething = true;
+                            }
                         }
                     }
                 }
+                if (didSomething) {
+                    Thread.sleep(250);
+                    drawGame();
+                    screen.refresh(Screen.RefreshType.DELTA);
+                }
             }
-            if (didSomething) {
-                Thread.sleep(250);
-                drawGame();
-                screen.refresh(Screen.RefreshType.DELTA);
+
+            if (finishedRuns == 8) {
+                win();
+                new Spider(SEED, type, moves);
+                Thread.sleep(1000);
+                Main.getInstance().setCurrentScreen(new MainMenu());
             }
+        } catch (IOException | InterruptedException e) {
+            System.out.println("Ignored exception: " + e.getMessage());
         }
 
-        if (finishedRuns == 8) {
-            win();
-            new Spider(SEED, type, moves);
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException ignored) {
-            }
-            Main.getInstance().setCurrentScreen(new MainMenu());
-        }
+        return Action.NONE;
     }
 
     private void selectCard() {

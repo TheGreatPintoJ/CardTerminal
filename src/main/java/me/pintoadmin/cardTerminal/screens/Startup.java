@@ -54,5 +54,7 @@ public class Startup extends CustomScreen {
     }
 
     @Override
-    public void handleInput(KeyStroke keyStroke) throws Exception {}
+    public Action handleInput(KeyStroke keyStroke) {
+        return Action.NONE;
+    }
 }
