@@ -24,8 +24,7 @@ public class SolitaireOptions extends GameOptions {
     private final Supplier<Integer> H = () -> g.getSize().getRows();
 
     private long suggestedSeed = new Random().nextLong();
-    private long SEED = 0;
-    private final Supplier<String> seedString = () -> String.valueOf(SEED);
+    private String SEED = "";
     private Solitaire.GameType type = Solitaire.GameType.KLONDIKE1;
     private boolean autoPlay = false;
 
@@ -56,9 +55,9 @@ public class SolitaireOptions extends GameOptions {
         Main.drawRectangle(8, 1, (W - 2) / 2, 3);
         g.disableModifiers(SGR.REVERSE);
         Main.drawTextLeft(2, 2, "SEED:");
-        if (SEED == 0) g.setForegroundColor(new TextColor.RGB(100, 100, 100));
-        Main.drawTextLeft(9, 2, String.valueOf(SEED == 0 ? suggestedSeed : SEED));
-        if (SEED == 0) g.setForegroundColor(TextColor.ANSI.WHITE);
+        if (SEED.isEmpty()) g.setForegroundColor(new TextColor.RGB(100, 100, 100));
+        Main.drawTextLeft(9, 2, String.valueOf(SEED.isEmpty() ? suggestedSeed : SEED));
+        if (SEED.isEmpty()) g.setForegroundColor(TextColor.ANSI.WHITE);
 
         if (selectedOption == Option.TYPE) g.enableModifiers(SGR.REVERSE);
         Main.drawRectangle(8, 4, (W - 2) / 2, 6);
@@ -86,13 +85,13 @@ public class SolitaireOptions extends GameOptions {
 
     @Override
     public void setSeed(long seed) {
-        SEED = seed;
+        SEED = String.valueOf(seed);
     }
 
     @Override
     public void start() {
         Main.getInstance()
-                .setCurrentScreen(SEED != 0 ? new Solitaire(type, SEED) : new Solitaire());
+                .setCurrentScreen(!SEED.isEmpty() ? new Solitaire(type, Long.parseLong(SEED)) : new Solitaire());
     }
 
     @Override
@@ -114,27 +113,23 @@ public class SolitaireOptions extends GameOptions {
                 List<Option> optionValues = Arrays.stream(Option.values()).toList();
                 List<Solitaire.GameType> typeValues =
                         Arrays.stream(Solitaire.GameType.values()).toList();
-                try {
-                    switch (keyStroke.getKeyType()) {
-                        case ArrowUp:
-                            selectedOption =
-                                    optionValues.get(optionValues.indexOf(selectedOption) - 1);
-                            break;
-                        case ArrowDown:
-                            selectedOption =
-                                    optionValues.get(optionValues.indexOf(selectedOption) + 1);
-                            break;
-                        case ArrowLeft:
-                            if (selectedOption == Option.TYPE)
-                                type = typeValues.get(typeValues.indexOf(type) - 1);
-                            break;
-                        case ArrowRight:
-                            if (selectedOption == Option.TYPE)
-                                type = typeValues.get(typeValues.indexOf(type) + 1);
-                            break;
-                    }
-                } catch (IndexOutOfBoundsException e) {
-                    System.out.println("Ignored exception: " + e.getMessage());
+                switch (keyStroke.getKeyType()) {
+                    case ArrowUp:
+                        selectedOption =
+                                optionValues.get(Math.clamp(optionValues.indexOf(selectedOption), 0, optionValues.size()) - 1);
+                        break;
+                    case ArrowDown:
+                        selectedOption =
+                                optionValues.get(Math.clamp(optionValues.indexOf(selectedOption), 0, optionValues.size()) + 1);
+                        break;
+                    case ArrowLeft:
+                        if (selectedOption == Option.TYPE)
+                            type = typeValues.get(Math.clamp(typeValues.indexOf(type), 0, typeValues.size()) - 1);
+                        break;
+                    case ArrowRight:
+                        if (selectedOption == Option.TYPE)
+                            type = typeValues.get(Math.clamp(typeValues.indexOf(type), 0, typeValues.size()) + 1);
+                        break;
                 }
                 build();
             } else if (keyStroke.getKeyType() == KeyType.Enter) {
@@ -146,7 +141,7 @@ public class SolitaireOptions extends GameOptions {
                         try {
                             AutoPlay.main(
                                     new String[] {
-                                        String.valueOf(SEED != 0 ? SEED : suggestedSeed),
+                                        String.valueOf(!SEED.isEmpty() ? SEED : suggestedSeed),
                                         String.valueOf(60),
                                         type.name()
                                     });
@@ -156,22 +151,21 @@ public class SolitaireOptions extends GameOptions {
                     else
                         Main.getInstance()
                                 .setCurrentScreen(
-                                        SEED != 0
-                                                ? new Solitaire(type, SEED)
+                                        !SEED.isEmpty()
+                                                ? new Solitaire(type, Long.parseLong(SEED.substring(0, 18)))
                                                 : new Solitaire(type, suggestedSeed));
                 }
             } else if (keyStroke.getKeyType() == KeyType.Character) {
                 Character c = keyStroke.getCharacter();
                 // Update vars and print chars
-                if (selectedOption == Option.SEED && Character.isDigit(c)) {
-                    SEED = Long.parseLong(String.valueOf(SEED) + c);
+                if (selectedOption == Option.SEED && (Character.isDigit(c) || c == '-')) {
+                    SEED = String.valueOf(SEED) + c;
                 }
                 build();
             } else if (keyStroke.getKeyType() == KeyType.Backspace) {
                 if (selectedOption == Option.SEED) {
-                    String s = seedString.get();
-                    if (s.length() == 1) SEED = 0;
-                    else SEED = Long.parseLong(s.substring(0, s.length() - 1));
+                    if (SEED.length() == 1) SEED = "";
+                    else SEED = SEED.substring(0, SEED.length() - 1);
                 }
                 build();
             }

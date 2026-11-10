@@ -49,7 +49,7 @@ public class Startup extends CustomScreen {
         try {
             build();
         } catch (IOException e) {
-            System.out.println("Could not draw startup screen: " + e.getMessage());
+            System.err.println("Could not draw startup screen: " + e.getMessage());
         }
     }
 
