@@ -215,7 +215,7 @@ public class Main {
                                         screen.refresh(Screen.RefreshType.COMPLETE);
                                         Thread.sleep(50);
                                     } catch (IOException | InterruptedException e) {
-                                        System.out.println("Ignored Exception: "+e.getMessage());
+                                        System.out.println("Ignored Exception: " + e.getMessage());
                                     }
                                 }
                             }

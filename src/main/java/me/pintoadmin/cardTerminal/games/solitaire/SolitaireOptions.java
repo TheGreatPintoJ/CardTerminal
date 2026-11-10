@@ -91,7 +91,10 @@ public class SolitaireOptions extends GameOptions {
     @Override
     public void start() {
         Main.getInstance()
-                .setCurrentScreen(!SEED.isEmpty() ? new Solitaire(type, Long.parseLong(SEED)) : new Solitaire());
+                .setCurrentScreen(
+                        !SEED.isEmpty()
+                                ? new Solitaire(type, Long.parseLong(SEED))
+                                : new Solitaire());
     }
 
     @Override
@@ -116,19 +119,41 @@ public class SolitaireOptions extends GameOptions {
                 switch (keyStroke.getKeyType()) {
                     case ArrowUp:
                         selectedOption =
-                                optionValues.get(Math.clamp(optionValues.indexOf(selectedOption), 0, optionValues.size()) - 1);
+                                optionValues.get(
+                                        Math.clamp(
+                                                        optionValues.indexOf(selectedOption),
+                                                        0,
+                                                        optionValues.size())
+                                                - 1);
                         break;
                     case ArrowDown:
                         selectedOption =
-                                optionValues.get(Math.clamp(optionValues.indexOf(selectedOption), 0, optionValues.size()) + 1);
+                                optionValues.get(
+                                        Math.clamp(
+                                                        optionValues.indexOf(selectedOption),
+                                                        0,
+                                                        optionValues.size())
+                                                + 1);
                         break;
                     case ArrowLeft:
                         if (selectedOption == Option.TYPE)
-                            type = typeValues.get(Math.clamp(typeValues.indexOf(type), 0, typeValues.size()) - 1);
+                            type =
+                                    typeValues.get(
+                                            Math.clamp(
+                                                            typeValues.indexOf(type),
+                                                            0,
+                                                            typeValues.size())
+                                                    - 1);
                         break;
                     case ArrowRight:
                         if (selectedOption == Option.TYPE)
-                            type = typeValues.get(Math.clamp(typeValues.indexOf(type), 0, typeValues.size()) + 1);
+                            type =
+                                    typeValues.get(
+                                            Math.clamp(
+                                                            typeValues.indexOf(type),
+                                                            0,
+                                                            typeValues.size())
+                                                    + 1);
                         break;
                 }
                 build();
@@ -152,7 +177,8 @@ public class SolitaireOptions extends GameOptions {
                         Main.getInstance()
                                 .setCurrentScreen(
                                         !SEED.isEmpty()
-                                                ? new Solitaire(type, Long.parseLong(SEED.substring(0, 18)))
+                                                ? new Solitaire(
+                                                        type, Long.parseLong(SEED.substring(0, 18)))
                                                 : new Solitaire(type, suggestedSeed));
                 }
             } else if (keyStroke.getKeyType() == KeyType.Character) {

@@ -12,7 +12,16 @@ public class Foundation {
     private final TextGraphics g = Main.g;
     private final List<Card> cards = new ArrayList<>();
     private final Map<Card.Suit, LinkedList<Card>> piles =
-            new HashMap<>(Map.of(HEART, new LinkedList<>(), SPADE, new LinkedList<>(), DIAMOND, new LinkedList<>(), CLUB, new LinkedList<>()));
+            new HashMap<>(
+                    Map.of(
+                            HEART,
+                            new LinkedList<>(),
+                            SPADE,
+                            new LinkedList<>(),
+                            DIAMOND,
+                            new LinkedList<>(),
+                            CLUB,
+                            new LinkedList<>()));
     private final Deck deck;
 
     private int x;

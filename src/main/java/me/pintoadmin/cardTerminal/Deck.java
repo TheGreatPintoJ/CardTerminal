@@ -86,8 +86,13 @@ public class Deck {
 
     public Card getCard(Card.Rank rank, Card.Suit suit, int index) {
         return allCards.stream()
-                .filter(c -> c.getRank() == rank && c.getSuit() == suit && c.getDeckNumber() == index)
-                .findFirst().orElse(null);
+                .filter(
+                        c ->
+                                c.getRank() == rank
+                                        && c.getSuit() == suit
+                                        && c.getDeckNumber() == index)
+                .findFirst()
+                .orElse(null);
     }
 
     public List<Card> restartDiscard() {
