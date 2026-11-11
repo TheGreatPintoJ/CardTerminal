@@ -121,39 +121,35 @@ public class SolitaireOptions extends GameOptions {
                         selectedOption =
                                 optionValues.get(
                                         Math.clamp(
-                                                        optionValues.indexOf(selectedOption),
-                                                        0,
-                                                        optionValues.size())
-                                                - 1);
+                                                optionValues.indexOf(selectedOption) - 1,
+                                                0,
+                                                optionValues.size() - 1));
                         break;
                     case ArrowDown:
                         selectedOption =
                                 optionValues.get(
                                         Math.clamp(
-                                                        optionValues.indexOf(selectedOption),
-                                                        0,
-                                                        optionValues.size())
-                                                + 1);
+                                                optionValues.indexOf(selectedOption) + 1,
+                                                0,
+                                                optionValues.size() - 1));
                         break;
                     case ArrowLeft:
                         if (selectedOption == Option.TYPE)
                             type =
                                     typeValues.get(
                                             Math.clamp(
-                                                            typeValues.indexOf(type),
-                                                            0,
-                                                            typeValues.size())
-                                                    - 1);
+                                                    typeValues.indexOf(type) - 1,
+                                                    0,
+                                                    typeValues.size() - 1));
                         break;
                     case ArrowRight:
                         if (selectedOption == Option.TYPE)
                             type =
                                     typeValues.get(
                                             Math.clamp(
-                                                            typeValues.indexOf(type),
-                                                            0,
-                                                            typeValues.size())
-                                                    + 1);
+                                                    typeValues.indexOf(type) + 1,
+                                                    0,
+                                                    typeValues.size() - 1));
                         break;
                 }
                 build();

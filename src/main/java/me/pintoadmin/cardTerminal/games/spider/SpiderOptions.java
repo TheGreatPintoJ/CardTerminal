@@ -8,6 +8,7 @@ import java.io.*;
 import java.util.*;
 import java.util.function.*;
 import me.pintoadmin.cardTerminal.*;
+import me.pintoadmin.cardTerminal.games.solitaire.*;
 import me.pintoadmin.cardTerminal.screens.*;
 
 public class SpiderOptions extends GameOptions {
@@ -104,30 +105,43 @@ public class SpiderOptions extends GameOptions {
                 Main.getInstance().setCurrentScreen(new MainMenu());
                 return Action.BACK_TO_MENU;
             } else if (keyStroke.getKeyType().name().contains("Arrow")) {
-                List<SpiderOptions.Option> optionValues =
-                        Arrays.stream(SpiderOptions.Option.values()).toList();
+                List<Option> optionValues = Arrays.stream(Option.values()).toList();
                 List<Spider.GameType> typeValues = Arrays.stream(Spider.GameType.values()).toList();
-                try {
-                    switch (keyStroke.getKeyType()) {
-                        case ArrowUp:
-                            selectedOption =
-                                    optionValues.get(optionValues.indexOf(selectedOption) - 1);
-                            break;
-                        case ArrowDown:
-                            selectedOption =
-                                    optionValues.get(optionValues.indexOf(selectedOption) + 1);
-                            break;
-                        case ArrowLeft:
-                            if (selectedOption == SpiderOptions.Option.TYPE)
-                                type = typeValues.get(typeValues.indexOf(type) - 1);
-                            break;
-                        case ArrowRight:
-                            if (selectedOption == SpiderOptions.Option.TYPE)
-                                type = typeValues.get(typeValues.indexOf(type) + 1);
-                            break;
-                    }
-                } catch (IndexOutOfBoundsException e) {
-                    System.out.println("Ignored exception: " + e.getMessage());
+                switch (keyStroke.getKeyType()) {
+                    case ArrowUp:
+                        selectedOption =
+                                optionValues.get(
+                                        Math.clamp(
+                                                optionValues.indexOf(selectedOption) - 1,
+                                                0,
+                                                optionValues.size() - 1));
+                        break;
+                    case ArrowDown:
+                        selectedOption =
+                                optionValues.get(
+                                        Math.clamp(
+                                                optionValues.indexOf(selectedOption) + 1,
+                                                0,
+                                                optionValues.size() - 1));
+                        break;
+                    case ArrowLeft:
+                        if (selectedOption == Option.TYPE)
+                            type =
+                                    typeValues.get(
+                                            Math.clamp(
+                                                    typeValues.indexOf(type) - 1,
+                                                    0,
+                                                    typeValues.size() - 1));
+                        break;
+                    case ArrowRight:
+                        if (selectedOption == Option.TYPE)
+                            type =
+                                    typeValues.get(
+                                            Math.clamp(
+                                                    typeValues.indexOf(type) + 1,
+                                                    0,
+                                                    typeValues.size() - 1));
+                        break;
                 }
                 build();
             } else if (keyStroke.getKeyType() == KeyType.Enter) {
