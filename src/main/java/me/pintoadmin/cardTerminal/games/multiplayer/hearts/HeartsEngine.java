@@ -127,8 +127,9 @@ public class HeartsEngine {
         boolean hasNonHearts = hands[player].stream().anyMatch(c -> c.getSuit() != Card.Suit.HEART);
         boolean isHeart = card.getSuit() == Card.Suit.HEART;
         boolean isActiveSuit = card.getSuit() == activeSuit;
-        boolean hasLedSuit = activeSuit != null
-                && hands[player].stream().anyMatch(c -> c.getSuit() == activeSuit);
+        boolean hasLedSuit =
+                activeSuit != null
+                        && hands[player].stream().anyMatch(c -> c.getSuit() == activeSuit);
         boolean canLead = !isHeart || heartsBroken || !hasNonHearts;
         boolean canFollow = isActiveSuit || !hasLedSuit;
 
@@ -143,7 +144,8 @@ public class HeartsEngine {
             }
 
             // Check if higher than previous highest rank
-            if (card.getRank().toInt() > highestRank.toInt() && card.getSuit() == activeSuit) highestRank = card.getRank();
+            if (card.getRank().toInt() > highestRank.toInt() && card.getSuit() == activeSuit)
+                highestRank = card.getRank();
 
             playedCards.add(card);
             hands[player].remove(card);
@@ -156,14 +158,18 @@ public class HeartsEngine {
 
     private void finishTrick() {
         int winningPlayer =
-                Math.floorMod(playedCards.indexOf(
-                        playedCards.stream()
-                                .filter(
-                                        c ->
-                                                c.getRank() == highestRank
-                                                        && c.getSuit() == activeSuit)
-                                .toList()
-                                .getFirst()) + startingPlayer, 4);
+                Math.floorMod(
+                        playedCards.indexOf(
+                                        playedCards.stream()
+                                                .filter(
+                                                        c ->
+                                                                c.getRank() == highestRank
+                                                                        && c.getSuit()
+                                                                                == activeSuit)
+                                                .toList()
+                                                .getFirst())
+                                + startingPlayer,
+                        4);
         wonTrickCards.get(winningPlayer).addAll(playedCards);
 
         playedCards.forEach(deck::discardCard);
@@ -246,7 +252,7 @@ public class HeartsEngine {
         return scores;
     }
 
-    public boolean isHeartsBroken(){
+    public boolean isHeartsBroken() {
         return heartsBroken;
     }
 
