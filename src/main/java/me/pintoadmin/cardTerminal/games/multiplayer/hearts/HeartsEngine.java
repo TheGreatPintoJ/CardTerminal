@@ -39,6 +39,7 @@ public class HeartsEngine {
 
     private Card.Suit activeSuit;
     private Card.Rank highestRank;
+    private boolean heartsBroken = false;
 
     public HeartsEngine(int endingPoints) {
         this(new Random().nextLong(), endingPoints);
@@ -54,6 +55,7 @@ public class HeartsEngine {
     }
 
     public void newDeal() {
+        heartsBroken = false;
         trick = 0;
         deal++;
         playedCards.clear();
@@ -68,6 +70,8 @@ public class HeartsEngine {
             hands[2].add(deck.drawCard());
             hands[3].add(deck.drawCard());
         }
+
+        // TODO: set startingPlayer based on two of clubs
     }
 
     private void initPassCards() {
@@ -116,17 +120,22 @@ public class HeartsEngine {
     public boolean playCard(int player, Card card) {
         if (currentPlayerTurn.get() != player) return false;
         if (card == null) return false;
-        boolean canPlay =
-                card.getSuit() == activeSuit
-                        // player doesn't have any playable cards in hand
-                        || (hands[player].stream()
-                                        .filter(c -> c.getSuit() == activeSuit)
-                                        .toList()
-                                        .isEmpty()
-                                // AND the card they're playing is a heart
-                                && card.getSuit() == Card.Suit.HEART);
+
+        // TODO: force two of clubs on first play of first trick
+
+        boolean firstTurn = playerTurn == 0;
+        boolean hasNonHearts = hands[player].stream().anyMatch(c -> c.getSuit() != Card.Suit.HEART);
+        boolean isHeart = card.getSuit() == Card.Suit.HEART;
+        boolean isActiveSuit = card.getSuit() == activeSuit;
+        boolean hasLedSuit = activeSuit != null
+                && hands[player].stream().anyMatch(c -> c.getSuit() == activeSuit);
+        boolean canLead = !isHeart || heartsBroken || !hasNonHearts;
+        boolean canFollow = isActiveSuit || !hasLedSuit;
+
+        boolean canPlay = firstTurn ? canLead : canFollow;
 
         if (hands[player].contains(card) && canPlay) {
+            if (isHeart) heartsBroken = true;
             // First card in trick, set active suit
             if (playerTurn == 0) {
                 activeSuit = card.getSuit();
@@ -233,6 +242,10 @@ public class HeartsEngine {
 
     public Map<Integer, Integer> getScores() {
         return scores;
+    }
+
+    public boolean isHeartsBroken(){
+        return heartsBroken;
     }
 
     public HeartsEngine newGame() {
