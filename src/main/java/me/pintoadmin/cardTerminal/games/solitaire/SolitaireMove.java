@@ -172,6 +172,9 @@ public class SolitaireMove {
                 case DISCARD:
                     solitaire.getDeck().discardCard(card);
                     break;
+                case FOUNDATION:
+                    solitaire.getFoundation().addCard(card);
+                    break;
             }
             switch (location) {
                 case STOCK:

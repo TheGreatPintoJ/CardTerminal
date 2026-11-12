@@ -19,8 +19,7 @@ public class SpiderOptions extends GameOptions {
     private final Supplier<Integer> H = () -> g.getSize().getRows();
 
     private long suggestedSeed = new Random().nextLong();
-    private long SEED = 0;
-    private final Supplier<String> seedString = () -> String.valueOf(SEED);
+    private String SEED = "";
     private Spider.GameType type = Spider.GameType.SUIT1;
 
     private SpiderOptions.Option selectedOption = SpiderOptions.Option.SEED;
@@ -50,9 +49,9 @@ public class SpiderOptions extends GameOptions {
         Main.drawRectangle(8, 1, (W - 2) / 2, 3);
         g.disableModifiers(SGR.REVERSE);
         Main.drawTextLeft(2, 2, "SEED:");
-        if (SEED == 0) g.setForegroundColor(new TextColor.RGB(100, 100, 100));
-        Main.drawTextLeft(9, 2, String.valueOf(SEED == 0 ? suggestedSeed : SEED));
-        if (SEED == 0) g.setForegroundColor(TextColor.ANSI.WHITE);
+        if (SEED.isBlank()) g.setForegroundColor(new TextColor.RGB(100, 100, 100));
+        Main.drawTextLeft(9, 2, String.valueOf(SEED.isBlank() ? suggestedSeed : SEED));
+        if (SEED.isBlank()) g.setForegroundColor(TextColor.ANSI.WHITE);
 
         if (selectedOption == SpiderOptions.Option.TYPE) g.enableModifiers(SGR.REVERSE);
         Main.drawRectangle(8, 4, (W - 2) / 2, 6);
@@ -81,12 +80,16 @@ public class SpiderOptions extends GameOptions {
 
     @Override
     public void setSeed(long seed) {
-        SEED = seed;
+        SEED = String.valueOf(seed);
     }
 
     @Override
     public void start() {
-        Main.getInstance().setCurrentScreen(SEED != 0 ? new Spider(SEED, type) : new Spider());
+        Main.getInstance()
+                .setCurrentScreen(
+                        !SEED.isEmpty()
+                                ? new Spider(Long.parseLong(SEED.substring(0, 18)), type)
+                                : new Spider());
     }
 
     @Override
@@ -160,22 +163,22 @@ public class SpiderOptions extends GameOptions {
                     else*/
                     Main.getInstance()
                             .setCurrentScreen(
-                                    SEED != 0
-                                            ? new Spider(SEED, type)
+                                    !SEED.isBlank()
+                                            ? new Spider(
+                                                    Long.parseLong(SEED.substring(0, 18)), type)
                                             : new Spider(suggestedSeed, type));
                 }
             } else if (keyStroke.getKeyType() == KeyType.Character) {
                 Character c = keyStroke.getCharacter();
                 // Update vars and print chars
                 if (selectedOption == SpiderOptions.Option.SEED && Character.isDigit(c)) {
-                    SEED = Long.parseLong(String.valueOf(SEED) + c);
+                    SEED = String.valueOf(SEED) + c;
                 }
                 build();
             } else if (keyStroke.getKeyType() == KeyType.Backspace) {
                 if (selectedOption == SpiderOptions.Option.SEED) {
-                    String s = seedString.get();
-                    if (s.length() == 1) SEED = 0;
-                    else SEED = Long.parseLong(s.substring(0, s.length() - 1));
+                    if (SEED.length() == 1) SEED = "";
+                    else SEED = SEED.substring(0, SEED.length() - 1);
                 }
                 build();
             }
