@@ -143,7 +143,7 @@ public class HeartsEngine {
             }
 
             // Check if higher than previous highest rank
-            if (card.getRank().toInt() > highestRank.toInt()) highestRank = card.getRank();
+            if (card.getRank().toInt() > highestRank.toInt() && card.getSuit() == activeSuit) highestRank = card.getRank();
 
             playedCards.add(card);
             hands[player].remove(card);
@@ -156,14 +156,14 @@ public class HeartsEngine {
 
     private void finishTrick() {
         int winningPlayer =
-                playedCards.indexOf(
+                Math.floorMod(playedCards.indexOf(
                         playedCards.stream()
                                 .filter(
                                         c ->
                                                 c.getRank() == highestRank
                                                         && c.getSuit() == activeSuit)
                                 .toList()
-                                .getFirst());
+                                .getFirst()) + startingPlayer, 4);
         wonTrickCards.get(winningPlayer).addAll(playedCards);
 
         playedCards.forEach(deck::discardCard);
@@ -175,7 +175,7 @@ public class HeartsEngine {
         highestRank = null;
         activeSuit = null;
 
-        if (trick++ == 13) finishDeal();
+        if (trick++ == 12) finishDeal();
     }
 
     private void finishDeal() {
@@ -215,6 +215,7 @@ public class HeartsEngine {
 
             if (highestScore >= endingPoints) {
                 endGame();
+                return;
             }
         }
 
@@ -223,12 +224,13 @@ public class HeartsEngine {
 
     private void endGame() {
         Optional<Map.Entry<Integer, Integer>> player =
-                scores.entrySet().stream().max(Map.Entry.comparingByValue());
+                scores.entrySet().stream().min(Map.Entry.comparingByValue());
         if (player.isPresent()) {
-            int highestPlayer = player.get().getKey();
-            int highestScore = player.get().getValue();
+            int winningPlayer = player.get().getKey();
+            int winningScore = player.get().getValue();
 
-            // TODO: announce who won
+            // TODO: announce who won, also determine ties
+            // tiebreakers will be determined by ignoring losing scores and playing another round
         }
     }
 
