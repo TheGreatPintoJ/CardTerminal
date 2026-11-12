@@ -7,6 +7,7 @@ import me.pintoadmin.cardTerminal.*;
 public class HeartsEngine {
     private final long SEED;
     private final Deck deck;
+    private final int endingPoints;
 
     private int deal = -1;
     private int trick = -1;
@@ -27,6 +28,8 @@ public class HeartsEngine {
                     put(3, new ArrayList<>());
                 }
             }; // Players to cards of winning tricks
+    private final Map<Integer, Integer> scores =
+            new HashMap<>(Map.of(0, 0, 1, 0, 2, 0, 3, 0)); // Player (integer) to score
 
     private final Map<Integer, Card[]> passingCards = new HashMap<>();
 
@@ -37,13 +40,14 @@ public class HeartsEngine {
     private Card.Suit activeSuit;
     private Card.Rank highestRank;
 
-    public HeartsEngine() {
-        this(new Random().nextLong());
+    public HeartsEngine(int endingPoints) {
+        this(new Random().nextLong(), endingPoints);
     }
 
-    public HeartsEngine(long SEED) {
+    public HeartsEngine(long SEED, int endingPoints) {
         this.SEED = SEED;
         this.deck = new Deck(SEED);
+        this.endingPoints = endingPoints;
 
         // Deal hands
         newDeal();
@@ -54,6 +58,7 @@ public class HeartsEngine {
         deal++;
         playedCards.clear();
         passingCards.clear();
+        wonTrickCards.values().forEach(List::clear);
         for (List<Card> hand : hands) hand.clear();
 
         deck.shuffleDiscard();
@@ -131,13 +136,11 @@ public class HeartsEngine {
             // Check if higher than previous highest rank
             if (card.getRank().toInt() > highestRank.toInt()) highestRank = card.getRank();
 
+            playedCards.add(card);
+            hands[player].remove(card);
+
             playerTurn++;
-            if (playerTurn == 4) {
-                finishTrick();
-            } else {
-                playedCards.add(card);
-                hands[player].remove(card);
-            }
+            if (playerTurn == 4) finishTrick();
             return true;
         } else return false;
     }
@@ -167,9 +170,57 @@ public class HeartsEngine {
     }
 
     private void finishDeal() {
-        // TODO: count hearts of each player, add to total
+        // count hearts of each player, add to total
+        for (int i = 0; i < 4; i++) {
+            int score =
+                    Math.toIntExact(
+                            wonTrickCards.get(i).stream()
+                                    .filter(c -> c.getSuit() == Card.Suit.HEART)
+                                    .count());
+            if (wonTrickCards.get(i).stream()
+                    .anyMatch(
+                            c ->
+                                    c.getSuit() == Card.Suit.SPADE
+                                            && c.getRank() == Card.Rank.QUEEN)) {
+                score += 13;
+            }
+            int finalScore = score;
+
+            // shooting the moon
+            if (finalScore >= 26) {
+                int finalI = i;
+                scores.forEach(
+                        (k, v) -> {
+                            // all players except 'i'
+                            if (k != finalI) {
+                                scores.compute(k, (p, s) -> s += 26);
+                            }
+                        });
+            } else scores.compute(i, (k, v) -> v += finalScore);
+        }
+
+        Optional<Map.Entry<Integer, Integer>> player =
+                scores.entrySet().stream().max(Map.Entry.comparingByValue());
+        if (player.isPresent()) {
+            int highestScore = player.get().getValue();
+
+            if (highestScore >= endingPoints) {
+                endGame();
+            }
+        }
 
         newDeal();
+    }
+
+    private void endGame() {
+        Optional<Map.Entry<Integer, Integer>> player =
+                scores.entrySet().stream().max(Map.Entry.comparingByValue());
+        if (player.isPresent()) {
+            int highestPlayer = player.get().getKey();
+            int highestScore = player.get().getValue();
+
+            // TODO: announce who won
+        }
     }
 
     public List<Card> getCards(int player) {
@@ -180,12 +231,20 @@ public class HeartsEngine {
         return wonTrickCards.get(player).size() / 4;
     }
 
+    public Map<Integer, Integer> getScores() {
+        return scores;
+    }
+
     public HeartsEngine newGame() {
-        return new HeartsEngine();
+        return new HeartsEngine(endingPoints);
+    }
+
+    public HeartsEngine newGame(int endingPoints) {
+        return new HeartsEngine(endingPoints);
     }
 
     public HeartsEngine restart() {
-        return new HeartsEngine(SEED);
+        return new HeartsEngine(SEED, endingPoints);
     }
 
     public long getSeed() {
