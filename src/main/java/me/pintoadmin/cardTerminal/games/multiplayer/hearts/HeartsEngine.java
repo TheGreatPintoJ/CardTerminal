@@ -41,6 +41,15 @@ public class HeartsEngine {
     private Card.Rank highestRank;
     private boolean heartsBroken = false;
 
+    private GameState state = GameState.PREGAME;
+
+    public enum GameState {
+        PREGAME,
+        PASSING,
+        TRICKS,
+        ENDED
+    }
+
     public HeartsEngine(int endingPoints) {
         this(new Random().nextLong(), endingPoints);
     }
@@ -48,13 +57,17 @@ public class HeartsEngine {
     public HeartsEngine(long SEED, int endingPoints) {
         this.SEED = SEED;
         this.deck = new Deck(SEED);
-        this.endingPoints = endingPoints;
-
-        // Deal hands
-        newDeal();
+        if(endingPoints > 0)
+            this.endingPoints = endingPoints;
+        else this.endingPoints = 100;
     }
 
-    public void newDeal() {
+    public void start(){
+        if(state == GameState.PREGAME)
+            newDeal();
+    }
+
+    private void newDeal() {
         heartsBroken = false;
         trick = 0;
         deal++;
@@ -71,7 +84,10 @@ public class HeartsEngine {
             hands[3].add(deck.drawCard());
         }
 
-        // TODO: set startingPlayer based on two of clubs
+        if (deal % 4 == 3) {
+            state = GameState.TRICKS;
+            initPassCards();
+        } else state = GameState.PASSING;
     }
 
     private void initPassCards() {
@@ -100,17 +116,36 @@ public class HeartsEngine {
             }
         }
         passingCards.clear();
+        state = GameState.TRICKS;
+        // set startingPlayer based on two of clubs
+        int i = 0;
+        for (List<Card> hand : hands) {
+            int finalI = i;
+            hand.forEach(c -> {
+                if(c.getSuit() == Card.Suit.CLUB && c.getRank() == Card.Rank.TWO){
+                    startingPlayer = finalI;
+                }
+            });
+            i++;
+        }
     }
 
     public boolean passCards(int player, Card[] cards) {
+        if(!(player >= 0 && player <= 3)) return false;
+        if(state != GameState.PASSING) return false;
+        if(passingCards.containsKey(player)) return false;
         if (deal % 4 == 3) {
+            state = GameState.TRICKS;
             initPassCards();
             return true;
         }
         if (cards.length != 3) return false;
         if (!hands[player].containsAll(Arrays.stream(cards).toList())) return false;
+        // Distinct check
+        if(Arrays.stream(cards).distinct().count() != cards.length) return false;
 
-        passingCards.put(player, cards);
+        if(!passingCards.containsKey(player))
+            passingCards.put(player, cards.clone());
 
         // if all players has passed cards
         if (passingCards.size() == 4) initPassCards();
@@ -118,14 +153,15 @@ public class HeartsEngine {
     }
 
     public boolean playCard(int player, Card card) {
+        if(!(player >= 0 && player <= 3)) return false;
+        if(state != GameState.TRICKS) return false;
         if (currentPlayerTurn.get() != player) return false;
         if (card == null) return false;
 
-        // TODO: force two of clubs on first play of first trick
 
         boolean firstTurn = playerTurn == 0;
         boolean hasNonHearts = hands[player].stream().anyMatch(c -> c.getSuit() != Card.Suit.HEART);
-        boolean isHeart = card.getSuit() == Card.Suit.HEART;
+        boolean isHeart = card.getSuit() == me.pintoadmin.cardTerminal.Card.Suit.HEART;
         boolean isActiveSuit = card.getSuit() == activeSuit;
         boolean hasLedSuit =
                 activeSuit != null
@@ -133,7 +169,21 @@ public class HeartsEngine {
         boolean canLead = !isHeart || heartsBroken || !hasNonHearts;
         boolean canFollow = isActiveSuit || !hasLedSuit;
 
-        boolean canPlay = firstTurn ? canLead : canFollow;
+        // force two of clubs on first play of first trick
+        if(trick == 0 && firstTurn)
+            if (card.getSuit() != Card.Suit.CLUB || card.getRank() != Card.Rank.TWO) return false;
+
+        boolean hasNonPenaltyLegalCard =
+                hands[player].stream()
+                        .anyMatch(
+                                c ->
+                                        (!hasLedSuit || c.getSuit() == activeSuit)
+                                                && !isPenaltyCard(c));
+        boolean canPlay =
+                (firstTurn ? canLead : canFollow)
+                        && !(trick == 0
+                                && isPenaltyCard(card)
+                                && hasNonPenaltyLegalCard);
 
         if (hands[player].contains(card) && canPlay) {
             if (isHeart) heartsBroken = true;
@@ -144,7 +194,7 @@ public class HeartsEngine {
             }
 
             // Check if higher than previous highest rank
-            if (card.getRank().toInt() > highestRank.toInt() && card.getSuit() == activeSuit)
+            if (card.getRank().toIntAceHigh() > highestRank.toIntAceHigh() && card.getSuit() == activeSuit)
                 highestRank = card.getRank();
 
             playedCards.add(card);
@@ -154,6 +204,11 @@ public class HeartsEngine {
             if (playerTurn == 4) finishTrick();
             return true;
         } else return false;
+    }
+
+    private boolean isPenaltyCard(Card card) {
+        return card.getSuit() == Card.Suit.HEART
+                || (card.getSuit() == Card.Suit.SPADE && card.getRank() == Card.Rank.QUEEN);
     }
 
     private void finishTrick() {
@@ -214,30 +269,42 @@ public class HeartsEngine {
             } else scores.compute(i, (k, v) -> v += finalScore);
         }
 
-        Optional<Map.Entry<Integer, Integer>> player =
-                scores.entrySet().stream().max(Map.Entry.comparingByValue());
-        if (player.isPresent()) {
-            int highestScore = player.get().getValue();
+        Integer highestPlayer = getHighestPlayer();
+        Integer highestScore = scores.get(highestPlayer);
 
-            if (highestScore >= endingPoints) {
-                endGame();
-                return;
-            }
+        Integer lowestPlayer = getLowestPlayer();
+        Integer lowestScore = scores.get(lowestPlayer);
+
+        // highest is equal or above threshold for game end
+        if (highestScore >= endingPoints
+                // AND there's no more than one player who has the lowest score
+                && scores.values().stream().filter(i -> i.equals(lowestScore)).count() <= 1) {
+            // tiebreakers will be determined by ignoring win condition and playing another deal
+            endGame();
+            return;
         }
 
         newDeal();
     }
 
     private void endGame() {
+        state = GameState.ENDED;
+
+        Integer winningPlayer = getLowestPlayer();
+        Integer winningScore = scores.get(winningPlayer);
+
+        // TODO: announce who won
+    }
+
+    private Integer getHighestPlayer(){
+        Optional<Map.Entry<Integer, Integer>> player =
+                scores.entrySet().stream().max(Map.Entry.comparingByValue());
+        return player.map(Map.Entry::getKey).orElse(null);
+    }
+    private Integer getLowestPlayer(){
         Optional<Map.Entry<Integer, Integer>> player =
                 scores.entrySet().stream().min(Map.Entry.comparingByValue());
-        if (player.isPresent()) {
-            int winningPlayer = player.get().getKey();
-            int winningScore = player.get().getValue();
-
-            // TODO: announce who won, also determine ties
-            // tiebreakers will be determined by ignoring losing scores and playing another round
-        }
+        return player.map(Map.Entry::getKey).orElse(null);
     }
 
     public List<Card> getCards(int player) {
@@ -254,6 +321,10 @@ public class HeartsEngine {
 
     public boolean isHeartsBroken() {
         return heartsBroken;
+    }
+
+    public GameState getState(){
+        return state;
     }
 
     public HeartsEngine newGame() {
