@@ -8,6 +8,7 @@ import java.io.*;
 import java.util.*;
 import java.util.function.*;
 import me.pintoadmin.cardTerminal.*;
+import me.pintoadmin.cardTerminal.games.multiplayer.hearts.*;
 import me.pintoadmin.cardTerminal.games.solitaire.*;
 import me.pintoadmin.cardTerminal.games.spider.*;
 
@@ -64,6 +65,26 @@ public class MainMenu extends CustomScreen {
                             Main.drawRectangle(sX, sY, eX, eY);
                         }
                     }
+                });
+
+        allGames.put(
+                new HeartsOptions("Hearts"),
+                (x, y) -> {
+                    // Hearts
+                    //                    int cw = 4, ch = 3; // card with/height
+                    //                    for (int column = 0; column < 10; column++) {
+                    //                        int sX = 1 + x + column * cw + column;
+                    //                        int eX = sX + cw;
+                    //                        if (eX >= x + W.get() / gridW) break;
+                    //                        for (int row = 0; row <= 5; row++) {
+                    //                            int sY = 1 + y + row * ch - row * 2;
+                    //                            int eY = sY + ch;
+                    //                            g.fillRectangle(
+                    //                                    new TerminalPosition(sX, sY), new
+                    // TerminalSize(cw, ch), ' ');
+                    //                            Main.drawRectangle(sX, sY, eX, eY);
+                    //                        }
+                    //                    }
                 });
 
         resize();

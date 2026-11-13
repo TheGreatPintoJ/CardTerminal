@@ -175,24 +175,25 @@ public class Spider extends Game {
         return SEED;
     }
 
-    @Override
-    public void redraw() {
-        Main.screen.clear();
-        deck.redrawDeck();
-        g.setCharacter(deckX.get() + 4, deckY.get() + 3, String.valueOf(8 - dealCount).charAt(0));
-        deck.redrawDiscard();
-
-        for (List<Card> list : stock) {
-            for (Card card : list) {
-                card.redraw();
-            }
-        }
-
-        for (List<Card> list : stock) {
-            if (list.isEmpty()) continue;
-            list.getLast().flip(true);
-        }
-    }
+    //    @Override
+    //    public void redraw() {
+    //        Main.screen.clear();
+    //        deck.redrawDeck();
+    //        g.setCharacter(deckX.get() + 4, deckY.get() + 3, String.valueOf(8 -
+    // dealCount).charAt(0));
+    //        deck.redrawDiscard();
+    //
+    //        for (List<Card> list : stock) {
+    //            for (Card card : list) {
+    //                card.redraw();
+    //            }
+    //        }
+    //
+    //        for (List<Card> list : stock) {
+    //            if (list.isEmpty()) continue;
+    //            list.getLast().flip(true);
+    //        }
+    //    }
 
     @Override
     public void drawCard(boolean logged) {

@@ -156,24 +156,24 @@ public class Solitaire extends Game {
         drawGame();
     }
 
-    @Override
-    public void redraw() {
-        Main.screen.clear();
-        deck.redrawDeck();
-        deck.redrawDiscard();
-        foundation.redraw();
-
-        for (List<Card> list : stock) {
-            for (Card card : list) {
-                card.redraw();
-            }
-        }
-
-        for (List<Card> list : stock) {
-            if (list.isEmpty()) continue;
-            list.getLast().flip(true);
-        }
-    }
+    //    @Override
+    //    public void redraw() {
+    //        Main.screen.clear();
+    //        deck.redrawDeck();
+    //        deck.redrawDiscard();
+    //        foundation.redraw();
+    //
+    //        for (List<Card> list : stock) {
+    //            for (Card card : list) {
+    //                card.redraw();
+    //            }
+    //        }
+    //
+    //        for (List<Card> list : stock) {
+    //            if (list.isEmpty()) continue;
+    //            list.getLast().flip(true);
+    //        }
+    //    }
 
     private boolean nextDrawShuffles = false;
 
@@ -312,7 +312,7 @@ public class Solitaire extends Game {
             try {
                 if (key == '-') {
                     clearSelected();
-                    redraw();
+                    resize();
                 }
                 int intKey = Integer.parseInt(String.valueOf(key)) - 1;
                 if (selectedCard != null) {

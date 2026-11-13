@@ -20,6 +20,9 @@ public class Card {
     private int x;
     private int y;
 
+    public static int width = 9;
+    public static int height = 7;
+
     private TextColor cardTextColor = TextColor.ANSI.WHITE;
 
     public enum Suit {
