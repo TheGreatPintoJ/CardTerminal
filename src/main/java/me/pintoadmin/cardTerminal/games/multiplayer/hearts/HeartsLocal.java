@@ -19,6 +19,10 @@ public class HeartsLocal extends Game {
     private final Supplier<Integer> WIDTH = () -> g.getSize().getColumns();
     private final Supplier<Integer> HEIGHT = () -> g.getSize().getRows();
 
+    private Card[] passingCards = new Card[3];
+
+    private int selectedCard = 0;
+
     public HeartsLocal() {
         this(new Random().nextLong(), 100);
     }
@@ -36,39 +40,54 @@ public class HeartsLocal extends Game {
     private void drawGame() throws IOException {
         screen.clear();
 
+        int W = WIDTH.get(), H = HEIGHT.get();
+
         {
             List<Card> cards = engine.getCards(3);
             for (int i = 0; i < engine.getCards(3).size(); i++) {
-                int startingY = (HEIGHT.get() / 2) - (cards.size() * 2) / 2 - (Card.height / 2);
+                int startingY = (H / 2) - (cards.size() * 2) / 2 - (Card.height / 2);
                 Card.drawCardBack(4, startingY + (i * 2), TextColor.ANSI.WHITE);
             }
         }
         {
             List<Card> cards = engine.getCards(2);
             for (int i = 0; i < engine.getCards(2).size(); i++) {
-                int startingX = (WIDTH.get() / 2) - (cards.size() * 3) / 2 - (Card.width / 2);
+                int startingX = (W / 2) - (cards.size() * 3) / 2 - (Card.width / 2);
                 Card.drawCardBack(startingX + (i * 3), 2, TextColor.ANSI.WHITE);
             }
         }
         {
             List<Card> cards = engine.getCards(3);
             for (int i = 0; i < engine.getCards(3).size(); i++) {
-                int startingY = (HEIGHT.get() / 2) - (cards.size() * 2) / 2 - (Card.height / 2);
-                Card.drawCardBack(WIDTH.get() - 13, startingY + (i * 2), TextColor.ANSI.WHITE);
+                int startingY = (H / 2) - (cards.size() * 2) / 2 - (Card.height / 2);
+                Card.drawCardBack(W - 13, startingY + (i * 2), TextColor.ANSI.WHITE);
             }
         }
 
         {
             List<Card> cards = engine.getCards(0);
-            cards.sort(Comparator.comparing(Card::getSuit).thenComparing(Card::getRank));
-            int startingX = (WIDTH.get() / 2) - (cards.size() * 3) / 2 - (Card.width / 2);
+            Function<Card, Card.Rank> rank = Card::getRank;
+            Function<Card.Rank, Integer> value = Card.Rank::toIntAceHigh;
+            cards.sort(Comparator.comparing(Card::getSuit).thenComparing(rank.andThen(value)));
+            int startingX = (W / 2) - (cards.size() * 3) / 2 - (Card.width / 2);
             for (Card card : cards) {
                 int index = cards.indexOf(card);
 
                 int x = startingX + (index * 3);
-                int y = HEIGHT.get() - 7;
+                int y = H - (index == selectedCard ? 9 : 7);
 
                 card.draw(x, y, true);
+            }
+        }
+
+        if (engine.getState() == HeartsEngine.GameState.PASSING) {
+            Main.drawText(W / 2, H / 2, "Select cards to pass");
+
+            int startingX = W / 2 - ((Card.width / 2) + Card.width);
+            for (Card card : passingCards) {
+                if (card == null) Card.drawCardSpace(startingX, H / 2 + 2);
+                else card.draw(startingX, H / 2 + 2, true);
+                startingX += Card.width + 1;
             }
         }
 
@@ -104,6 +123,40 @@ public class HeartsLocal extends Game {
 
     @Override
     public Action handleInput(KeyStroke keyStroke) {
+        switch (keyStroke.getKeyType()) {
+            case Escape:
+                return Action.BACK_TO_MENU;
+            case ArrowLeft:
+                if (selectedCard > 0) selectedCard--;
+                break;
+            case ArrowRight:
+                if (selectedCard < engine.getCards(0).size() - 1) selectedCard++;
+                break;
+            case Character:
+                if (keyStroke.getCharacter() == ' ') {
+                    if (engine.getState() == HeartsEngine.GameState.PASSING) {
+                        Card selected = engine.getCards(0).get(selectedCard);
+                        int firstNull = firstNull(passingCards);
+                        if (firstNull != -1) {
+                            passingCards[firstNull] = selected;
+                            engine.getCards(0).remove(selected);
+                        }
+                    }
+                }
+            case Enter:
+                if (engine.getState() == HeartsEngine.GameState.PASSING) {
+                    engine.passCards(0, passingCards);
+                }
+                break;
+        }
+        resize();
         return Action.NONE;
+    }
+
+    private int firstNull(Card[] array) {
+        for (int i = 0; i < array.length; i++) {
+            if (array[i] == null) return i;
+        }
+        return -1;
     }
 }
