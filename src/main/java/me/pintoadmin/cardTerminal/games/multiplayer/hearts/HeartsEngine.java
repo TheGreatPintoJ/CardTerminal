@@ -37,7 +37,7 @@ public class HeartsEngine {
     private int playerTurn = 0;
     private final Supplier<Integer> currentPlayerTurn = () -> (startingPlayer + playerTurn) % 4;
 
-    private Card.Suit activeSuit;
+    Card.Suit activeSuit;
     private Card.Rank highestRank;
     private boolean heartsBroken = false;
 
@@ -76,7 +76,11 @@ public class HeartsEngine {
 
         deck.shuffleDiscard();
         for (int i = 0; i < 13; i++) {
-            hands[0].add(deck.drawCard());
+            // TESTING: add two of clubs to first player's hand
+            if (i == 0) {
+                hands[0].add(deck.getCard(Card.Rank.TWO, Card.Suit.CLUB));
+                deck.removeCard(deck.getCard(Card.Rank.TWO, Card.Suit.CLUB));
+            } else hands[0].add(deck.drawCard());
             hands[1].add(deck.drawCard());
             hands[2].add(deck.drawCard());
             hands[3].add(deck.drawCard());
@@ -305,6 +309,17 @@ public class HeartsEngine {
 
     public List<Card> getCards(int player) {
         return hands[player];
+    }
+
+    public List<Card> getPlayedCards() {
+        return playedCards;
+    }
+
+    List<Card> getPlayableCards(int player) {
+        List<Card> sameSuit =
+                hands[player].stream().filter(c -> c.getSuit() == activeSuit).toList();
+        List<Card> notSuit = hands[player].stream().filter(c -> c.getSuit() != activeSuit).toList();
+        return sameSuit.isEmpty() ? notSuit : sameSuit;
     }
 
     public int getNumTricksWon(int player) {

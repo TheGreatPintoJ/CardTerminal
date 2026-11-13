@@ -95,6 +95,10 @@ public class Deck {
                 .orElse(null);
     }
 
+    public void removeCard(Card card) {
+        cardsInDeck.remove(card);
+    }
+
     public List<Card> restartDiscard() {
         List<Card> list = List.copyOf(cardsInDiscard);
         cardsInDeck.addAll(cardsInDiscard);
