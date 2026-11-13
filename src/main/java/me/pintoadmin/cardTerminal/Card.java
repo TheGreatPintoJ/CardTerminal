@@ -107,7 +107,7 @@ public class Card {
             };
         }
 
-        public int toIntAceHigh(){
+        public int toIntAceHigh() {
             return switch (this) {
                 case JOKER -> 1;
                 case TWO -> 2;
