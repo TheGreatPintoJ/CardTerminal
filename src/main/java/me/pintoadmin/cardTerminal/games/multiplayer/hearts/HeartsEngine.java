@@ -2,7 +2,6 @@ package me.pintoadmin.cardTerminal.games.multiplayer.hearts;
 
 import java.util.*;
 import java.util.function.*;
-
 import me.pintoadmin.cardTerminal.*;
 
 public class HeartsEngine {
@@ -405,6 +404,14 @@ public class HeartsEngine {
 
     public GameState getState() {
         return state;
+    }
+
+    public int getTrick() {
+        return trick;
+    }
+
+    public int getDeal() {
+        return deal;
     }
 
     public void addClient(HeartsLocal client) {

@@ -38,6 +38,7 @@ public class HeartsLocal extends Game {
     private boolean heartsBroken;
     private Card.Suit activeSuit;
     private int[] numCards = new int[4];
+    private int trick;
 
     public void updateLocals() {
         ourCards = engine.getCards(0);
@@ -48,6 +49,7 @@ public class HeartsLocal extends Game {
         scores = engine.getScores();
         heartsBroken = engine.isHeartsBroken();
         activeSuit = engine.activeSuit;
+        trick = engine.getTrick();
 
         for (int i = 0; i < 4; i++) numCards[i] = engine.getNumCards(i);
     }
@@ -91,7 +93,10 @@ public class HeartsLocal extends Game {
             List<Card> cards = ourCards;
             int startingX = (W / 2) - (cards.size() * 3) / 2 - (Card.width / 2);
             for (Card card : cards) {
-                card.setTextColor(TextColor.ANSI.WHITE);
+                if (getPlayableCards(cards).contains(card)
+                        || gameState == HeartsEngine.GameState.PASSING
+                        || currentPlayerturn != 0) card.setTextColor(TextColor.ANSI.WHITE);
+                else card.setTextColor(new TextColor.RGB(100, 100, 100));
                 int index = cards.indexOf(card);
 
                 int x = startingX + (index * 3);
@@ -110,6 +115,7 @@ public class HeartsLocal extends Game {
             }
         }
 
+        // Player turn text, or passing text
         g.setForegroundColor(TextColor.ANSI.WHITE);
         g.enableModifiers(SGR.BOLD);
         if (gameState == HeartsEngine.GameState.PASSING) {
@@ -120,6 +126,13 @@ public class HeartsLocal extends Game {
             Main.drawText(W / 2, H - Card.height - 3, turnString);
         }
         g.disableModifiers(SGR.BOLD);
+
+        // Hearts broken text
+        if (heartsBroken) {
+            g.setForegroundColor(TextColor.ANSI.RED);
+            Main.drawText(W / 2, H / 2 - (Card.height * 15 / 10) - 1, "Hearts are broken");
+            g.setForegroundColor(TextColor.ANSI.WHITE);
+        }
 
         {
             List<Card> cards = playedCards;
@@ -274,9 +287,14 @@ public class HeartsLocal extends Game {
             List<Card> notSuit = cards.stream().filter(c -> c.getSuit() != activeSuit).toList();
             return sameSuit.isEmpty() ? notSuit : sameSuit;
         } else {
-            return heartsBroken
-                    ? cards.stream().toList()
-                    : cards.stream().filter(c -> c.getSuit() != Card.Suit.HEART).toList();
+            if (trick == 0 && startingPlayer == 0)
+                return cards.stream()
+                        .filter(c -> c.getSuit() == Card.Suit.CLUB && c.getRank() == Card.Rank.TWO)
+                        .toList();
+            else
+                return heartsBroken
+                        ? cards.stream().toList()
+                        : cards.stream().filter(c -> c.getSuit() != Card.Suit.HEART).toList();
         }
     }
 }
