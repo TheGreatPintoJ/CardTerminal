@@ -9,8 +9,13 @@ import com.googlecode.lanterna.screen.*;
 import java.io.*;
 import java.util.*;
 import java.util.function.*;
+import java.util.stream.*;
 import me.pintoadmin.cardTerminal.*;
 import me.pintoadmin.cardTerminal.screens.*;
+
+/*
+TODO: add hearts broken indicator
+ */
 
 public class HeartsLocal extends Game {
     private final long SEED;
@@ -32,7 +37,7 @@ public class HeartsLocal extends Game {
         this.SEED = SEED;
         this.endingPoints = endingPoints;
 
-        engine = new HeartsEngine(SEED, endingPoints);
+        engine = new HeartsEngine(SEED, endingPoints, this);
         engine.start();
 
         resize();
@@ -44,8 +49,8 @@ public class HeartsLocal extends Game {
         int W = WIDTH.get(), H = HEIGHT.get();
 
         {
-            List<Card> cards = engine.getCards(3);
-            for (int i = 0; i < engine.getCards(3).size(); i++) {
+            List<Card> cards = engine.getCards(1);
+            for (int i = 0; i < engine.getCards(1).size(); i++) {
                 int startingY = (H / 2) - (cards.size() * 2) / 2 - (Card.height / 2);
                 Card.drawCardBack(4, startingY + (i * 2), TextColor.ANSI.WHITE);
             }
@@ -76,30 +81,41 @@ public class HeartsLocal extends Game {
                 int index = cards.indexOf(card);
 
                 int x = startingX + (index * 3);
-                int y =
-                        H
-                                - 7
-                                - (index == selectedCard ? 2 : 0)
-                                - (Arrays.stream(passingCards).toList().contains(card) ? 1 : 0);
+                int y = H - 7;
 
-                if (Arrays.stream(passingCards).toList().contains(card))
-                    card.setTextColor(TextColor.ANSI.GREEN);
-                if (index == selectedCard) card.setTextColor(TextColor.ANSI.YELLOW);
+                if (engine.getCurrentPlayerTurn() == 0) {
+                    // elevate cursor and selected cards
+                    y -=
+                            (index == selectedCard ? 2 : 0)
+                                    + (Arrays.stream(passingCards).toList().contains(card) ? 1 : 0);
+                    if (Arrays.stream(passingCards).toList().contains(card))
+                        card.setTextColor(TextColor.ANSI.GREEN);
+                    if (index == selectedCard) card.setTextColor(TextColor.ANSI.YELLOW);
+                }
                 card.draw(x, y, true);
             }
         }
 
+        g.setForegroundColor(TextColor.ANSI.WHITE);
+        g.enableModifiers(SGR.BOLD);
         if (engine.getState() == HeartsEngine.GameState.PASSING) {
             Main.drawText(W / 2, H / 2, "Select cards to pass");
+        } else if (engine.getState() == HeartsEngine.GameState.TRICKS) {
+            int turn = engine.getCurrentPlayerTurn();
+            String turnString = turn != 0 ? "It is Player " + turn + "'s turn" : "It is your turn";
+            Main.drawText(W / 2, H - Card.height - 3, turnString);
         }
+        g.disableModifiers(SGR.BOLD);
 
         {
             List<Card> cards = engine.getPlayedCards();
             for (Card card : cards) {
-                int index = cards.indexOf(card);
+                int index = cards.indexOf(card) + engine.getStartingPlayer();
                 int x = (W / 2) - (Card.width / 2), y = (H / 2) - (Card.height / 2);
 
-                switch (index) {
+                card.setTextColor(TextColor.ANSI.WHITE);
+
+                switch (index % 4) {
                     case 0 -> y += (Card.height / 2) + 2;
                     case 1 -> x -= Card.width * 15 / 10;
                     case 2 -> y -= (Card.height / 2) + 2;
@@ -110,6 +126,40 @@ public class HeartsLocal extends Game {
             }
         }
 
+        screen.refresh(Screen.RefreshType.COMPLETE);
+    }
+
+    void dealEnd() throws IOException {
+        screen.clear();
+        int W = WIDTH.get(), H = HEIGHT.get();
+
+        g.enableModifiers(SGR.BOLD);
+        Main.drawText(W / 2, H / 2 - 7, "End of round scores");
+
+        Map<Integer, Integer> scores = engine.getScores();
+        Map<Integer, Integer> sorted =
+                scores.entrySet().stream()
+                        .sorted(Map.Entry.comparingByValue())
+                        .collect(
+                                Collectors.toMap(
+                                        Map.Entry::getKey,
+                                        Map.Entry::getValue,
+                                        (oldValue, newValue) -> oldValue,
+                                        LinkedHashMap::new));
+        ;
+        int i = 0;
+        for (Map.Entry<Integer, Integer> entry : sorted.entrySet()) {
+            int player = entry.getKey();
+            int value = entry.getValue();
+
+            String name = "Player " + player;
+            Main.drawTextLeft(W / 2 - 11, H / 2 - 4 + i, name);
+            Main.drawTextRight(W / 2 + 5, H / 2 - 4 + i, String.valueOf(value));
+
+            i++;
+        }
+
+        g.disableModifiers(SGR.BOLD);
         screen.refresh(Screen.RefreshType.COMPLETE);
     }
 
@@ -163,21 +213,20 @@ public class HeartsLocal extends Game {
                             int firstNull = firstNull(passingCards);
                             if (firstNull != -1) {
                                 passingCards[firstNull] = selected;
-                                // engine.getCards(0).remove(selected);
                             }
                         }
                     } else if (engine.getState() == HeartsEngine.GameState.TRICKS) {
-                        Card selected = engine.getCards(0).get(selectedCard);
-                        if (engine.playCard(0, selected)) {
-                            // testing
-                            Card selected1 = engine.getPlayableCards(1).getFirst();
-                            engine.playCard(1, selected1);
-                            Card selected2 = engine.getPlayableCards(2).getFirst();
-                            engine.playCard(2, selected2);
-                            Card selected3 = engine.getPlayableCards(3).getFirst();
-                            engine.playCard(3, selected3);
+                        int turn = engine.getCurrentPlayerTurn();
+                        if (turn == 0) {
+                            Card selected = engine.getCards(0).get(selectedCard);
+                            engine.playCard(0, selected);
+                        } else {
+                            Card card = engine.getPlayableCards(turn).getFirst();
+                            engine.playCard(turn, card);
                         }
                     }
+                    if (selectedCard >= engine.getCards(0).size() - 1 && selectedCard >= 0)
+                        selectedCard = engine.getCards(0).size() - 1;
                 }
                 break;
             case Enter:

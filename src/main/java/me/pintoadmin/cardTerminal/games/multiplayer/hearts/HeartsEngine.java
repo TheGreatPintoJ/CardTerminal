@@ -1,13 +1,17 @@
 package me.pintoadmin.cardTerminal.games.multiplayer.hearts;
 
+import java.io.*;
 import java.util.*;
 import java.util.function.*;
+import java.util.logging.*;
 import me.pintoadmin.cardTerminal.*;
 
 public class HeartsEngine {
     private final long SEED;
     private final Deck deck;
     private final int endingPoints;
+
+    private HeartsLocal local = null;
 
     private int deal = -1;
     private int trick = -1;
@@ -52,6 +56,11 @@ public class HeartsEngine {
 
     public HeartsEngine(int endingPoints) {
         this(new Random().nextLong(), endingPoints);
+    }
+
+    public HeartsEngine(long SEED, int endingPoints, HeartsLocal local) {
+        this(SEED, endingPoints);
+        this.local = local;
     }
 
     public HeartsEngine(long SEED, int endingPoints) {
@@ -211,6 +220,14 @@ public class HeartsEngine {
     }
 
     private void finishTrick() {
+        // TODO: tell connected clients
+        if (local != null) local.resize();
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            System.out.println("Ignored exception: " + e.getMessage());
+        }
+
         int winningPlayer =
                 Math.floorMod(
                         playedCards.indexOf(
@@ -268,6 +285,14 @@ public class HeartsEngine {
             } else scores.compute(i, (k, v) -> v += finalScore);
         }
 
+        try {
+            if (local != null) local.dealEnd();
+            // TODO: tell connected clients
+            Thread.sleep(2000);
+        } catch (IOException | InterruptedException e) {
+            System.out.println("Ignored exception: " + e.getMessage());
+        }
+
         Integer highestPlayer = getHighestPlayer();
         Integer highestScore = scores.get(highestPlayer);
 
@@ -316,10 +341,17 @@ public class HeartsEngine {
     }
 
     List<Card> getPlayableCards(int player) {
-        List<Card> sameSuit =
-                hands[player].stream().filter(c -> c.getSuit() == activeSuit).toList();
-        List<Card> notSuit = hands[player].stream().filter(c -> c.getSuit() != activeSuit).toList();
-        return sameSuit.isEmpty() ? notSuit : sameSuit;
+        if (activeSuit != null) {
+            List<Card> sameSuit =
+                    hands[player].stream().filter(c -> c.getSuit() == activeSuit).toList();
+            List<Card> notSuit =
+                    hands[player].stream().filter(c -> c.getSuit() != activeSuit).toList();
+            return sameSuit.isEmpty() ? notSuit : sameSuit;
+        } else {
+            return heartsBroken
+                    ? hands[player].stream().toList()
+                    : hands[player].stream().filter(c -> c.getSuit() != Card.Suit.HEART).toList();
+        }
     }
 
     public int getNumTricksWon(int player) {
@@ -332,6 +364,14 @@ public class HeartsEngine {
 
     public boolean isHeartsBroken() {
         return heartsBroken;
+    }
+
+    public int getCurrentPlayerTurn() {
+        return currentPlayerTurn.get();
+    }
+
+    public int getStartingPlayer() {
+        return startingPlayer;
     }
 
     public GameState getState() {

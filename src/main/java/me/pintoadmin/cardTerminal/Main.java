@@ -166,7 +166,7 @@ public class Main {
                         () -> {
                             while (true) {
                                 try {
-                                    KeyStroke keystroke = screen.readInput();
+                                    KeyStroke keystroke = screen.pollInput();
                                     if (keystroke == null) continue;
                                     try {
                                         currentScreen.handleInput(keystroke);
@@ -192,7 +192,8 @@ public class Main {
                                             screen.refresh(Screen.RefreshType.COMPLETE);
                                         } else throw new RuntimeException(e);
                                     }
-                                } catch (IOException e) {
+                                    Thread.sleep(50);
+                                } catch (IOException | InterruptedException e) {
                                     System.err.println(
                                             "Could not read terminal input: " + e.getMessage());
                                     e.printStackTrace();
