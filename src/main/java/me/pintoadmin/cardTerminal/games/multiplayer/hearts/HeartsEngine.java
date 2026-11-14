@@ -1,9 +1,8 @@
 package me.pintoadmin.cardTerminal.games.multiplayer.hearts;
 
-import java.io.*;
 import java.util.*;
 import java.util.function.*;
-import java.util.logging.*;
+
 import me.pintoadmin.cardTerminal.*;
 
 public class HeartsEngine {
@@ -11,7 +10,8 @@ public class HeartsEngine {
     private final Deck deck;
     private final int endingPoints;
 
-    private HeartsLocal local = null;
+    private List<HeartsLocal> clients = new ArrayList<>();
+    //    private HeartsLocal local = null;
 
     private int deal = -1;
     private int trick = -1;
@@ -60,7 +60,7 @@ public class HeartsEngine {
 
     public HeartsEngine(long SEED, int endingPoints, HeartsLocal local) {
         this(SEED, endingPoints);
-        this.local = local;
+        clients.add(local);
     }
 
     public HeartsEngine(long SEED, int endingPoints) {
@@ -71,7 +71,10 @@ public class HeartsEngine {
     }
 
     public void start() {
-        if (state == GameState.PREGAME) newDeal();
+        if (state == GameState.PREGAME) {
+            newDeal();
+            clients.forEach(HeartsLocal::updateLocals);
+        }
     }
 
     private void newDeal() {
@@ -82,6 +85,9 @@ public class HeartsEngine {
         passingCards.clear();
         wonTrickCards.values().forEach(List::clear);
         for (List<Card> hand : hands) hand.clear();
+
+        clients.forEach(HeartsLocal::updateLocals);
+        clients.forEach(HeartsLocal::resize);
 
         deck.shuffleDiscard();
         for (int i = 0; i < 13; i++) {
@@ -95,10 +101,19 @@ public class HeartsEngine {
             hands[3].add(deck.drawCard());
         }
 
+        for (List<Card> hand : hands) {
+            Function<Card, Card.Rank> rank = Card::getRank;
+            Function<Card.Rank, Integer> value = Card.Rank::toIntAceHigh;
+            hand.sort(Comparator.comparing(Card::getSuit).thenComparing(rank.andThen(value)));
+        }
+
         if (deal % 4 == 3) {
             state = GameState.TRICKS;
             initPassCards();
         } else state = GameState.PASSING;
+
+        clients.forEach(HeartsLocal::updateLocals);
+        clients.forEach(HeartsLocal::resize);
     }
 
     private void initPassCards() {
@@ -140,6 +155,7 @@ public class HeartsEngine {
                     });
             i++;
         }
+        clients.forEach(HeartsLocal::updateLocals);
     }
 
     public boolean passCards(int player, Card[] cards) {
@@ -209,6 +225,9 @@ public class HeartsEngine {
             hands[player].remove(card);
 
             playerTurn++;
+
+            clients.forEach(HeartsLocal::updateLocals);
+            clients.forEach(HeartsLocal::resize);
             if (playerTurn == 4) finishTrick();
             return true;
         } else return false;
@@ -221,7 +240,8 @@ public class HeartsEngine {
 
     private void finishTrick() {
         // TODO: tell connected clients
-        if (local != null) local.resize();
+        clients.forEach(HeartsLocal::updateLocals);
+        clients.forEach(HeartsLocal::resize);
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
@@ -251,6 +271,9 @@ public class HeartsEngine {
 
         highestRank = null;
         activeSuit = null;
+
+        clients.forEach(HeartsLocal::updateLocals);
+        clients.forEach(HeartsLocal::resize);
 
         if (trick++ == 12) finishDeal();
     }
@@ -285,13 +308,15 @@ public class HeartsEngine {
             } else scores.compute(i, (k, v) -> v += finalScore);
         }
 
+        // TODO: tell connected clients
+        clients.forEach(HeartsLocal::updateLocals);
+        clients.forEach(HeartsLocal::showScores);
         try {
-            if (local != null) local.dealEnd();
-            // TODO: tell connected clients
             Thread.sleep(2000);
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException e) {
             System.out.println("Ignored exception: " + e.getMessage());
         }
+        clients.forEach(HeartsLocal::resize);
 
         Integer highestPlayer = getHighestPlayer();
         Integer highestScore = scores.get(highestPlayer);
@@ -354,6 +379,10 @@ public class HeartsEngine {
         }
     }
 
+    public int getNumCards(int player) {
+        return hands[player].size();
+    }
+
     public int getNumTricksWon(int player) {
         return wonTrickCards.get(player).size() / 4;
     }
@@ -376,6 +405,10 @@ public class HeartsEngine {
 
     public GameState getState() {
         return state;
+    }
+
+    public void addClient(HeartsLocal client) {
+        clients.add(client);
     }
 
     public HeartsEngine newGame() {
