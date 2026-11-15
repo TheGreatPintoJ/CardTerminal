@@ -39,6 +39,7 @@ public class HeartsServer {
                                         int player = playerCounter++;
                                         new Thread(new ClientHandler(clientSocket, player)).start();
                                     }
+                                    socket.close();
                                 } catch (BindException ignored) {
                                     throw new RuntimeException("There's another instance running!");
                                 } catch (SocketException ignored) {
