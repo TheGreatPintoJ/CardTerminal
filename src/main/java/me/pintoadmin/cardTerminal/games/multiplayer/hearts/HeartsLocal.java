@@ -48,7 +48,7 @@ public class HeartsLocal extends Game {
         gameState = engine.getState();
         scores = engine.getScores();
         heartsBroken = engine.isHeartsBroken();
-        activeSuit = engine.activeSuit;
+        activeSuit = engine.getActiveSuit();
         trick = engine.getTrick();
 
         for (int i = 0; i < 4; i++) numCards[i] = engine.getNumCards(i);
@@ -59,10 +59,15 @@ public class HeartsLocal extends Game {
     }
 
     public HeartsLocal(long SEED, int endingPoints) {
+        this(SEED, endingPoints, new HeartsEngine(SEED, endingPoints));
+    }
+
+    public HeartsLocal(long SEED, int endingPoints, HeartsEngine engine) {
         this.SEED = SEED;
         this.endingPoints = endingPoints;
 
-        engine = new HeartsEngine(SEED, endingPoints, this);
+        this.engine = engine;
+        engine.getServer().addLocalClient(this);
         engine.start();
 
         resize();
@@ -156,7 +161,7 @@ public class HeartsLocal extends Game {
         screen.refresh(Screen.RefreshType.COMPLETE);
     }
 
-    void showScores() {
+    public void showScores() {
         try {
             screen.clear();
             int W = WIDTH.get(), H = HEIGHT.get();
