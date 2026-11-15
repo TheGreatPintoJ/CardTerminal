@@ -154,6 +154,18 @@ public class HeartsLocal extends Game {
             String turnString =
                     turn != localPlayer ? "It is Player " + turn + "'s turn" : "It is your turn";
             Main.drawText(W / 2, H - Card.height - 3, turnString);
+            switch ((turn + (4 - localPlayer)) % 4) {
+                case 0 -> Main.drawText(W / 2, H / 2, "\\/");
+                case 1 -> {
+                    Main.drawText(W / 2, H / 2 - 1, "/");
+                    Main.drawText(W / 2, H / 2, "\\");
+                }
+                case 2 -> Main.drawText(W / 2, H / 2, "/\\");
+                case 3 -> {
+                    Main.drawText(W / 2, H / 2 - 1, "\\");
+                    Main.drawText(W / 2, H / 2, "/");
+                }
+            }
         }
         g.disableModifiers(SGR.BOLD);
 
@@ -167,12 +179,12 @@ public class HeartsLocal extends Game {
         {
             List<Card> cards = playedCards;
             for (Card card : cards) {
-                int index = cards.indexOf(card) + startingPlayer;
+                int index = cards.indexOf(card) + startingPlayer - localPlayer;
                 int x = (W / 2) - (Card.width / 2), y = (H / 2) - (Card.height / 2);
 
                 card.setTextColor(TextColor.ANSI.WHITE);
 
-                switch (index % 4) {
+                switch ((index + 4) % 4) {
                     case 0 -> y += (Card.height / 2) + 2;
                     case 1 -> x -= Card.width * 15 / 10;
                     case 2 -> y -= (Card.height / 2) + 2;
