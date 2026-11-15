@@ -29,16 +29,17 @@ public class HeartsLocal extends Game {
 
     private int selectedCard = 0;
 
-    private List<Card> ourCards;
-    private int currentPlayerturn;
-    private int startingPlayer;
-    private List<Card> playedCards;
-    private HeartsEngine.GameState gameState;
-    private Map<Integer, Integer> scores;
-    private boolean heartsBroken;
-    private Card.Suit activeSuit;
-    private int[] numCards = new int[4];
-    private int trick;
+    protected List<Card> ourCards;
+    protected int currentPlayerturn;
+    protected int startingPlayer;
+    protected List<Card> playedCards;
+    protected HeartsEngine.GameState gameState;
+    protected Map<Integer, Integer> scores;
+    protected boolean heartsBroken;
+    protected Card.Suit activeSuit;
+    protected int[] numCards = new int[4];
+    protected int trick;
+    protected int localPlayer = 0;
 
     public void updateLocals() {
         ourCards = engine.getCards(0);
@@ -73,6 +74,28 @@ public class HeartsLocal extends Game {
         resize();
     }
 
+    protected HeartsLocal(boolean remote) {
+        SEED = 0;
+        endingPoints = 100;
+        engine = null;
+        ourCards = new ArrayList<>();
+        playedCards = new ArrayList<>();
+        scores = new HashMap<>(Map.of(0, 0, 1, 0, 2, 0, 3, 0));
+        gameState = HeartsEngine.GameState.PREGAME;
+    }
+
+    protected void submitPlayCard(int player, Card card) {
+        engine.playCard(player, card);
+    }
+
+    protected void submitPassCards(int player, Card[] cards) {
+        engine.passCards(player, cards);
+    }
+
+    protected boolean isRemoteGame() {
+        return false;
+    }
+
     private void drawGame() throws IOException {
         screen.clear();
 
@@ -100,14 +123,15 @@ public class HeartsLocal extends Game {
             for (Card card : cards) {
                 if (getPlayableCards(cards).contains(card)
                         || gameState == HeartsEngine.GameState.PASSING
-                        || currentPlayerturn != 0) card.setTextColor(TextColor.ANSI.WHITE);
+                        || currentPlayerturn != localPlayer)
+                    card.setTextColor(TextColor.ANSI.WHITE);
                 else card.setTextColor(new TextColor.RGB(100, 100, 100));
                 int index = cards.indexOf(card);
 
                 int x = startingX + (index * 3);
                 int y = H - 7;
 
-                if (currentPlayerturn == 0) {
+                if (currentPlayerturn == localPlayer) {
                     // elevate cursor and selected cards
                     y -=
                             (index == selectedCard ? 2 : 0)
@@ -127,7 +151,8 @@ public class HeartsLocal extends Game {
             Main.drawText(W / 2, H / 2, "Select cards to pass");
         } else if (gameState == HeartsEngine.GameState.TRICKS) {
             int turn = currentPlayerturn;
-            String turnString = turn != 0 ? "It is Player " + turn + "'s turn" : "It is your turn";
+            String turnString =
+                    turn != localPlayer ? "It is Player " + turn + "'s turn" : "It is your turn";
             Main.drawText(W / 2, H - Card.height - 3, turnString);
         }
         g.disableModifiers(SGR.BOLD);
@@ -253,12 +278,13 @@ public class HeartsLocal extends Game {
                         }
                     } else if (gameState == HeartsEngine.GameState.TRICKS) {
                         int turn = currentPlayerturn;
-                        if (turn == 0) {
+                        if (turn == localPlayer) {
                             Card selected = ourCards.get(selectedCard);
-                            engine.playCard(0, selected);
-                        } else {
+                            submitPlayCard(localPlayer, selected);
+                        } else if (!isRemoteGame()
+                                && !engine.getServer().isRemotePlayerConnected(turn)) {
                             Card card = getPlayableCards(engine.getCards(turn)).getFirst();
-                            engine.playCard(turn, card);
+                            submitPlayCard(turn, card);
                         }
                     }
                     if (selectedCard >= ourCards.size() - 1 && selectedCard >= 0)
@@ -267,11 +293,16 @@ public class HeartsLocal extends Game {
                 break;
             case Enter:
                 if (gameState == HeartsEngine.GameState.PASSING) {
-                    engine.passCards(0, passingCards);
-                    // testing
-                    engine.passCards(1, engine.getCards(1).subList(0, 3).toArray(new Card[0]));
-                    engine.passCards(2, engine.getCards(2).subList(0, 3).toArray(new Card[0]));
-                    engine.passCards(3, engine.getCards(3).subList(0, 3).toArray(new Card[0]));
+                    submitPassCards(localPlayer, passingCards);
+                    if (!isRemoteGame()) {
+                        for (int player = 1; player < 4; player++) {
+                            if (!engine.getServer().isRemotePlayerConnected(player)) {
+                                submitPassCards(
+                                        player,
+                                        engine.getCards(player).subList(0, 3).toArray(new Card[0]));
+                            }
+                        }
+                    }
                 }
                 break;
         }
@@ -292,7 +323,7 @@ public class HeartsLocal extends Game {
             List<Card> notSuit = cards.stream().filter(c -> c.getSuit() != activeSuit).toList();
             return sameSuit.isEmpty() ? notSuit : sameSuit;
         } else {
-            if (trick == 0 && startingPlayer == 0)
+            if (trick == 0 && startingPlayer == localPlayer)
                 return cards.stream()
                         .filter(c -> c.getSuit() == Card.Suit.CLUB && c.getRank() == Card.Rank.TWO)
                         .toList();

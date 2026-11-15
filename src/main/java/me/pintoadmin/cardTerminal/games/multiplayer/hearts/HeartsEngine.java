@@ -64,7 +64,7 @@ public class HeartsEngine {
         this.server = new HeartsServer(51337, this);
     }
 
-    public void start() {
+    public synchronized void start() {
         if (state == GameState.PREGAME) {
             newDeal();
             server.updateClients();
@@ -152,7 +152,7 @@ public class HeartsEngine {
         server.updateClients();
     }
 
-    public boolean passCards(int player, Card[] cards) {
+    public synchronized boolean passCards(int player, Card[] cards) {
         if (!(player >= 0 && player <= 3)) return false;
         if (state != GameState.PASSING) return false;
         if (passingCards.containsKey(player)) return false;
@@ -173,7 +173,7 @@ public class HeartsEngine {
         return true;
     }
 
-    public boolean playCard(int player, Card card) {
+    public synchronized boolean playCard(int player, Card card) {
         if (!(player >= 0 && player <= 3)) return false;
         if (state != GameState.TRICKS) return false;
         if (currentPlayerTurn.get() != player) return false;
