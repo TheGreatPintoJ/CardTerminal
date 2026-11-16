@@ -168,29 +168,29 @@ public class Main {
                                 try {
                                     KeyStroke keystroke = screen.pollInput();
                                     if (keystroke == null) continue;
-                                    try {
-                                        currentScreen.handleInput(keystroke);
-                                        if (keystroke.getKeyType() == KeyType.Escape) {
-                                            screen.close();
-                                            Thread.currentThread().interrupt();
-                                            resizeHandler.interrupt();
-                                            System.exit(0);
+                                    switch (currentScreen.handleInput(keystroke)) {
+                                        case CustomScreen.Action.BACK_TO_MENU:
+                                            setCurrentScreen(new MainMenu());
                                             break;
-                                        }
-                                    } catch (Exception e) {
-                                        if (e.getMessage() == null) throw new RuntimeException(e);
-                                        if (e.getMessage().equals("override")) {
-                                        } else if (e.getMessage().equals("reset")) {
+                                        case CustomScreen.Action.RESTART:
                                             screen.clear();
                                             if (currentGame.get() != null)
                                                 currentScreen = currentGame.get().restart();
                                             screen.refresh(Screen.RefreshType.COMPLETE);
-                                        } else if (e.getMessage().equals("newseed")) {
+                                            break;
+                                        case CustomScreen.Action.NEW_GAME:
                                             screen.clear();
                                             if (currentGame.get() != null)
                                                 currentScreen = currentGame.get().newGame();
                                             screen.refresh(Screen.RefreshType.COMPLETE);
-                                        } else throw new RuntimeException(e);
+                                            break;
+                                    }
+                                    if (keystroke.getKeyType() == KeyType.Escape) {
+                                        screen.close();
+                                        Thread.currentThread().interrupt();
+                                        resizeHandler.interrupt();
+                                        System.exit(0);
+                                        break;
                                     }
                                     Thread.sleep(50);
                                 } catch (IOException | InterruptedException e) {

@@ -68,6 +68,25 @@ public class HeartsEngine {
         if (state == GameState.PREGAME) {
             newDeal();
             server.updateClients();
+
+            // start autoplay for bot players
+            new Thread(
+                            () -> {
+                                while (true) {
+                                    int turn = currentPlayerTurn.get();
+                                    if (!server.isRemotePlayerConnected(turn)) {
+                                        try {
+                                            Thread.sleep(1000);
+                                        } catch (InterruptedException e) {
+                                            System.out.println(
+                                                    "Ignored exception: " + e.getMessage());
+                                        }
+                                        Card thisCard = getPlayableCards(turn).getFirst();
+                                        playCard(turn, thisCard);
+                                    }
+                                }
+                            })
+                    .start();
         }
     }
 
@@ -191,7 +210,8 @@ public class HeartsEngine {
 
         // force two of clubs on first play of first trick
         if (trick == 0 && firstTurn)
-            if (card.getSuit() != Card.Suit.CLUB || card.getRank() != Card.Rank.TWO) return false;
+            if (card.getSuit() != me.pintoadmin.cardTerminal.Card.Suit.CLUB
+                    || card.getRank() != Card.Rank.TWO) return false;
 
         boolean hasNonPenaltyLegalCard =
                 hands[player].stream()

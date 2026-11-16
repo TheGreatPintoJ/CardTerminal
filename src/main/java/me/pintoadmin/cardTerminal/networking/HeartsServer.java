@@ -102,7 +102,7 @@ public class HeartsServer {
     }
 
     public boolean isRemotePlayerConnected(int player) {
-        return clients.containsValue(player);
+        return clients.containsValue(player) || player == 0;
     }
 
     private synchronized int allocatePlayer() {

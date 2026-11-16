@@ -305,7 +305,6 @@ public class Solitaire extends Game {
     public Action handleInput(KeyStroke keyStroke) {
         // if (checkHandleWin()) return;
         if (keyStroke.getKeyType() == KeyType.Escape) {
-            Main.getInstance().setCurrentScreen(new MainMenu());
             return Action.BACK_TO_MENU;
         } else if (keyStroke.getKeyType() == KeyType.Character) {
             char key = keyStroke.getCharacter();

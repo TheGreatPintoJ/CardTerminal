@@ -14,7 +14,6 @@ import java.util.function.Supplier;
 import me.pintoadmin.cardTerminal.Main;
 import me.pintoadmin.cardTerminal.dev.solitaire.*;
 import me.pintoadmin.cardTerminal.screens.GameOptions;
-import me.pintoadmin.cardTerminal.screens.MainMenu;
 
 public class SolitaireOptions extends GameOptions {
     private final Screen screen = Main.screen;
@@ -110,7 +109,6 @@ public class SolitaireOptions extends GameOptions {
     public Action handleInput(KeyStroke keyStroke) {
         try {
             if (keyStroke.getKeyType() == KeyType.Escape) {
-                Main.getInstance().setCurrentScreen(new MainMenu());
                 return Action.BACK_TO_MENU;
             } else if (keyStroke.getKeyType().name().contains("Arrow")) {
                 List<Option> optionValues = Arrays.stream(Option.values()).toList();

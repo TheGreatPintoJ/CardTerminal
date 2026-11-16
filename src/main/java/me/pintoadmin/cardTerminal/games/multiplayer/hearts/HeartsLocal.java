@@ -267,7 +267,6 @@ public class HeartsLocal extends Game {
     public Action handleInput(KeyStroke keyStroke) {
         switch (keyStroke.getKeyType()) {
             case Escape:
-                Main.getInstance().setCurrentScreen(new MainMenu());
                 return Action.BACK_TO_MENU;
             case ArrowLeft:
                 if (selectedCard > 0) selectedCard--;
@@ -293,10 +292,6 @@ public class HeartsLocal extends Game {
                         if (turn == localPlayer) {
                             Card selected = ourCards.get(selectedCard);
                             submitPlayCard(localPlayer, selected);
-                        } else if (!isRemoteGame()
-                                && !engine.getServer().isRemotePlayerConnected(turn)) {
-                            Card card = getPlayableCards(engine.getCards(turn)).getFirst();
-                            submitPlayCard(turn, card);
                         }
                     }
                     if (selectedCard >= ourCards.size() - 1 && selectedCard >= 0)

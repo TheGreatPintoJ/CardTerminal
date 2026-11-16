@@ -216,7 +216,6 @@ public class Spider extends Game {
     @Override
     public Action handleInput(KeyStroke keyStroke) {
         if (keyStroke.getKeyType() == KeyType.Escape) {
-            Main.getInstance().setCurrentScreen(new MainMenu());
             return Action.BACK_TO_MENU;
         } else if (keyStroke.getKeyType() == KeyType.Character) {
             Character c = keyStroke.getCharacter();

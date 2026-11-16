@@ -95,7 +95,6 @@ public class HeartsOptions extends GameOptions {
     public Action handleInput(KeyStroke keyStroke) {
         try {
             if (keyStroke.getKeyType() == KeyType.Escape) {
-                Main.getInstance().setCurrentScreen(new MainMenu());
                 return Action.BACK_TO_MENU;
             } else if (keyStroke.getKeyType().name().contains("Arrow")) {
                 List<Option> optionValues = Arrays.stream(Option.values()).toList();

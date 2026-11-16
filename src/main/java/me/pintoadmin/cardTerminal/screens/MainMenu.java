@@ -19,7 +19,8 @@ public class MainMenu extends CustomScreen {
     private final Supplier<Integer> W = () -> g.getSize().getColumns();
     private final Supplier<Integer> H = () -> g.getSize().getRows();
 
-    private final Map<GameOptions, BiConsumer<Integer, Integer>> allGames = new LinkedHashMap<>();
+    private final Map<GameOptions, QuadConsumer<Integer, Integer, Integer, Integer>> allGames =
+            new LinkedHashMap<>();
 
     private final int gridW = 4;
     private final int gridH = 3;
@@ -30,7 +31,7 @@ public class MainMenu extends CustomScreen {
     public MainMenu() {
         allGames.put(
                 new SolitaireOptions("Solitaire"),
-                (x, y) -> {
+                (x, y, w, h) -> {
                     // Solitaire
                     int cw = 4, ch = 3; // card with/height
                     columnLoop:
@@ -50,7 +51,7 @@ public class MainMenu extends CustomScreen {
                 });
         allGames.put(
                 new SpiderOptions("Spider"),
-                (x, y) -> {
+                (x, y, w, h) -> {
                     // Spider
                     int cw = 4, ch = 3; // card with/height
                     for (int column = 0; column < 10; column++) {
@@ -66,45 +67,41 @@ public class MainMenu extends CustomScreen {
                         }
                     }
                 });
-
-        allGames.put(
-                new HeartsOptions("Hearts"),
-                (x, y) -> {
+        QuadConsumer<Integer, Integer, Integer, Integer> hearts =
+                (x, y, w, h) -> {
                     // Hearts
-                    //                    int cw = 4, ch = 3; // card with/height
-                    //                    for (int column = 0; column < 10; column++) {
-                    //                        int sX = 1 + x + column * cw + column;
-                    //                        int eX = sX + cw;
-                    //                        if (eX >= x + W.get() / gridW) break;
-                    //                        for (int row = 0; row <= 5; row++) {
-                    //                            int sY = 1 + y + row * ch - row * 2;
-                    //                            int eY = sY + ch;
-                    //                            g.fillRectangle(
-                    //                                    new TerminalPosition(sX, sY), new
-                    // TerminalSize(cw, ch), ' ');
-                    //                            Main.drawRectangle(sX, sY, eX, eY);
-                    //                        }
-                    //                    }
-                });
-        allGames.put(
-                new HeartsRemoteOptions("Hearts (Join)"),
-                (x, y) -> {
-                    // Hearts
-                    //                    int cw = 4, ch = 3; // card with/height
-                    //                    for (int column = 0; column < 10; column++) {
-                    //                        int sX = 1 + x + column * cw + column;
-                    //                        int eX = sX + cw;
-                    //                        if (eX >= x + W.get() / gridW) break;
-                    //                        for (int row = 0; row <= 5; row++) {
-                    //                            int sY = 1 + y + row * ch - row * 2;
-                    //                            int eY = sY + ch;
-                    //                            g.fillRectangle(
-                    //                                    new TerminalPosition(sX, sY), new
-                    // TerminalSize(cw, ch), ' ');
-                    //                            Main.drawRectangle(sX, sY, eX, eY);
-                    //                        }
-                    //                    }
-                });
+                    int cw = 4, ch = 3; // card with/height
+                    for (int i = 0; i < 13; i++) {
+                        int sX = x + w / 2 - (13 / 2) - (cw / 2) + i;
+                        int sY = y + 1;
+                        g.fillRectangle(
+                                new TerminalPosition(sX, sY), new TerminalSize(cw, ch), ' ');
+                        Main.drawRectangle(sX, sY, sX + cw, sY + ch);
+                    }
+                    for (int i = 0; i < 13; i++) {
+                        int sX = x + w / 2 - (13 / 2) - (cw / 2) + i;
+                        int sY = y + h - ch - 1;
+                        g.fillRectangle(
+                                new TerminalPosition(sX, sY), new TerminalSize(cw, ch), ' ');
+                        Main.drawRectangle(sX, sY, sX + cw, sY + ch);
+                    }
+                    for (int i = 0; i < 8; i++) {
+                        int sX = x + 1;
+                        int sY = y + (h / 2) - (8 / 2) - (ch / 2) + i;
+                        g.fillRectangle(
+                                new TerminalPosition(sX, sY), new TerminalSize(cw, ch), ' ');
+                        Main.drawRectangle(sX, sY, sX + cw, sY + ch);
+                    }
+                    for (int i = 0; i < 8; i++) {
+                        int sX = x + w - cw - 1;
+                        int sY = y + (h / 2) - (8 / 2) - (ch / 2) + i;
+                        g.fillRectangle(
+                                new TerminalPosition(sX, sY), new TerminalSize(cw, ch), ' ');
+                        Main.drawRectangle(sX, sY, sX + cw, sY + ch);
+                    }
+                };
+        allGames.put(new HeartsOptions("Hearts"), hearts);
+        allGames.put(new HeartsRemoteOptions("Hearts (Join)"), hearts);
 
         resize();
     }
@@ -123,14 +120,15 @@ public class MainMenu extends CustomScreen {
 
         if (allGames.size() > totalSpaces) Main.drawText(W / 2, H - 1, " < --- > ");
 
-        for (Map.Entry<GameOptions, BiConsumer<Integer, Integer>> game : allGames.entrySet()) {
+        for (Map.Entry<GameOptions, QuadConsumer<Integer, Integer, Integer, Integer>> game :
+                allGames.entrySet()) {
             g.disableModifiers(SGR.REVERSE);
             int i = allGames.keySet().stream().toList().indexOf(game.getKey());
             // padding + (index mod width * fullWidth / width)
             int x = 1 + (i % gridW * (W / gridW));
             int y = 1 + (i / gridW * H / gridH);
             if (game.getValue() == null) continue;
-            game.getValue().accept(x, y);
+            game.getValue().accept(x, y, (W - 2) / gridW - 1, (H - 2) / gridH - 1);
 
             if (i == selectedGame) g.enableModifiers(SGR.REVERSE);
 
@@ -182,5 +180,19 @@ public class MainMenu extends CustomScreen {
             Main.getInstance().setCurrentScreen(next);
         }
         return Action.NONE;
+    }
+
+    @FunctionalInterface
+    public interface QuadConsumer<T, U, V, W> {
+        void accept(T t, U u, V v, W w);
+
+        default QuadConsumer<T, U, V, W> andThen(
+                QuadConsumer<? super T, ? super U, ? super V, ? super W> after) {
+            Objects.requireNonNull(after);
+            return (t, u, v, w) -> {
+                accept(t, u, v, w);
+                after.accept(t, u, v, w);
+            };
+        }
     }
 }
