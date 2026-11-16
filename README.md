@@ -24,6 +24,7 @@ MSI for windows, DMG for mac, DEB for linux, and JAR if you have JRE installed.
 - Tab: select card on top of discard pile
 - qwer: select foundation - q:hearts w:spades e:diamonds r:clubs
 - dash (-): deselect
+- Brackets ([/]): undo/redo
 - F10: Restart game with new seed
 - F12: Restart game with same seed
 - Escape: Back to main menu
@@ -38,9 +39,19 @@ MSI for windows, DMG for mac, DEB for linux, and JAR if you have JRE installed.
 - Space: Select/deselect card (turns card green)
 - Backtick (`): Deal row
 - dash (-): deselect
+- Brackets ([/]): undo/redo
 - F10: Restart game with new seed
 - F12: Restart game with same seed
 - Escape: Back to main menu
+
+## Hearts
+![hearts.png](img/hearts.png)
+
+### Keybinds
+- Arrows: move cursor (yellow)
+- Space: select card (play card)
+- Enter: pass cards (during passing phase)
+- Escape: back to main menu
 
 ## Bugs
 Create an issue on this project's repository
