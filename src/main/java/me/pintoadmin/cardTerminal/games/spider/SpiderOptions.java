@@ -24,6 +24,16 @@ public class SpiderOptions extends GameOptions {
 
     private SpiderOptions.Option selectedOption = SpiderOptions.Option.SEED;
 
+    private final Map<String, String> keybinds =
+            Map.of(
+                    "Move cursor", "←↑↓→",
+                    "Select Card ", "Space",
+                    "Deal Row", "Backtick (`)",
+                    "Delselect", "Dash (-)",
+                    "Undo/redo", "Brackets ([/])",
+                    "Restart with new seed", "F10",
+                    "Restart with same seed", "F12");
+
     private enum Option {
         SEED,
         TYPE,
@@ -72,8 +82,22 @@ public class SpiderOptions extends GameOptions {
         Main.drawText(W / 2, H - 1, " Play ");
         g.disableModifiers(SGR.REVERSE);
 
-        Main.drawRectangle(W / 2, 1, W - 2, H - 2);
-        Main.drawText(3 * W / 4, 1, " History (coming soon) ");
+        {
+            int startY = 2;
+            for (Map.Entry<String, String> entry : keybinds.entrySet()) {
+                String k = entry.getKey();
+                String v = entry.getValue();
+
+                Main.drawTextLeft(W / 2 + 1, startY, k);
+                Main.drawTextRight(W - 2, startY, v);
+
+                startY++;
+            }
+            Main.drawRectangle(W / 2, 1, W - 2, startY);
+            Main.drawText(3 * W / 4, 1, " Keybinds ");
+            Main.drawRectangle(W / 2, startY + 1, W - 2, H - 2);
+            Main.drawText(3 * W / 4, startY + 1, " History (coming soon) ");
+        }
 
         screen.refresh(Screen.RefreshType.AUTOMATIC);
     }
