@@ -59,6 +59,5 @@ Create an issue on this project's repository
 ## Roadmap
 - Gaps
 - Freecell
-- Hearts
 - Spades
 - Gin Rummy
