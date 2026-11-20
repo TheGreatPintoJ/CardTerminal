@@ -24,15 +24,16 @@ public class SpiderOptions extends GameOptions {
 
     private SpiderOptions.Option selectedOption = SpiderOptions.Option.SEED;
 
-    private final Map<String, String> keybinds =
-            Map.of(
-                    "Move cursor", "←↑↓→",
-                    "Select Card ", "Space",
-                    "Deal Row", "Backtick (`)",
-                    "Delselect", "Dash (-)",
-                    "Undo/redo", "Brackets ([/])",
-                    "Restart with new seed", "F10",
-                    "Restart with same seed", "F12");
+    private final LinkedHashMap<String, String> keybinds =
+            new LinkedHashMap<>(
+                    Map.of(
+                            "Move cursor", "←↑↓→",
+                            "Select Card ", "Space",
+                            "Deal Row", "Backtick (`)",
+                            "Delselect", "Dash (-)",
+                            "Undo/redo", "Brackets ([/])",
+                            "Restart with new seed", "F10",
+                            "Restart with same seed", "F12"));
 
     private enum Option {
         SEED,

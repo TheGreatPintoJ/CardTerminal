@@ -7,9 +7,7 @@ import com.googlecode.lanterna.input.KeyStroke;
 import com.googlecode.lanterna.input.KeyType;
 import com.googlecode.lanterna.screen.Screen;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.function.Supplier;
 import me.pintoadmin.cardTerminal.Main;
 import me.pintoadmin.cardTerminal.dev.solitaire.*;
@@ -28,6 +26,20 @@ public class SolitaireOptions extends GameOptions {
     private boolean autoPlay = false;
 
     private Option selectedOption = Option.SEED;
+
+    private final LinkedHashMap<String, String> keybinds =
+            new LinkedHashMap<>(
+                    Map.of(
+                            "Select column", "1-9",
+                            "Select card (while column selected)", "1-9",
+                            "Select last card in column", "0",
+                            "Draw card", "Backtick (`)",
+                            "Select drawn card", "Space",
+                            "Select foundation", "qwer",
+                            "Delselect", "Dash (-)",
+                            "Undo/redo", "Brackets ([/])",
+                            "Restart with new seed", "F10",
+                            "Restart with same seed", "F12"));
 
     private enum Option {
         SEED,
@@ -76,8 +88,22 @@ public class SolitaireOptions extends GameOptions {
         Main.drawText(W / 2, H - 1, " Play ");
         g.disableModifiers(SGR.REVERSE);
 
-        Main.drawRectangle(W / 2, 1, W - 2, H - 2);
-        Main.drawText(3 * W / 4, 1, " History (coming soon) ");
+        {
+            int startY = 2;
+            for (Map.Entry<String, String> entry : keybinds.entrySet()) {
+                String k = entry.getKey();
+                String v = entry.getValue();
+
+                Main.drawTextLeft(W / 2 + 1, startY, k);
+                Main.drawTextRight(W - 2, startY, v);
+
+                startY++;
+            }
+            Main.drawRectangle(W / 2, 1, W - 2, startY);
+            Main.drawText(3 * W / 4, 1, " Keybinds ");
+            Main.drawRectangle(W / 2, startY + 1, W - 2, H - 2);
+            Main.drawText(3 * W / 4, startY + 1, " History (coming soon) ");
+        }
 
         screen.refresh(Screen.RefreshType.AUTOMATIC);
     }
