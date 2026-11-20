@@ -27,7 +27,7 @@ public class SpiderOptions extends GameOptions {
     private final LinkedHashMap<String, String> keybinds =
             new LinkedHashMap<>(
                     Map.of(
-                            "Move cursor", "←↑↓→",
+                            "Move cursor", "◀ ▲ ▼ ▶",
                             "Select Card ", "Space",
                             "Deal Row", "Backtick (`)",
                             "Delselect", "Dash (-)",

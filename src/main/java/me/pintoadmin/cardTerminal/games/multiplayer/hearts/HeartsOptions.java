@@ -26,6 +26,13 @@ public class HeartsOptions extends GameOptions {
 
     private Option selectedOption = Option.SEED;
 
+    private final LinkedHashMap<String, String> keybinds =
+            new LinkedHashMap<>(
+                    Map.of(
+                            "Move cursor", "◀ ▲ ▼ ▶",
+                            "Select/Deselect Card (play card)", "Space",
+                            "Pass selected cards", "Enter"));
+
     private enum Option {
         SEED,
         ENDPOINTS,
@@ -54,10 +61,10 @@ public class HeartsOptions extends GameOptions {
         Main.drawRectangle(0, 0, W - 1, H - 1);
         Main.drawText(W / 2, 0, " " + getName() + " ");
 
-        Main.drawRectangle(1, 1, W / 2, 8);
+        Main.drawRectangle(1, 1, W / 2 - 1, 8);
 
         if (selectedOption == Option.SEED) g.enableModifiers(SGR.REVERSE);
-        Main.drawRectangle(8, 2, W / 2 - 1, 4);
+        Main.drawRectangle(8, 2, W / 2 - 2, 4);
         g.disableModifiers(SGR.REVERSE);
         Main.drawTextLeft(2, 3, "SEED:");
         if (SEED.isBlank()) g.setForegroundColor(new TextColor.RGB(100, 100, 100));
@@ -65,36 +72,53 @@ public class HeartsOptions extends GameOptions {
         if (SEED.isBlank()) g.setForegroundColor(TextColor.ANSI.WHITE);
 
         if (selectedOption == Option.ENDPOINTS) g.enableModifiers(SGR.REVERSE);
-        Main.drawRectangle(17, 5, W / 2 - 1, 7);
+        Main.drawRectangle(17, 5, W / 2 - 2, 7);
         g.disableModifiers(SGR.REVERSE);
         Main.drawTextLeft(2, 6, "ENDING POINTS:");
         g.setCharacter(18, 6, '<');
         Main.drawText(Math.abs((17 + W) / 4), 6, String.valueOf(endingPoints));
-        g.setCharacter(W / 2 - 2, 6, '>');
+        g.setCharacter(W / 2 - 3, 6, '>');
 
         if (selectedOption == Option.PLAY_HOST) g.enableModifiers(SGR.REVERSE);
         Main.drawText(W / 4, 8, " Host ");
         g.disableModifiers(SGR.REVERSE);
 
-        Main.drawRectangle(1, 9, W / 2, 16);
+        Main.drawRectangle(1, 9, W / 2 - 1, 16);
 
         if (selectedOption == HeartsOptions.Option.HOST) g.enableModifiers(SGR.REVERSE);
-        Main.drawRectangle(8, 10, (W - 2) / 2, 12);
+        Main.drawRectangle(8, 10, W / 2 - 2, 12);
         g.disableModifiers(SGR.REVERSE);
         Main.drawTextLeft(2, 11, "HOST:");
         Main.drawTextLeft(9, 11, host);
 
         if (selectedOption == HeartsOptions.Option.PORT) g.enableModifiers(SGR.REVERSE);
-        Main.drawRectangle(17, 13, (W - 2) / 2, 15);
+        Main.drawRectangle(17, 13, W / 2 - 2, 15);
         g.disableModifiers(SGR.REVERSE);
         Main.drawTextLeft(2, 14, "PORT:");
         g.setCharacter(18, 14, '<');
         Main.drawText(Math.abs((17 + W) / 4), 14, String.valueOf(port));
-        g.setCharacter(W / 2 - 2, 14, '>');
+        g.setCharacter(W / 2 - 3, 14, '>');
 
         if (selectedOption == HeartsOptions.Option.PLAY_JOIN) g.enableModifiers(SGR.REVERSE);
         Main.drawText(W / 4, 16, " Join ");
         g.disableModifiers(SGR.REVERSE);
+
+        {
+            int startY = 2;
+            for (Map.Entry<String, String> entry : keybinds.entrySet()) {
+                String k = entry.getKey();
+                String v = entry.getValue();
+
+                Main.drawTextLeft(W / 2 + 1, startY, k);
+                Main.drawTextRight(W - 2, startY, v);
+
+                startY++;
+            }
+            Main.drawRectangle(W / 2, 1, W - 2, startY);
+            Main.drawText(3 * W / 4, 1, " Keybinds ");
+            Main.drawRectangle(W / 2, startY + 1, W - 2, H - 2);
+            Main.drawText(3 * W / 4, startY + 1, " History (coming soon) ");
+        }
 
         screen.refresh(Screen.RefreshType.AUTOMATIC);
     }

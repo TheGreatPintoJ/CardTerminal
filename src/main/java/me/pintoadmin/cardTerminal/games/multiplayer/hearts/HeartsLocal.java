@@ -155,16 +155,10 @@ public class HeartsLocal extends Game {
                     turn != localPlayer ? "It is Player " + turn + "'s turn" : "It is your turn";
             Main.drawText(W / 2, H - Card.height - 3, turnString);
             switch ((turn + (4 - localPlayer)) % 4) {
-                case 0 -> Main.drawText(W / 2, H / 2, "\\/");
-                case 1 -> {
-                    Main.drawText(W / 2, H / 2 - 1, "/");
-                    Main.drawText(W / 2, H / 2, "\\");
-                }
-                case 2 -> Main.drawText(W / 2, H / 2, "/\\");
-                case 3 -> {
-                    Main.drawText(W / 2, H / 2 - 1, "\\");
-                    Main.drawText(W / 2, H / 2, "/");
-                }
+                case 0 -> g.setCharacter(W / 2, H / 2, '▼');
+                case 1 -> g.setCharacter(W / 2, H / 2, '◀');
+                case 2 -> g.setCharacter(W / 2, H / 2, '▲');
+                case 3 -> g.setCharacter(W / 2, H / 2, '▶');
             }
         }
         g.disableModifiers(SGR.BOLD);
