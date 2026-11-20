@@ -72,8 +72,19 @@ public class HeartsEngine {
             // start autoplay for bot players
             new Thread(
                             () -> {
+                                int lastTrick = -1;
+                                int lastTurn = -1;
                                 while (true) {
                                     int turn = currentPlayerTurn.get();
+                                    if (lastTurn == turn && lastTrick == trick) {
+                                        try {
+                                            Thread.sleep(100);
+                                        } catch (InterruptedException e) {
+                                            System.out.println(
+                                                    "Ignored exception: " + e.getMessage());
+                                        }
+                                        continue;
+                                    }
                                     if (!server.isRemotePlayerConnected(turn)) {
                                         try {
                                             Thread.sleep(1000);
@@ -83,6 +94,9 @@ public class HeartsEngine {
                                         }
                                         Card thisCard = getPlayableCards(turn).getFirst();
                                         playCard(turn, thisCard);
+
+                                        lastTrick = trick;
+                                        lastTurn = turn;
                                     }
                                 }
                             })
@@ -200,7 +214,7 @@ public class HeartsEngine {
 
         boolean firstTurn = playerTurn == 0;
         boolean hasNonHearts = hands[player].stream().anyMatch(c -> c.getSuit() != Card.Suit.HEART);
-        boolean isHeart = card.getSuit() == me.pintoadmin.cardTerminal.Card.Suit.HEART;
+        boolean isHeart = card.getSuit() == Card.Suit.HEART;
         boolean isActiveSuit = card.getSuit() == activeSuit;
         boolean hasLedSuit =
                 activeSuit != null
@@ -210,8 +224,7 @@ public class HeartsEngine {
 
         // force two of clubs on first play of first trick
         if (trick == 0 && firstTurn)
-            if (card.getSuit() != me.pintoadmin.cardTerminal.Card.Suit.CLUB
-                    || card.getRank() != Card.Rank.TWO) return false;
+            if (card.getSuit() != Card.Suit.CLUB || card.getRank() != Card.Rank.TWO) return false;
 
         boolean hasNonPenaltyLegalCard =
                 hands[player].stream()
