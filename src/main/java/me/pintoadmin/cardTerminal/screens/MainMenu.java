@@ -67,7 +67,8 @@ public class MainMenu extends CustomScreen {
                         }
                     }
                 });
-        QuadConsumer<Integer, Integer, Integer, Integer> hearts =
+        allGames.put(
+                new HeartsOptions("Hearts"),
                 (x, y, w, h) -> {
                     // Hearts
                     int cw = 4, ch = 3; // card with/height
@@ -99,9 +100,7 @@ public class MainMenu extends CustomScreen {
                                 new TerminalPosition(sX, sY), new TerminalSize(cw, ch), ' ');
                         Main.drawRectangle(sX, sY, sX + cw, sY + ch);
                     }
-                };
-        allGames.put(new HeartsOptions("Hearts"), hearts);
-        allGames.put(new HeartsRemoteOptions("Hearts (Join)"), hearts);
+                });
 
         resize();
     }

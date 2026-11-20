@@ -18,6 +18,8 @@ public class HeartsOptions extends GameOptions {
     private long suggestedSeed = new Random().nextLong();
     private String SEED = "";
     private int endingPoints = 100;
+    private String host = "";
+    private int port = 51337;
 
     private final Supplier<Integer> W = () -> g.getSize().getColumns();
     private final Supplier<Integer> H = () -> g.getSize().getRows();
@@ -27,7 +29,10 @@ public class HeartsOptions extends GameOptions {
     private enum Option {
         SEED,
         ENDPOINTS,
-        PLAY
+        PLAY_HOST,
+        HOST,
+        PORT,
+        PLAY_JOIN
     }
 
     public HeartsOptions(String name) {
@@ -49,37 +54,65 @@ public class HeartsOptions extends GameOptions {
         Main.drawRectangle(0, 0, W - 1, H - 1);
         Main.drawText(W / 2, 0, " " + getName() + " ");
 
+        Main.drawRectangle(1, 1, W / 2, 8);
+
         if (selectedOption == Option.SEED) g.enableModifiers(SGR.REVERSE);
-        Main.drawRectangle(8, 1, (W - 2) / 2, 3);
+        Main.drawRectangle(8, 2, W / 2 - 1, 4);
         g.disableModifiers(SGR.REVERSE);
-        Main.drawTextLeft(2, 2, "SEED:");
+        Main.drawTextLeft(2, 3, "SEED:");
         if (SEED.isBlank()) g.setForegroundColor(new TextColor.RGB(100, 100, 100));
-        Main.drawTextLeft(9, 2, String.valueOf(SEED.isBlank() ? suggestedSeed : SEED));
+        Main.drawTextLeft(9, 3, String.valueOf(SEED.isBlank() ? suggestedSeed : SEED));
         if (SEED.isBlank()) g.setForegroundColor(TextColor.ANSI.WHITE);
 
         if (selectedOption == Option.ENDPOINTS) g.enableModifiers(SGR.REVERSE);
-        Main.drawRectangle(17, 4, (W - 2) / 2, 6);
+        Main.drawRectangle(17, 5, W / 2 - 1, 7);
         g.disableModifiers(SGR.REVERSE);
-        Main.drawTextLeft(2, 5, "ENDING POINTS:");
-        g.setCharacter(18, 5, '<');
-        Main.drawText(Math.abs((17 + W) / 4), 5, String.valueOf(endingPoints));
-        g.setCharacter(W / 2 - 2, 5, '>');
+        Main.drawTextLeft(2, 6, "ENDING POINTS:");
+        g.setCharacter(18, 6, '<');
+        Main.drawText(Math.abs((17 + W) / 4), 6, String.valueOf(endingPoints));
+        g.setCharacter(W / 2 - 2, 6, '>');
 
-        if (selectedOption == Option.PLAY) g.enableModifiers(SGR.REVERSE);
-        Main.drawText(W / 2, H - 1, " Host ");
+        if (selectedOption == Option.PLAY_HOST) g.enableModifiers(SGR.REVERSE);
+        Main.drawText(W / 4, 8, " Host ");
+        g.disableModifiers(SGR.REVERSE);
+
+        Main.drawRectangle(1, 9, W / 2, 16);
+
+        if (selectedOption == HeartsOptions.Option.HOST) g.enableModifiers(SGR.REVERSE);
+        Main.drawRectangle(8, 10, (W - 2) / 2, 12);
+        g.disableModifiers(SGR.REVERSE);
+        Main.drawTextLeft(2, 11, "HOST:");
+        Main.drawTextLeft(9, 11, host);
+
+        if (selectedOption == HeartsOptions.Option.PORT) g.enableModifiers(SGR.REVERSE);
+        Main.drawRectangle(17, 13, (W - 2) / 2, 15);
+        g.disableModifiers(SGR.REVERSE);
+        Main.drawTextLeft(2, 14, "PORT:");
+        g.setCharacter(18, 14, '<');
+        Main.drawText(Math.abs((17 + W) / 4), 14, String.valueOf(port));
+        g.setCharacter(W / 2 - 2, 14, '>');
+
+        if (selectedOption == HeartsOptions.Option.PLAY_JOIN) g.enableModifiers(SGR.REVERSE);
+        Main.drawText(W / 4, 16, " Join ");
         g.disableModifiers(SGR.REVERSE);
 
         screen.refresh(Screen.RefreshType.AUTOMATIC);
     }
 
     @Override
-    public void start() {
+    public void start() {}
+
+    private void host() {
         Main.getInstance()
                 .setCurrentScreen(
                         !SEED.isEmpty()
                                 ? new HeartsLocal(
                                         Long.parseLong(SEED.substring(0, 18)), endingPoints)
                                 : new HeartsLocal());
+    }
+
+    private void join() {
+        Main.getInstance().setCurrentScreen(new HeartsRemote(host, port));
     }
 
     @Override
@@ -117,31 +150,36 @@ public class HeartsOptions extends GameOptions {
                         break;
                     case ArrowLeft:
                         if (selectedOption == Option.ENDPOINTS) endingPoints--;
+                        if (selectedOption == Option.PORT) port--;
                         break;
                     case ArrowRight:
                         if (selectedOption == Option.ENDPOINTS) endingPoints++;
+                        if (selectedOption == Option.PORT) port++;
                         break;
                 }
                 build();
             } else if (keyStroke.getKeyType() == KeyType.Enter) {
-                /*if (selectedOption == SpiderOptions.Option.AUTOPLAY) {
-                    autoPlay = !autoPlay;
-                    build();
-                } else */
-                if (selectedOption == Option.PLAY) {
-                    start();
+                if (selectedOption == Option.PLAY_HOST) {
+                    host();
+                } else if (selectedOption == Option.PLAY_JOIN) {
+                    join();
                 }
             } else if (keyStroke.getKeyType() == KeyType.Character) {
                 Character c = keyStroke.getCharacter();
                 // Update vars and print chars
-                if (selectedOption == Option.SEED && Character.isDigit(c)) {
-                    SEED = String.valueOf(SEED) + c;
+                if (selectedOption == Option.SEED && (Character.isDigit(c) || c == '-')) {
+                    SEED += c;
+                } else if (selectedOption == Option.HOST && (Character.isDigit(c) || c == '.')) {
+                    host += c;
                 }
                 build();
             } else if (keyStroke.getKeyType() == KeyType.Backspace) {
                 if (selectedOption == Option.SEED) {
-                    if (SEED.length() == 1) SEED = "";
+                    if (SEED.length() <= 1) SEED = "";
                     else SEED = SEED.substring(0, SEED.length() - 1);
+                } else if (selectedOption == Option.HOST) {
+                    if (host.length() <= 1) host = "";
+                    else host = host.substring(0, host.length() - 1);
                 }
                 build();
             }
