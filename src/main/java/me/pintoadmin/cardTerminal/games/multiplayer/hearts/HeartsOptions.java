@@ -27,11 +27,13 @@ public class HeartsOptions extends GameOptions {
     private Option selectedOption = Option.SEED;
 
     private final LinkedHashMap<String, String> keybinds =
-            new LinkedHashMap<>(
-                    Map.of(
-                            "Move cursor", "◀ ▲ ▼ ▶",
-                            "Select/Deselect Card (play card)", "Space",
-                            "Pass selected cards", "Enter"));
+            new LinkedHashMap<>() {
+                {
+                    put("Move cursor", "◀ ▲ ▼ ▶");
+                    put("Select/Deselect Card (play card)", "Space");
+                    put("Pass selected cards", "Enter");
+                }
+            };
 
     private enum Option {
         SEED,

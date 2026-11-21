@@ -25,20 +25,21 @@ public class SpiderOptions extends GameOptions {
     private SpiderOptions.Option selectedOption = SpiderOptions.Option.SEED;
 
     private final LinkedHashMap<String, String> keybinds =
-            new LinkedHashMap<>(
-                    Map.of(
-                            "Move cursor", "◀ ▲ ▼ ▶",
-                            "Select Card ", "Space",
-                            "Deal Row", "Backtick (`)",
-                            "Delselect", "Dash (-)",
-                            "Undo/redo", "Brackets ([/])",
-                            "Restart with new seed", "F10",
-                            "Restart with same seed", "F12"));
+            new LinkedHashMap<>() {
+                {
+                    put("Move cursor", "◀ ▲ ▼ ▶");
+                    put("Select Card ", "Space");
+                    put("Deal Row", "Backtick (`)");
+                    put("Delselect", "Dash (-)");
+                    put("Undo/redo", "Brackets ([/])");
+                    put("Restart with new seed", "F10");
+                    put("Restart with same seed", "F12");
+                }
+            };
 
     private enum Option {
         SEED,
         TYPE,
-        //        AUTOPLAY,
         PLAY
     }
 

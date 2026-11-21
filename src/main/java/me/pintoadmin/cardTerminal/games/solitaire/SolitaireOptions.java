@@ -28,17 +28,19 @@ public class SolitaireOptions extends GameOptions {
     private Option selectedOption = Option.SEED;
 
     private final LinkedHashMap<String, String> keybinds =
-            new LinkedHashMap<>(
-                    Map.of(
-                            "Move cursor", "◀ ▲ ▼ ▶",
-                            "Select card", "Space",
-                            "Draw card", "Backtick (`)",
-                            "Select discarded card", "Tab",
-                            "Select foundation", "qwer",
-                            "Delselect", "Dash (-)",
-                            "Undo/redo", "Brackets ([/])",
-                            "Restart with new seed", "F10",
-                            "Restart with same seed", "F12"));
+            new LinkedHashMap<>() {
+                {
+                    put("Move cursor", "◀ ▲ ▼ ▶");
+                    put("Select card", "Space");
+                    put("Draw card", "Backtick (`)");
+                    put("Select discarded card", "Tab");
+                    put("Select foundation", "qwer");
+                    put("Delselect", "Dash (-)");
+                    put("Undo/redo", "Brackets ([/])");
+                    put("Restart with new seed", "F10");
+                    put("Restart with same seed", "F12");
+                }
+            };
 
     private enum Option {
         SEED,
