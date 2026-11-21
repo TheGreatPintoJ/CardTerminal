@@ -17,10 +17,9 @@ MSI for windows, DMG for mac, DEB for linux, and JAR if you have JRE installed.
 
 ### Keybinds
 
-- 1-9: Select column, or if column is already selected, select the card (vertically)
-- 0: if column already selected, select last card in the pile
+- Arrows: Move cursor
+- Space: Select card
 - Backtick (`): Draw card
-- Space: select drawn card
 - Tab: select card on top of discard pile
 - qwer: select foundation - q:hearts w:spades e:diamonds r:clubs
 - dash (-): deselect

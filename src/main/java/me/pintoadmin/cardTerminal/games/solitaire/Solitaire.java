@@ -28,8 +28,8 @@ public class Solitaire extends Game {
     private final Supplier<Integer> deckX = () -> 0;
     private final Supplier<Integer> deckY = () -> HEIGHT.get() - 14;
 
-    private int selectedColumn = -1;
-
+    private int selectedColumn = 0;
+    private int selectedRow = 0;
     private Card selectedCard;
     private final Supplier<Location> selectedCardLocation;
 
@@ -156,28 +156,8 @@ public class Solitaire extends Game {
         drawGame();
     }
 
-    //    @Override
-    //    public void redraw() {
-    //        Main.screen.clear();
-    //        deck.redrawDeck();
-    //        deck.redrawDiscard();
-    //        foundation.redraw();
-    //
-    //        for (List<Card> list : stock) {
-    //            for (Card card : list) {
-    //                card.redraw();
-    //            }
-    //        }
-    //
-    //        for (List<Card> list : stock) {
-    //            if (list.isEmpty()) continue;
-    //            list.getLast().flip(true);
-    //        }
-    //    }
-
     private boolean nextDrawShuffles = false;
 
-    @Override
     public void drawCard(boolean logged) {
         int drawCt = type.name().contains("3") ? 3 : 1;
         if (nextDrawShuffles) {
@@ -239,6 +219,8 @@ public class Solitaire extends Game {
     }
 
     void drawGame() {
+        screen.clear();
+
         Arrays.stream(SGR.values()).toList().forEach(g::disableModifiers);
         g.setBackgroundColor(BLACK);
         g.setForegroundColor(TextColor.ANSI.WHITE);
@@ -259,19 +241,23 @@ public class Solitaire extends Game {
                 continue;
             }
             for (Card card : stock.get(column)) {
-                card.setTextColor(TextColor.ANSI.WHITE);
-                if (column == selectedColumn) {
-                    if (selectedCard == null) {
-                        card.setTextColor(
-                                card.isFaceup()
-                                        ? new TextColor.RGB(255, 200, 0)
-                                        : TextColor.ANSI.RED);
-                    }
-                    if (card == selectedCard) {
-                        card.setTextColor(TextColor.ANSI.GREEN);
-                    }
-                }
+                int index =
+                        stock.get(column).stream().filter(Card::isFaceup).toList().indexOf(card);
+                card.setTextColor(
+                        column == selectedColumn && index == selectedRow
+                                ? new TextColor.RGB(255, 200, 0)
+                                : TextColor.ANSI.WHITE);
+                if (card == selectedCard) card.setTextColor(TextColor.ANSI.GREEN);
+
                 card.draw(startingX + (column) * 9, startingY + thisColumn.indexOf(card) * 3);
+            }
+
+            if (selectedColumn == column) {
+                g.setCharacter(
+                        startingX + (column) * 9 + (Card.width / 2),
+                        thisColumn.size() * 3 + 5,
+                        TextCharacter.fromCharacter(
+                                '▲', TextColor.ANSI.WHITE_BRIGHT, BLACK, SGR.BOLD)[0]);
             }
         }
 
@@ -308,31 +294,9 @@ public class Solitaire extends Game {
             return Action.BACK_TO_MENU;
         } else if (keyStroke.getKeyType() == KeyType.Character) {
             char key = keyStroke.getCharacter();
-            try {
-                if (key == '-') {
-                    clearSelected();
-                    resize();
-                }
-                int intKey = Integer.parseInt(String.valueOf(key)) - 1;
-                if (selectedCard != null) {
-                    moveSelected(Location.STOCK, intKey);
-                } else {
-                    if (intKey < stockWidth && selectedColumn == -1) {
-                        selectedColumn = intKey;
-                        List<Card> faceupCards =
-                                stock.get(selectedColumn).stream().filter(Card::isFaceup).toList();
-                        if (faceupCards.size() == 1) {
-                            selectedCard = faceupCards.getFirst();
-                        }
-                    } else if (intKey <= stock.get(selectedColumn).size()) {
-                        List<Card> faceupCards =
-                                stock.get(selectedColumn).stream().filter(Card::isFaceup).toList();
-                        if (intKey == -1) {
-                            if (!faceupCards.isEmpty()) selectedCard = faceupCards.getLast();
-                        } else selectedCard = faceupCards.get(intKey);
-                    }
-                }
-            } catch (NumberFormatException | IndexOutOfBoundsException _) {
+            if (key == '-') {
+                clearSelected();
+                resize();
             }
             switch (key) {
                 case '`':
@@ -341,9 +305,13 @@ public class Solitaire extends Game {
                     movesUndone.clear();
                     break;
                 case ' ':
-                    // Select drawn card
-                    if (selectedCard == deck.getTopDiscard()) clearSelected();
-                    else selectCard(Location.DECK, 0);
+                    if (selectedCard != null) {
+                        List<LinkedList<Card>> column =
+                                stock.stream().filter(l -> l.contains(selectedCard)).toList();
+                        if (!column.isEmpty() && stock.indexOf(column.getFirst()) == selectedColumn)
+                            clearSelected();
+                        else moveSelected(Location.STOCK, selectedColumn);
+                    } else selectCard(Location.STOCK, selectedRow);
                     break;
                 case '[':
                     // Undo
@@ -380,6 +348,34 @@ public class Solitaire extends Game {
         } else if (keyStroke.getKeyType() == KeyType.F10) {
             // New game
             return Action.NEW_GAME;
+        } else if (keyStroke.getKeyType() == KeyType.Tab) {
+            if (selectedCard == deck.getTopDiscard()) clearSelected();
+            else selectCard(Location.DECK, 0);
+        } else if (keyStroke.getKeyType().name().contains("Arrow")) {
+            switch (keyStroke.getKeyType()) {
+                case ArrowRight:
+                    if (selectedColumn < stockWidth - 1) selectedColumn++;
+                    selectedRow = 0;
+                    break;
+                case ArrowLeft:
+                    if (selectedColumn > 0) selectedColumn--;
+                    selectedRow = 0;
+                    break;
+                case ArrowUp:
+                    if (selectedCard != null) break;
+                    if (selectedColumn == -1) break;
+                    if (selectedRow <= 0) break;
+                    selectedRow--;
+                    break;
+                case ArrowDown:
+                    if (selectedCard != null) break;
+                    if (selectedColumn == -1) break;
+                    List<Card> column =
+                            stock.get(selectedColumn).stream().filter(Card::isFaceup).toList();
+                    if (column.size() - 1 <= selectedRow) break;
+                    selectedRow++;
+                    break;
+            }
         }
         drawGame();
         try {
@@ -408,6 +404,13 @@ public class Solitaire extends Game {
                 else if (index == 2) suit = Card.Suit.DIAMOND;
                 else if (index == 3) suit = Card.Suit.CLUB;
                 selectedCard = foundation.getTopCard(suit);
+                break;
+            case STOCK:
+                selectedCard =
+                        stock.get(selectedColumn).stream()
+                                .filter(Card::isFaceup)
+                                .toList()
+                                .get(selectedRow);
                 break;
         }
         if (selectedCard != null)
@@ -467,7 +470,7 @@ public class Solitaire extends Game {
     }
 
     private void clearSelected() {
-        selectedColumn = -1;
+        //        selectedColumn = -1;
         if (selectedCard != null) selectedCard.setTextColor(TextColor.ANSI.WHITE);
         selectedCard = null;
     }

@@ -30,11 +30,10 @@ public class SolitaireOptions extends GameOptions {
     private final LinkedHashMap<String, String> keybinds =
             new LinkedHashMap<>(
                     Map.of(
-                            "Select column", "1-9",
-                            "Select card (while column selected)", "1-9",
-                            "Select last card in column", "0",
+                            "Move cursor", "◀ ▲ ▼ ▶",
+                            "Select card", "Space",
                             "Draw card", "Backtick (`)",
-                            "Select drawn card", "Space",
+                            "Select discarded card", "Tab",
                             "Select foundation", "qwer",
                             "Delselect", "Dash (-)",
                             "Undo/redo", "Brackets ([/])",

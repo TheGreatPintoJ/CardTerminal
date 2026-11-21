@@ -195,8 +195,7 @@ public class Spider extends Game {
     //        }
     //    }
 
-    @Override
-    public void drawCard(boolean logged) {
+    public void drawCard() {
         SpiderMove move = new SpiderMove(this, null, null, SpiderMove.Type.DEAL);
         if (move.execute()) moves.add(move);
         dealCount++;
@@ -227,7 +226,7 @@ public class Spider extends Game {
                 switch (c) {
                     case '`':
                         selectedCard = null;
-                        drawCard(true);
+                        drawCard();
                         break;
                     case ' ':
                         if (selectedCard != null) {

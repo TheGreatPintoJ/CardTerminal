@@ -114,6 +114,7 @@ public class Foundation {
     }
 
     public boolean checkWin() {
+        if (piles.values().stream().anyMatch(AbstractCollection::isEmpty)) return false;
         return piles.get(HEART).getLast().getRank() == Card.Rank.KING
                 && piles.get(SPADE).getLast().getRank() == Card.Rank.KING
                 && piles.get(DIAMOND).getLast().getRank() == Card.Rank.KING

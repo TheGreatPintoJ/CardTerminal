@@ -246,9 +246,6 @@ public class HeartsLocal extends Game {
     }
 
     @Override
-    public void drawCard(boolean logged) {}
-
-    @Override
     public void resize() {
         try {
             drawGame();

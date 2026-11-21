@@ -16,8 +16,6 @@ public abstract class Game extends CustomScreen {
 
     public abstract long getSeed();
 
-    public abstract void drawCard(boolean logged);
-
     protected void win() throws IOException {
         int W = g.getSize().getColumns();
         int H = g.getSize().getRows();
