@@ -184,13 +184,14 @@ public class Main {
                                                 currentScreen = currentGame.get().newGame();
                                             screen.refresh(Screen.RefreshType.COMPLETE);
                                             break;
-                                    }
-                                    if (keystroke.getKeyType() == KeyType.Escape) {
-                                        screen.close();
-                                        Thread.currentThread().interrupt();
-                                        resizeHandler.interrupt();
-                                        System.exit(0);
-                                        break;
+                                        case CustomScreen.Action.NONE:
+                                            if (keystroke.getKeyType() == KeyType.Escape) {
+                                                screen.close();
+                                                Thread.currentThread().interrupt();
+                                                resizeHandler.interrupt();
+                                                System.exit(0);
+                                            }
+                                            break;
                                     }
                                     Thread.sleep(50);
                                 } catch (IOException | InterruptedException e) {

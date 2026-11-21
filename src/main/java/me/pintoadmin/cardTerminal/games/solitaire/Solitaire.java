@@ -289,7 +289,6 @@ public class Solitaire extends Game {
      */
     @Override
     public Action handleInput(KeyStroke keyStroke) {
-        // if (checkHandleWin()) return;
         if (keyStroke.getKeyType() == KeyType.Escape) {
             return Action.BACK_TO_MENU;
         } else if (keyStroke.getKeyType() == KeyType.Character) {
