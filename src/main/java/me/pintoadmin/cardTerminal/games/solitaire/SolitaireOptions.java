@@ -35,7 +35,7 @@ public class SolitaireOptions extends GameOptions {
                     put("Draw card", "Backtick (`)");
                     put("Select discarded card", "Tab");
                     put("Select foundation", "qwer");
-                    put("Delselect", "Dash (-)");
+                    put("Deselect", "Dash (-)");
                     put("Undo/redo", "Brackets ([/])");
                     put("Restart with new seed", "F10");
                     put("Restart with same seed", "F12");
