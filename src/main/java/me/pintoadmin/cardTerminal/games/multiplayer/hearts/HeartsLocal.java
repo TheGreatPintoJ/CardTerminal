@@ -40,6 +40,7 @@ public class HeartsLocal extends Game {
     protected List<Card> ourCards;
     protected int currentPlayerturn;
     protected int startingPlayer;
+    protected boolean[] remotePlayers;
     protected List<Card> playedCards;
     protected HeartsEngine.GameState gameState;
     protected Map<Integer, Integer> scores;
@@ -53,6 +54,7 @@ public class HeartsLocal extends Game {
         ourCards = engine.getCards(0);
         currentPlayerturn = engine.getCurrentPlayerTurn();
         startingPlayer = engine.getStartingPlayer();
+        remotePlayers = engine.getRemotePlayers();
         playedCards = engine.getPlayedCards();
         gameState = engine.getState();
         scores = engine.getScores();
@@ -77,7 +79,7 @@ public class HeartsLocal extends Game {
 
         this.engine = engine;
         engine.getServer().addLocalClient(this);
-        engine.start();
+        updateLocals();
 
         resize();
     }
@@ -109,95 +111,145 @@ public class HeartsLocal extends Game {
 
         int W = WIDTH.get(), H = HEIGHT.get();
 
-        // draw second player's cards
-        for (int i = 0; i < numCards[1]; i++) {
-            int startingY = (H / 2) - (numCards[1] * 2) / 2 - (Card.height / 2);
-            Card.drawCardBack(4, startingY + (i * 2), TextColor.ANSI.WHITE);
-        }
-        // draw third player's cards
-        for (int i = 0; i < numCards[2]; i++) {
-            int startingX = (W / 2) - (numCards[2] * 3) / 2 - (Card.width / 2);
-            Card.drawCardBack(startingX + (i * 3), 2, TextColor.ANSI.WHITE);
-        }
-        // draw fourth player's cards
-        for (int i = 0; i < numCards[3]; i++) {
-            int startingY = (H / 2) - (numCards[3] * 2) / 2 - (Card.height / 2);
-            Card.drawCardBack(W - 13, startingY + (i * 2), TextColor.ANSI.WHITE);
-        }
+        if (gameState == HeartsEngine.GameState.PREGAME) {
+            // draw second player's cards
+            for (int i = 0; i < 13; i++) {
+                int startingY = (H / 2) - (26) / 2 - (Card.height / 2);
+                Card.drawCardBack(4, startingY + (i * 2), TextColor.ANSI.WHITE);
+            }
+            // draw third player's cards
+            for (int i = 0; i < 13; i++) {
+                int startingX = (W / 2) - (39) / 2 - (Card.width / 2);
+                Card.drawCardBack(startingX + (i * 3), 2, TextColor.ANSI.WHITE);
+            }
+            // draw fourth player's cards
+            for (int i = 0; i < 13; i++) {
+                int startingY = (H / 2) - (26) / 2 - (Card.height / 2);
+                Card.drawCardBack(W - 13, startingY + (i * 2), TextColor.ANSI.WHITE);
+            }
 
-        {
-            List<Card> cards = ourCards;
-            int startingX = (W / 2) - (cards.size() * 3) / 2 - (Card.width / 2);
-            for (Card card : cards) {
-                if (getPlayableCards(cards).contains(card)
-                        || gameState == HeartsEngine.GameState.PASSING
-                        || currentPlayerturn != localPlayer)
-                    card.setTextColor(TextColor.ANSI.WHITE);
-                else card.setTextColor(new TextColor.RGB(100, 100, 100));
-                int index = cards.indexOf(card);
-
-                int x = startingX + (index * 3);
-                int y = H - 7;
-
-                if (currentPlayerturn == localPlayer) {
-                    // elevate cursor and selected cards
-                    y -=
-                            (index == selectedCard ? 2 : 0)
-                                    + (Arrays.stream(passingCards).toList().contains(card) ? 1 : 0);
-                    if (Arrays.stream(passingCards).toList().contains(card))
-                        card.setTextColor(TextColor.ANSI.GREEN);
-                    if (index == selectedCard) card.setTextColor(TextColor.ANSI.YELLOW);
+            // Our cards
+            {
+                int startingX = (W / 2) - (39) / 2 - (Card.width / 2);
+                for (int i = 0; i < 13; i++) {
+                    int x = startingX + (i * 3);
+                    int y = H - 7;
+                    Card.drawCardBack(x, y, TextColor.ANSI.WHITE);
                 }
-                card.draw(x, y, true);
             }
-        }
 
-        // Player turn text, or passing text
-        g.setForegroundColor(TextColor.ANSI.WHITE);
-        g.enableModifiers(SGR.BOLD);
-        if (gameState == HeartsEngine.GameState.PASSING) {
-            Main.drawText(W / 2, H / 2, "Select cards to pass");
-        } else if (gameState == HeartsEngine.GameState.TRICKS) {
-            int turn = currentPlayerturn;
-            String turnString =
-                    turn != localPlayer ? "It is Player " + turn + "'s turn" : "It is your turn";
-            Main.drawText(W / 2, H - Card.height - 3, turnString);
-            switch ((turn + (4 - localPlayer)) % 4) {
-                case 0 -> g.setCharacter(W / 2, H / 2, '▼');
-                case 1 -> g.setCharacter(W / 2, H / 2, '◀');
-                case 2 -> g.setCharacter(W / 2, H / 2, '▲');
-                case 3 -> g.setCharacter(W / 2, H / 2, '▶');
+            Main.drawText(W / 2, H / 2 - 1, "Players:");
+            for (int i = 0; i < 4; i++) {
+                Main.drawText(
+                        W / 2,
+                        H / 2 + i,
+                        "Player "
+                                + i
+                                + " - "
+                                + (i == localPlayer
+                                        ? "Local"
+                                        : remotePlayers[i] ? "Remote" : "Bot"));
             }
-        }
-        g.disableModifiers(SGR.BOLD);
 
-        // Hearts broken text
-        if (heartsBroken) {
-            g.setForegroundColor(TextColor.ANSI.RED);
-            Main.drawText(W / 2, H / 2 - (Card.height * 15 / 10) - 1, "Hearts are broken");
+            if (!isRemoteGame()) Main.drawText(W / 2, H / 2 + 5, "Press enter to start game");
+        } else if (gameState == HeartsEngine.GameState.TRICKS
+                || gameState == HeartsEngine.GameState.PASSING) {
+            // draw second player's cards
+            for (int i = 0; i < numCards[1]; i++) {
+                int startingY = (H / 2) - (numCards[1] * 2) / 2 - (Card.height / 2);
+                Card.drawCardBack(4, startingY + (i * 2), TextColor.ANSI.WHITE);
+            }
+            // draw third player's cards
+            for (int i = 0; i < numCards[2]; i++) {
+                int startingX = (W / 2) - (numCards[2] * 3) / 2 - (Card.width / 2);
+                Card.drawCardBack(startingX + (i * 3), 2, TextColor.ANSI.WHITE);
+            }
+            // draw fourth player's cards
+            for (int i = 0; i < numCards[3]; i++) {
+                int startingY = (H / 2) - (numCards[3] * 2) / 2 - (Card.height / 2);
+                Card.drawCardBack(W - 13, startingY + (i * 2), TextColor.ANSI.WHITE);
+            }
+
+            // Our cards
+            {
+                List<Card> cards = ourCards;
+                int startingX = (W / 2) - (cards.size() * 3) / 2 - (Card.width / 2);
+                for (Card card : cards) {
+                    if (getPlayableCards(cards).contains(card)
+                            || gameState == HeartsEngine.GameState.PASSING
+                            || currentPlayerturn != localPlayer)
+                        card.setTextColor(TextColor.ANSI.WHITE);
+                    else card.setTextColor(new TextColor.RGB(100, 100, 100));
+                    int index = cards.indexOf(card);
+
+                    int x = startingX + (index * 3);
+                    int y = H - 7;
+
+                    if (currentPlayerturn == localPlayer) {
+                        // elevate cursor and selected cards
+                        y -=
+                                (index == selectedCard ? 2 : 0)
+                                        + (Arrays.stream(passingCards).toList().contains(card)
+                                                ? 1
+                                                : 0);
+                        if (Arrays.stream(passingCards).toList().contains(card))
+                            card.setTextColor(TextColor.ANSI.GREEN);
+                        if (index == selectedCard) card.setTextColor(TextColor.ANSI.YELLOW);
+                    }
+                    card.draw(x, y, true);
+                }
+            }
+
+            // Player turn text, or passing text
             g.setForegroundColor(TextColor.ANSI.WHITE);
-        }
-
-        {
-            List<Card> cards = playedCards;
-            for (Card card : cards) {
-                int index = cards.indexOf(card) + startingPlayer - localPlayer;
-                int x = (W / 2) - (Card.width / 2), y = (H / 2) - (Card.height / 2);
-
-                card.setTextColor(TextColor.ANSI.WHITE);
-
-                switch ((index + 4) % 4) {
-                    case 0 -> y += (Card.height / 2) + 2;
-                    case 1 -> x -= Card.width * 15 / 10;
-                    case 2 -> y -= (Card.height / 2) + 2;
-                    case 3 -> x += Card.width + 2;
+            g.enableModifiers(SGR.BOLD);
+            if (gameState == HeartsEngine.GameState.PASSING) {
+                Main.drawText(W / 2, H / 2, "Select cards to pass");
+            } else if (gameState == HeartsEngine.GameState.TRICKS) {
+                int turn = currentPlayerturn;
+                String turnString =
+                        turn != localPlayer
+                                ? "It is Player " + turn + "'s turn"
+                                : "It is your turn";
+                Main.drawText(W / 2, H - Card.height - 3, turnString);
+                switch ((turn + (4 - localPlayer)) % 4) {
+                    case 0 -> g.setCharacter(W / 2, H / 2, '▼');
+                    case 1 -> g.setCharacter(W / 2, H / 2, '◀');
+                    case 2 -> g.setCharacter(W / 2, H / 2, '▲');
+                    case 3 -> g.setCharacter(W / 2, H / 2, '▶');
                 }
+            }
+            g.disableModifiers(SGR.BOLD);
 
-                card.draw(x, y, true);
+            // Hearts broken text
+            if (heartsBroken) {
+                g.setForegroundColor(TextColor.ANSI.RED);
+                Main.drawText(W / 2, H / 2 - (Card.height * 15 / 10) - 1, "Hearts are broken");
+                g.setForegroundColor(TextColor.ANSI.WHITE);
+            }
+
+            // Draw played cards
+            {
+                List<Card> cards = playedCards;
+                for (Card card : cards) {
+                    int index = cards.indexOf(card) + startingPlayer - localPlayer;
+                    int x = (W / 2) - (Card.width / 2), y = (H / 2) - (Card.height / 2);
+
+                    card.setTextColor(TextColor.ANSI.WHITE);
+
+                    switch ((index + 4) % 4) {
+                        case 0 -> y += (Card.height / 2) + 2;
+                        case 1 -> x -= Card.width * 15 / 10;
+                        case 2 -> y -= (Card.height / 2) + 2;
+                        case 3 -> x += Card.width + 2;
+                    }
+
+                    card.draw(x, y, true);
+                }
             }
         }
 
-        screen.refresh(Screen.RefreshType.COMPLETE);
+        screen.refresh(Screen.RefreshType.DELTA);
     }
 
     public void showScores() {
@@ -266,6 +318,7 @@ public class HeartsLocal extends Game {
     public Action handleInput(KeyStroke keyStroke) {
         switch (keyStroke.getKeyType()) {
             case Escape:
+                if (!isRemoteGame()) engine.endGame();
                 return Action.BACK_TO_MENU;
             case ArrowLeft:
                 if (selectedCard > 0) selectedCard--;
@@ -293,12 +346,16 @@ public class HeartsLocal extends Game {
                             submitPlayCard(localPlayer, selected);
                         }
                     }
-                    if (selectedCard >= ourCards.size() - 1 && selectedCard >= 0)
-                        selectedCard = ourCards.size() - 1;
+                    if (gameState != HeartsEngine.GameState.PREGAME) {
+                        if (selectedCard >= ourCards.size() - 1 && selectedCard >= 0)
+                            selectedCard = ourCards.size() - 1;
+                    }
                 }
                 break;
             case Enter:
-                if (gameState == HeartsEngine.GameState.PASSING) {
+                if (gameState == HeartsEngine.GameState.PREGAME) {
+                    if (!isRemoteGame()) engine.start();
+                } else if (gameState == HeartsEngine.GameState.PASSING) {
                     submitPassCards(localPlayer, passingCards);
                 }
                 break;

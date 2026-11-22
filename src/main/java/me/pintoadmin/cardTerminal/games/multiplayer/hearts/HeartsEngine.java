@@ -158,11 +158,7 @@ public class HeartsEngine {
 
         deck.shuffleDiscard();
         for (int i = 0; i < 13; i++) {
-            // TESTING: add two of clubs to first player's hand
-            /*if (i == 0) {
-                hands[0].add(deck.getCard(Card.Rank.TWO, Card.Suit.CLUB));
-                deck.removeCard(deck.getCard(Card.Rank.TWO, Card.Suit.CLUB));
-            } else */ hands[0].add(deck.drawCard());
+            hands[0].add(deck.drawCard());
             hands[1].add(deck.drawCard());
             hands[2].add(deck.drawCard());
             hands[3].add(deck.drawCard());
@@ -223,6 +219,7 @@ public class HeartsEngine {
             i++;
         }
         server.updateClients();
+        server.resizeClients();
     }
 
     public synchronized boolean passCards(int player, Card[] cards) {
@@ -403,13 +400,14 @@ public class HeartsEngine {
         newDeal();
     }
 
-    private void endGame() {
+    public void endGame() {
         state = GameState.ENDED;
 
         Integer winningPlayer = getLowestPlayer();
         Integer winningScore = scores.get(winningPlayer);
 
         // TODO: announce who won
+        server.showScoresClients();
 
         server.deinit();
     }
@@ -450,6 +448,14 @@ public class HeartsEngine {
 
     public int getNumCards(int player) {
         return hands[player].size();
+    }
+
+    public boolean[] getRemotePlayers() {
+        boolean[] arr = new boolean[4];
+        for (int i = 0; i < 4; i++) {
+            arr[i] = getServer().isRemotePlayerConnected(i);
+        }
+        return arr;
     }
 
     public int getNumTricksWon(int player) {

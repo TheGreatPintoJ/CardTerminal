@@ -160,6 +160,7 @@ public class HeartsRemote extends HeartsLocal {
             playedCards = decodeCards(message.playedCards);
             currentPlayerturn = message.currentPlayer;
             startingPlayer = message.startingPlayer;
+            remotePlayers = message.remotePlayers;
             gameState = HeartsEngine.GameState.valueOf(message.gameState);
             scores = new HashMap<>();
             for (int i = 0; i < 4; i++) {

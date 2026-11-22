@@ -17,6 +17,7 @@ public final class HeartsProtocol {
         public List<CardData> playedCards;
         public int currentPlayer;
         public int startingPlayer;
+        public boolean[] remotePlayers;
         public String gameState;
         public int[] scores;
         public boolean heartsBroken;

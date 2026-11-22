@@ -51,6 +51,8 @@ public class HeartsServer {
                                     ClientHandler handler = new ClientHandler(clientSocket, player);
                                     clients.put(handler, player);
                                     new Thread(handler, "Hearts client " + player).start();
+                                    updateClients();
+                                    resizeClients();
                                 } catch (SocketException e) {
                                     if (!serverSocket.isClosed()) {
                                         System.err.println(
@@ -133,6 +135,7 @@ public class HeartsServer {
                     engine.getPlayedCards().stream().map(HeartsProtocol.CardData::new).toList();
             message.currentPlayer = engine.getCurrentPlayerTurn();
             message.startingPlayer = engine.getStartingPlayer();
+            message.remotePlayers = engine.getRemotePlayers();
             message.gameState = engine.getState().name();
             message.scores = new int[4];
             message.cardCounts = new int[4];
