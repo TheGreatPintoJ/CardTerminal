@@ -2,6 +2,7 @@ package me.pintoadmin.cardTerminal.games.multiplayer.hearts;
 
 import java.util.*;
 import java.util.function.*;
+import javax.management.relation.*;
 import me.pintoadmin.cardTerminal.*;
 import me.pintoadmin.cardTerminal.networking.*;
 
@@ -10,6 +11,8 @@ public class HeartsEngine {
     private final Deck deck;
     private final int endingPoints;
     private final HeartsServer server;
+
+    private Thread autoplay;
 
     private int deal = -1;
     private int trick = -1;
@@ -62,6 +65,56 @@ public class HeartsEngine {
         if (endingPoints > 0) this.endingPoints = endingPoints;
         else this.endingPoints = 100;
         this.server = new HeartsServer(51337, this);
+
+        // TODO: Autoplay passing
+        autoplay =
+                new Thread(
+                        () -> {
+                            int lastTrick = -1;
+                            int lastTurn = -1;
+                            while (true) {
+                                int turn = currentPlayerTurn.get();
+                                if (lastTurn == turn && lastTrick == trick) {
+                                    try {
+                                        Thread.sleep(100);
+                                    } catch (InterruptedException e) {
+                                        System.out.println("Ignored exception: " + e.getMessage());
+                                    }
+                                    continue;
+                                }
+                                if (!server.isRemotePlayerConnected(turn)) {
+                                    try {
+                                        Thread.sleep(1000);
+                                    } catch (InterruptedException e) {
+                                        System.out.println("Ignored exception: " + e.getMessage());
+                                    }
+                                    int trickBeforePlay = trick;
+                                    List<Card> all = getCards(turn);
+                                    if (all.isEmpty()) continue;
+                                    List<Card> playable = getPlayableCards(turn);
+                                    Card thisCard =
+                                            !playable.isEmpty()
+                                                    ? playable.size() == 1
+                                                            ? playable.getFirst()
+                                                            : playable.get(
+                                                                    new Random()
+                                                                            .nextInt(
+                                                                                    playable.size()
+                                                                                            - 1))
+                                                    : all.size() == 1
+                                                            ? all.getFirst()
+                                                            : all.get(
+                                                                    new Random()
+                                                                            .nextInt(
+                                                                                    all.size()
+                                                                                            - 1));
+                                    if (playCard(turn, thisCard)) {
+                                        lastTrick = trickBeforePlay;
+                                        lastTurn = turn;
+                                    }
+                                }
+                            }
+                        });
     }
 
     public synchronized void start() {
@@ -69,38 +122,7 @@ public class HeartsEngine {
             newDeal();
             server.updateClients();
 
-            // start autoplay for bot players
-            new Thread(
-                            () -> {
-                                int lastTrick = -1;
-                                int lastTurn = -1;
-                                while (true) {
-                                    int turn = currentPlayerTurn.get();
-                                    if (lastTurn == turn && lastTrick == trick) {
-                                        try {
-                                            Thread.sleep(100);
-                                        } catch (InterruptedException e) {
-                                            System.out.println(
-                                                    "Ignored exception: " + e.getMessage());
-                                        }
-                                        continue;
-                                    }
-                                    if (!server.isRemotePlayerConnected(turn)) {
-                                        try {
-                                            Thread.sleep(1000);
-                                        } catch (InterruptedException e) {
-                                            System.out.println(
-                                                    "Ignored exception: " + e.getMessage());
-                                        }
-                                        Card thisCard = getPlayableCards(turn).getFirst();
-                                        playCard(turn, thisCard);
-
-                                        lastTrick = trick;
-                                        lastTurn = turn;
-                                    }
-                                }
-                            })
-                    .start();
+            autoplay.start();
         }
     }
 
@@ -119,10 +141,10 @@ public class HeartsEngine {
         deck.shuffleDiscard();
         for (int i = 0; i < 13; i++) {
             // TESTING: add two of clubs to first player's hand
-            if (i == 0) {
+            /*if (i == 0) {
                 hands[0].add(deck.getCard(Card.Rank.TWO, Card.Suit.CLUB));
                 deck.removeCard(deck.getCard(Card.Rank.TWO, Card.Suit.CLUB));
-            } else hands[0].add(deck.drawCard());
+            } else */ hands[0].add(deck.drawCard());
             hands[1].add(deck.drawCard());
             hands[2].add(deck.drawCard());
             hands[3].add(deck.drawCard());
@@ -214,7 +236,7 @@ public class HeartsEngine {
 
         boolean firstTurn = playerTurn == 0;
         boolean hasNonHearts = hands[player].stream().anyMatch(c -> c.getSuit() != Card.Suit.HEART);
-        boolean isHeart = card.getSuit() == Card.Suit.HEART;
+        boolean isHeart = card.getSuit() == me.pintoadmin.cardTerminal.Card.Suit.HEART;
         boolean isActiveSuit = card.getSuit() == activeSuit;
         boolean hasLedSuit =
                 activeSuit != null
@@ -368,6 +390,8 @@ public class HeartsEngine {
         Integer winningScore = scores.get(winningPlayer);
 
         // TODO: announce who won
+
+        server.deinit();
     }
 
     private Integer getHighestPlayer() {
