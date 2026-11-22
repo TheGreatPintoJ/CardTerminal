@@ -169,6 +169,7 @@ public class HeartsRemote extends HeartsLocal {
             heartsBroken = message.heartsBroken;
             activeSuit = message.activeSuit == null ? null : Card.Suit.valueOf(message.activeSuit);
             trick = message.trick;
+            wonTricks = message.wonTricks;
             numCards = message.cardCounts.clone();
             resize();
         } catch (IllegalArgumentException | NullPointerException e) {

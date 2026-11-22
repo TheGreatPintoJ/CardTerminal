@@ -147,6 +147,7 @@ public class HeartsServer {
             message.activeSuit =
                     engine.getActiveSuit() == null ? null : engine.getActiveSuit().name();
             message.trick = engine.getTrick();
+            message.wonTricks = engine.getWonTricks();
         }
         send(client, message);
     }

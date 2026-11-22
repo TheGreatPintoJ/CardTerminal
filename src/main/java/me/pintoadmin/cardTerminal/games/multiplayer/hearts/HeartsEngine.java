@@ -350,22 +350,10 @@ public class HeartsEngine {
     private void finishDeal() {
         // count hearts of each player, add to total
         for (int i = 0; i < 4; i++) {
-            int score =
-                    Math.toIntExact(
-                            wonTrickCards.get(i).stream()
-                                    .filter(c -> c.getSuit() == Card.Suit.HEART)
-                                    .count());
-            if (wonTrickCards.get(i).stream()
-                    .anyMatch(
-                            c ->
-                                    c.getSuit() == Card.Suit.SPADE
-                                            && c.getRank() == Card.Rank.QUEEN)) {
-                score += 13;
-            }
-            int finalScore = score;
+            int score = getScore(wonTrickCards.get(i));
 
             // shooting the moon
-            if (finalScore >= 26) {
+            if (score >= 26) {
                 int finalI = i;
                 scores.forEach(
                         (k, v) -> {
@@ -374,7 +362,7 @@ public class HeartsEngine {
                                 scores.compute(k, (p, s) -> s += 26);
                             }
                         });
-            } else scores.compute(i, (k, v) -> v += finalScore);
+            } else scores.compute(i, (k, v) -> v += score);
         }
 
         server.updateClients();
@@ -402,6 +390,16 @@ public class HeartsEngine {
         }
 
         newDeal();
+    }
+
+    public static int getScore(List<Card> cards) {
+        int score =
+                Math.toIntExact(cards.stream().filter(c -> c.getSuit() == Card.Suit.HEART).count());
+        if (cards.stream()
+                .anyMatch(c -> c.getSuit() == Card.Suit.SPADE && c.getRank() == Card.Rank.QUEEN)) {
+            score += 13;
+        }
+        return score;
     }
 
     public void endGame() {
@@ -488,6 +486,10 @@ public class HeartsEngine {
 
     public GameState getState() {
         return state;
+    }
+
+    public Map<Integer, List<Card>> getWonTricks() {
+        return wonTrickCards;
     }
 
     public int getTrick() {

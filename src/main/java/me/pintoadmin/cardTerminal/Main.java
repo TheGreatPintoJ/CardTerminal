@@ -292,6 +292,17 @@ public class Main {
         }
     }
 
+    public static TextColor dimColor(TextColor color, float factor) {
+        // Clamp factor between 0.0 (black) and 1.0 (original)
+        factor = Math.max(0f, Math.min(1f, factor));
+
+        int r = Math.round(color.getRed() * factor);
+        int g = Math.round(color.getGreen() * factor);
+        int b = Math.round(color.getBlue() * factor);
+
+        return new TextColor.RGB(r, g, b);
+    }
+
     public static OS getOS() {
         return thisOS;
     }

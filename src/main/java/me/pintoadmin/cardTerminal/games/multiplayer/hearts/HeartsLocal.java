@@ -40,7 +40,7 @@ public class HeartsLocal extends Game {
     protected List<Card> ourCards;
     protected int currentPlayerturn;
     protected int startingPlayer;
-    protected boolean[] remotePlayers;
+    protected boolean[] remotePlayers = new boolean[4];
     protected List<Card> playedCards;
     protected HeartsEngine.GameState gameState;
     protected Map<Integer, Integer> scores;
@@ -48,6 +48,7 @@ public class HeartsLocal extends Game {
     protected Card.Suit activeSuit;
     protected int[] numCards = new int[4];
     protected int trick;
+    protected Map<Integer, List<Card>> wonTricks = new HashMap<>();
     protected int localPlayer = 0;
 
     public void updateLocals() {
@@ -61,6 +62,7 @@ public class HeartsLocal extends Game {
         heartsBroken = engine.isHeartsBroken();
         activeSuit = engine.getActiveSuit();
         trick = engine.getTrick();
+        wonTricks = engine.getWonTricks();
 
         for (int i = 0; i < 4; i++) numCards[i] = engine.getNumCards(i);
     }
@@ -155,26 +157,54 @@ public class HeartsLocal extends Game {
         } else if (gameState == HeartsEngine.GameState.TRICKS
                 || gameState == HeartsEngine.GameState.PASSING) {
             // draw second player's cards
-            for (int i = 0; i < numCards[1]; i++) {
-                int startingY = (H / 2) - (numCards[1] * 2) / 2 - (Card.height / 2);
-                Card.drawCardBack(4, startingY + (i * 2), TextColor.ANSI.WHITE);
+            {
+                int y = (H / 2) - (Card.height / 2);
+                int startingY = y - (numCards[1] * 2) / 2;
+                for (int i = 0; i < numCards[1]; i++) {
+                    Card.drawCardBack(4, startingY + (i * 2), TextColor.ANSI.WHITE);
+                }
+                g.setForegroundColor(TextColor.ANSI.WHITE);
+                int infoX = 4 + (Card.width / 2);
+                int infoY = y - 16;
+                Main.drawText(infoX, infoY, "Player 1");
+                Main.drawText(
+                        infoX, infoY + 1, "Score: " + HeartsEngine.getScore(wonTricks.get(1)));
             }
             // draw third player's cards
-            for (int i = 0; i < numCards[2]; i++) {
-                int startingX = (W / 2) - (numCards[2] * 3) / 2 - (Card.width / 2);
-                Card.drawCardBack(startingX + (i * 3), 2, TextColor.ANSI.WHITE);
+            {
+                int x = (W / 2) - (Card.width / 2);
+                int startingX = x - (numCards[2] * 3) / 2;
+                for (int i = 0; i < numCards[2]; i++) {
+                    Card.drawCardBack(startingX + (i * 3), 2, TextColor.ANSI.WHITE);
+                }
+                g.setForegroundColor(TextColor.ANSI.WHITE);
+                int infoX = x - 7 - (39 / 2);
+                int infoY = 2 + (Card.height / 2);
+                Main.drawText(infoX, infoY, "Player 2");
+                Main.drawText(
+                        infoX, infoY + 1, "Score: " + HeartsEngine.getScore(wonTricks.get(2)));
             }
             // draw fourth player's cards
-            for (int i = 0; i < numCards[3]; i++) {
-                int startingY = (H / 2) - (numCards[3] * 2) / 2 - (Card.height / 2);
-                Card.drawCardBack(W - 13, startingY + (i * 2), TextColor.ANSI.WHITE);
+            {
+                int y = (H / 2) - (Card.height / 2);
+                int startingY = y - (numCards[3] * 2) / 2;
+                for (int i = 0; i < numCards[3]; i++) {
+                    Card.drawCardBack(W - 13, startingY + (i * 2), TextColor.ANSI.WHITE);
+                }
+                g.setForegroundColor(TextColor.ANSI.WHITE);
+                int infoX = W - (4 + (Card.width / 2));
+                int infoY = y - 16;
+                Main.drawText(infoX, infoY, "Player 3");
+                Main.drawText(
+                        infoX, infoY + 1, "Score: " + HeartsEngine.getScore(wonTricks.get(3)));
             }
 
             // Our cards
             {
                 List<Card> cards = ourCards;
                 if (selectedCard < 0 || selectedCard >= cards.size()) selectedCard = 0;
-                int startingX = (W / 2) - (cards.size() * 3) / 2 - (Card.width / 2);
+                int preX = (W / 2) - (Card.width / 2);
+                int startingX = preX - (cards.size() * 3) / 2;
                 for (Card card : cards) {
                     TextColor cardColor = TextColor.ANSI.WHITE;
 
@@ -196,11 +226,17 @@ public class HeartsLocal extends Game {
                     }
                     if (!getPlayableCards(cards).contains(card)
                             && gameState == HeartsEngine.GameState.TRICKS)
-                        cardColor = dimColor(cardColor, 0.5f);
+                        cardColor = Main.dimColor(cardColor, 0.5f);
 
                     card.setTextColor(cardColor);
                     card.draw(x, y, true);
                 }
+                g.setForegroundColor(TextColor.ANSI.WHITE);
+                int infoX = preX - 7 - (39 / 2);
+                int infoY = H - (1 + (Card.height / 2));
+                Main.drawText(infoX, infoY, "Player 0");
+                Main.drawText(
+                        infoX, infoY + 1, "Score: " + HeartsEngine.getScore(wonTricks.get(0)));
             }
 
             // Player turn text, or passing text
@@ -401,16 +437,5 @@ public class HeartsLocal extends Game {
         public final long elapsed = HeartsLocal.this.time.get();
         public final String time =
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern("MM-dd-yyyy, hh:mm:ss a"));
-    }
-
-    public static TextColor dimColor(TextColor color, float factor) {
-        // Clamp factor between 0.0 (black) and 1.0 (original)
-        factor = Math.max(0f, Math.min(1f, factor));
-
-        int r = Math.round(color.getRed() * factor);
-        int g = Math.round(color.getGreen() * factor);
-        int b = Math.round(color.getBlue() * factor);
-
-        return new TextColor.RGB(r, g, b);
     }
 }
