@@ -16,30 +16,33 @@ public class Solver {
         byte[][] col = new byte[7][]; int[] down = new int[7];
         byte[] stock; int pos; int[] fnd = new int[4];
         int draw = 1; // cards turned per draw; constant within a search, so not part of key()
+        int redeals = -1; // redeals left; -1 = unlimited (Klondike)
         int g; S parent; String mv;
         S copy() {
             S s = new S();
             for (int i = 0; i < 7; i++) s.col[i] = col[i];
             s.down = down.clone(); s.stock = stock; s.pos = pos; s.fnd = fnd.clone();
-            s.draw = draw; s.g = g; return s;
+            s.draw = draw; s.redeals = redeals; s.g = g; return s;
         }
         int found() { return fnd[0] + fnd[1] + fnd[2] + fnd[3]; }
         String key() {
             StringBuilder b = new StringBuilder();
             for (int i = 0; i < 7; i++) { b.append(down[i]).append(':'); for (byte c : col[i]) b.append((char) (c + 65)); b.append('|'); }
             for (byte c : stock) b.append((char) (c + 65));
-            b.append('/').append(pos).append(Arrays.toString(fnd));
+            b.append('/').append(pos).append(Arrays.toString(fnd)).append(redeals);
             return b.toString();
         }
     }
 
-    static int drawCount(Solitaire.GameType type) { return type == Solitaire.GameType.KLONDIKE3 ? 3 : 1; }
+    // Same rules as Solitaire.drawCard: "3" types turn three; Vegas allows draw-count minus one redeals.
+    static int drawCount(Solitaire.GameType type) { return type.name().contains("3") ? 3 : 1; }
+    static int redealLimit(Solitaire.GameType type) { return type.name().contains("VEGAS") ? drawCount(type) - 1 : -1; }
 
     static S deal(long seed, Solitaire.GameType type) {
         List<Integer> d = new LinkedList<>();
         for (int s = 0; s < 4; s++) for (int r = 0; r < 13; r++) d.add(s * 13 + r);
         Collections.shuffle(d, new Random(seed));
-        S s = new S(); int k = 0; s.draw = drawCount(type);
+        S s = new S(); int k = 0; s.draw = drawCount(type); s.redeals = redealLimit(type);
         for (int c = 0; c < 7; c++) { s.col[c] = new byte[c + 1]; for (int r = 0; r <= c; r++) s.col[c][r] = (byte) (int) d.get(k++); s.down[c] = c; }
         s.stock = new byte[24]; for (int i = 0; i < 24; i++) s.stock[i] = (byte) (int) d.get(k++);
         return s;
@@ -67,14 +70,17 @@ public class Solver {
         for (int i = 0; i < 7; i++) for (int k = s.down[i]; k < s.col[i].length; k++) {
             int c = s.col[i][k];
             if (k == 0 && rank(c) == 12) continue; // pointless king shuffle
-            if (k - s.down[i] >= 9 && k < s.col[i].length - 1) continue; // the game's row keys only reach 1-9 and last
             for (int j = 0; j < 7; j++) if (j != i && fits(s.col[j], c)) {
                 S t = s.copy(); t.col[j] = app(s.col[j], s.col[i], k); t.col[i] = Arrays.copyOf(s.col[i], k); flip(t, i);
                 t.mv = n(c) + " col" + (i + 1) + "->col" + (j + 1); out.add(t); break;
             }
         }
         // draw / redeal
-        if (s.stock.length > 0) { S t = s.copy(); if (s.pos < s.stock.length) { t.pos = Math.min(s.pos + s.draw, s.stock.length); t.mv = "draw"; } else { t.pos = 0; t.mv = "redeal"; } out.add(t); }
+        if (s.stock.length > 0) {
+            S t = s.copy();
+            if (s.pos < s.stock.length) { t.pos = Math.min(s.pos + s.draw, s.stock.length); t.mv = "draw"; out.add(t); }
+            else if (s.redeals != 0) { t.pos = 0; if (t.redeals > 0) t.redeals--; t.mv = "redeal"; out.add(t); }
+        }
         for (S t : out) { t.g = s.g + 1; t.parent = s; }
         return out;
     }

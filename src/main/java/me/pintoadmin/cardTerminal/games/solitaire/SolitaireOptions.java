@@ -185,14 +185,12 @@ public class SolitaireOptions extends GameOptions {
                 } else if (selectedOption == Option.PLAY) {
                     if (autoPlay)
                         try {
-                            AutoPlay.main(
-                                    new String[] {
-                                        String.valueOf(!SEED.isEmpty() ? SEED : suggestedSeed),
-                                        String.valueOf(60),
-                                        type.name()
-                                    });
+                            String digits = SEED.substring(0, Math.min(18, SEED.length()));
+                            long seed = !SEED.isEmpty() ? Long.parseLong(digits) : suggestedSeed;
+                            if (!AutoPlay.start(seed, 60, type)) build();
                         } catch (Exception e) {
-                            throw new RuntimeException(e);
+                            System.out.println("AutoPlay failed: " + e);
+                            build();
                         }
                     else
                         Main.getInstance()

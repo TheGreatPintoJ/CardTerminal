@@ -42,11 +42,11 @@ public class Foundation {
             if (piles.get(HEART).isEmpty()) drawCardSpace(x, y, HEART);
             else deck.getCard(piles.get(HEART).getLast().getRank(), HEART).draw(x, y);
             if (piles.get(SPADE).isEmpty()) drawCardSpace(x + 9, y, SPADE);
-            else deck.getCard(piles.get(HEART).getLast().getRank(), SPADE).draw(x + 9, y);
+            else deck.getCard(piles.get(SPADE).getLast().getRank(), SPADE).draw(x + 9, y);
             if (piles.get(DIAMOND).isEmpty()) drawCardSpace(x + 18, y, DIAMOND);
-            else deck.getCard(piles.get(HEART).getLast().getRank(), DIAMOND).draw(x + 18, y);
+            else deck.getCard(piles.get(DIAMOND).getLast().getRank(), DIAMOND).draw(x + 18, y);
             if (piles.get(CLUB).isEmpty()) drawCardSpace(x + 27, y, CLUB);
-            else deck.getCard(piles.get(HEART).getLast().getRank(), CLUB).draw(x + 27, y);
+            else deck.getCard(piles.get(CLUB).getLast().getRank(), CLUB).draw(x + 27, y);
         } catch (IOException e) {
             System.err.println("Could not draw foundation: " + e.getMessage());
             e.printStackTrace();
