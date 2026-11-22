@@ -7,10 +7,14 @@ import com.googlecode.lanterna.*;
 import com.googlecode.lanterna.input.*;
 import com.googlecode.lanterna.screen.*;
 import java.io.*;
+import java.time.*;
+import java.time.format.*;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.function.*;
 import java.util.stream.*;
 import me.pintoadmin.cardTerminal.*;
+import me.pintoadmin.cardTerminal.games.solitaire.*;
 import me.pintoadmin.cardTerminal.screens.*;
 
 /*
@@ -21,6 +25,10 @@ public class HeartsLocal extends Game {
     private final long SEED;
     private final HeartsEngine engine;
     private final int endingPoints;
+
+    private final long startTime = System.nanoTime();
+    private final Supplier<Long> time =
+            () -> TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
 
     private final Supplier<Integer> WIDTH = () -> g.getSize().getColumns();
     private final Supplier<Integer> HEIGHT = () -> g.getSize().getRows();
@@ -330,5 +338,19 @@ public class HeartsLocal extends Game {
                         ? cards.stream().toList()
                         : cards.stream().filter(c -> c.getSuit() != Card.Suit.HEART).toList();
         }
+    }
+
+    public Stats newStats() {
+        return new Stats();
+    }
+
+    public class Stats {
+        public final String seed = String.valueOf(HeartsLocal.this.SEED);
+        public final int player = HeartsLocal.this.localPlayer;
+        public final int winner =
+                Collections.max(scores.entrySet(), Map.Entry.comparingByValue()).getKey();
+        public final long elapsed = HeartsLocal.this.time.get();
+        public final String time =
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("MM-dd-yyyy, hh:mm:ss a"));
     }
 }
