@@ -164,11 +164,7 @@ public class HeartsEngine {
             hands[3].add(deck.drawCard());
         }
 
-        for (List<Card> hand : hands) {
-            Function<Card, Card.Rank> rank = Card::getRank;
-            Function<Card.Rank, Integer> value = Card.Rank::toIntAceHigh;
-            hand.sort(Comparator.comparing(Card::getSuit).thenComparing(rank.andThen(value)));
-        }
+        sortCards();
 
         if (deal % 4 == 3) {
             state = GameState.TRICKS;
@@ -177,6 +173,14 @@ public class HeartsEngine {
 
         server.updateClients();
         server.resizeClients();
+    }
+
+    private void sortCards() {
+        for (List<Card> hand : hands) {
+            Function<Card, Card.Rank> rank = Card::getRank;
+            Function<Card.Rank, Integer> value = Card.Rank::toIntAceHigh;
+            hand.sort(Comparator.comparing(Card::getSuit).thenComparing(rank.andThen(value)));
+        }
     }
 
     private void initPassCards() {
@@ -218,6 +222,7 @@ public class HeartsEngine {
                     });
             i++;
         }
+        sortCards();
         server.updateClients();
         server.resizeClients();
     }

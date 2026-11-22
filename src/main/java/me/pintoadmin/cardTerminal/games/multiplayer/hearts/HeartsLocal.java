@@ -106,7 +106,7 @@ public class HeartsLocal extends Game {
         return false;
     }
 
-    private void drawGame() throws IOException {
+    private synchronized void drawGame() throws IOException {
         screen.clear();
 
         int W = WIDTH.get(), H = HEIGHT.get();
@@ -173,6 +173,7 @@ public class HeartsLocal extends Game {
             // Our cards
             {
                 List<Card> cards = ourCards;
+                if (selectedCard < 0 || selectedCard >= cards.size()) selectedCard = 0;
                 int startingX = (W / 2) - (cards.size() * 3) / 2 - (Card.width / 2);
                 for (Card card : cards) {
                     TextColor cardColor = TextColor.ANSI.WHITE;
@@ -193,7 +194,8 @@ public class HeartsLocal extends Game {
                             cardColor = TextColor.ANSI.GREEN;
                         if (index == selectedCard) cardColor = TextColor.ANSI.YELLOW;
                     }
-                    if (!getPlayableCards(cards).contains(card))
+                    if (!getPlayableCards(cards).contains(card)
+                            && gameState == HeartsEngine.GameState.TRICKS)
                         cardColor = dimColor(cardColor, 0.5f);
 
                     card.setTextColor(cardColor);
@@ -253,7 +255,7 @@ public class HeartsLocal extends Game {
         screen.refresh(Screen.RefreshType.DELTA);
     }
 
-    public void showScores() {
+    public synchronized void showScores() {
         try {
             screen.clear();
             int W = WIDTH.get(), H = HEIGHT.get();
@@ -378,14 +380,12 @@ public class HeartsLocal extends Game {
             List<Card> notSuit = cards.stream().filter(c -> c.getSuit() != activeSuit).toList();
             return sameSuit.isEmpty() ? notSuit : sameSuit;
         } else {
-            if (trick == 0 && startingPlayer == localPlayer)
-                return cards.stream()
-                        .filter(c -> c.getSuit() == Card.Suit.CLUB && c.getRank() == Card.Rank.TWO)
-                        .toList();
-            else
-                return heartsBroken
-                        ? cards.stream().toList()
-                        : cards.stream().filter(c -> c.getSuit() != Card.Suit.HEART).toList();
+            List<Card> playable = new ArrayList<>(cards);
+            if (trick == 0)
+                playable.removeIf(
+                        c -> c.getSuit() != Card.Suit.CLUB || c.getRank() != Card.Rank.TWO);
+            if (!heartsBroken) playable.removeIf(c -> c.getSuit() == Card.Suit.HEART);
+            return playable;
         }
     }
 
