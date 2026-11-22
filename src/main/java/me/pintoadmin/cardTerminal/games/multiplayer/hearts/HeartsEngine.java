@@ -379,9 +379,8 @@ public class HeartsEngine {
 
         server.updateClients();
         server.showScoresClients();
-        server.resizeClients();
         try {
-            Thread.sleep(2000);
+            Thread.sleep(4000);
         } catch (InterruptedException e) {
             System.out.println("Ignored exception: " + e.getMessage());
         }
@@ -411,7 +410,7 @@ public class HeartsEngine {
         Integer winningPlayer = getLowestPlayer();
         Integer winningScore = scores.get(winningPlayer);
 
-        // TODO: announce who won
+        // TODO: announce who won (HeartsEnd)
         server.showScoresClients();
 
         server.deinit();
