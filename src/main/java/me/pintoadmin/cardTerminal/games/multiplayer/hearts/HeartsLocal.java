@@ -175,11 +175,8 @@ public class HeartsLocal extends Game {
                 List<Card> cards = ourCards;
                 int startingX = (W / 2) - (cards.size() * 3) / 2 - (Card.width / 2);
                 for (Card card : cards) {
-                    if (getPlayableCards(cards).contains(card)
-                            || gameState == HeartsEngine.GameState.PASSING
-                            || currentPlayerturn != localPlayer)
-                        card.setTextColor(TextColor.ANSI.WHITE);
-                    else card.setTextColor(new TextColor.RGB(100, 100, 100));
+                    TextColor cardColor = TextColor.ANSI.WHITE;
+
                     int index = cards.indexOf(card);
 
                     int x = startingX + (index * 3);
@@ -193,9 +190,13 @@ public class HeartsLocal extends Game {
                                                 ? 1
                                                 : 0);
                         if (Arrays.stream(passingCards).toList().contains(card))
-                            card.setTextColor(TextColor.ANSI.GREEN);
-                        if (index == selectedCard) card.setTextColor(TextColor.ANSI.YELLOW);
+                            cardColor = TextColor.ANSI.GREEN;
+                        if (index == selectedCard) cardColor = TextColor.ANSI.YELLOW;
                     }
+                    if (!getPlayableCards(cards).contains(card))
+                        cardColor = dimColor(cardColor, 0.5f);
+
+                    card.setTextColor(cardColor);
                     card.draw(x, y, true);
                 }
             }
@@ -400,5 +401,16 @@ public class HeartsLocal extends Game {
         public final long elapsed = HeartsLocal.this.time.get();
         public final String time =
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern("MM-dd-yyyy, hh:mm:ss a"));
+    }
+
+    public static TextColor dimColor(TextColor color, float factor) {
+        // Clamp factor between 0.0 (black) and 1.0 (original)
+        factor = Math.max(0f, Math.min(1f, factor));
+
+        int r = Math.round(color.getRed() * factor);
+        int g = Math.round(color.getGreen() * factor);
+        int b = Math.round(color.getBlue() * factor);
+
+        return new TextColor.RGB(r, g, b);
     }
 }
