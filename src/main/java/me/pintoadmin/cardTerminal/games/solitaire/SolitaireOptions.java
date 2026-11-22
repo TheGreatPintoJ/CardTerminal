@@ -9,7 +9,7 @@ import com.googlecode.lanterna.screen.Screen;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Supplier;
-import me.pintoadmin.cardTerminal.Main;
+import me.pintoadmin.cardTerminal.*;
 import me.pintoadmin.cardTerminal.dev.solitaire.*;
 import me.pintoadmin.cardTerminal.screens.GameOptions;
 
@@ -102,8 +102,41 @@ public class SolitaireOptions extends GameOptions {
             }
             Main.drawRectangle(W / 2, 1, W - 2, startY);
             Main.drawText(3 * W / 4, 1, " Keybinds ");
-            Main.drawRectangle(W / 2, startY + 1, W - 2, H - 2);
-            Main.drawText(3 * W / 4, startY + 1, " History (coming soon) ");
+
+            Main.drawRectangle(W / 2, startY + 1, W - 2, startY + 4);
+            Main.drawText(3 * W / 4, startY + 1, " Statistics ");
+            Main.drawTextLeft(W / 2 + 1, startY + 2, "Average Time");
+            Main.drawTextRight(
+                    W - 2,
+                    startY + 2,
+                    String.valueOf(StatsManager.getAverageTime("solitaire") / 1000.0));
+            Main.drawTextLeft(W / 2 + 1, startY + 3, "Average Moves");
+            Main.drawTextRight(
+                    W - 2, startY + 3, String.valueOf(StatsManager.getAverageMoves("solitaire")));
+
+            Main.drawRectangle(W / 2, startY + 5, W - 2, H - 2);
+            Main.drawText(3 * W / 4, startY + 5, " History ");
+            startY += 6;
+            int i = 0;
+            for (Map<String, Object> map : StatsManager.getGames("solitaire").reversed()) {
+                if (startY + i + 4 >= H - 2) {
+                    Main.drawText(3 * W / 4, startY + i, "...");
+                    break;
+                }
+
+                String seed = map.get("seed").toString();
+                int moves = (int) map.get("moves");
+                long elapsed = (long) map.get("elapsed");
+
+                Main.drawRectangle(W / 2 + 1, startY + i, W - 3, startY + i + 4);
+                Main.drawText(3 * W / 4, startY + i, map.get("time").toString());
+
+                Main.drawTextLeft(W / 2 + 2, startY + i + 1, "Seed: " + seed);
+                Main.drawTextLeft(W / 2 + 2, startY + i + 2, "Moves: " + moves);
+                Main.drawTextLeft(W / 2 + 2, startY + i + 3, "Time: " + (elapsed / 1000.0));
+
+                i += 5;
+            }
         }
 
         screen.refresh(Screen.RefreshType.AUTOMATIC);

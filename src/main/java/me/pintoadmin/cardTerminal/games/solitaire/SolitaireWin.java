@@ -25,7 +25,7 @@ public class SolitaireWin extends EndScreen {
 
         addStat("Seed", String.valueOf(solitaire.getSeed()));
         addStat("Moves", String.valueOf(stats.moves));
-        addStat("Time", String.format("%.3f", stats.time / 1000.0) + "s");
+        addStat("Elapsed Time", String.format("%.3f", stats.elapsed / 1000.0) + "s");
 
         show();
         StatsManager.addGame("solitaire", stats);

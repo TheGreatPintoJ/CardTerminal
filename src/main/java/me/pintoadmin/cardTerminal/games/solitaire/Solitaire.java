@@ -6,6 +6,8 @@ import com.googlecode.lanterna.*;
 import com.googlecode.lanterna.input.*;
 import com.googlecode.lanterna.screen.*;
 import java.io.*;
+import java.time.*;
+import java.time.format.*;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.*;
@@ -500,6 +502,8 @@ public class Solitaire extends Game {
     public class Stats {
         public final String seed = String.valueOf(Solitaire.this.SEED);
         public final int moves = Solitaire.this.moves.size();
-        public final long time = Solitaire.this.time.get();
+        public final long elapsed = Solitaire.this.time.get();
+        public final String time =
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("MM-dd-yyyy, hh:mm:ss a"));
     }
 }
