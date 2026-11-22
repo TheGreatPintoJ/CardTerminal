@@ -66,51 +66,69 @@ public class HeartsEngine {
         else this.endingPoints = 100;
         this.server = new HeartsServer(51337, this);
 
-        // TODO: Autoplay passing
         autoplay =
                 new Thread(
                         () -> {
                             int lastTrick = -1;
                             int lastTurn = -1;
                             while (true) {
-                                int turn = currentPlayerTurn.get();
-                                if (lastTurn == turn && lastTrick == trick) {
-                                    try {
-                                        Thread.sleep(100);
-                                    } catch (InterruptedException e) {
-                                        System.out.println("Ignored exception: " + e.getMessage());
+                                if (state == GameState.TRICKS) {
+                                    int turn = currentPlayerTurn.get();
+                                    if (lastTurn == turn && lastTrick == trick) {
+                                        try {
+                                            Thread.sleep(100);
+                                        } catch (InterruptedException e) {
+                                            System.out.println(
+                                                    "Ignored exception: " + e.getMessage());
+                                        }
+                                        continue;
                                     }
-                                    continue;
-                                }
-                                if (!server.isRemotePlayerConnected(turn)) {
-                                    try {
-                                        Thread.sleep(1000);
-                                    } catch (InterruptedException e) {
-                                        System.out.println("Ignored exception: " + e.getMessage());
+                                    if (!server.isRemotePlayerConnected(turn)) {
+                                        try {
+                                            Thread.sleep(1000);
+                                        } catch (InterruptedException e) {
+                                            System.out.println(
+                                                    "Ignored exception: " + e.getMessage());
+                                        }
+                                        int trickBeforePlay = trick;
+                                        List<Card> all = getCards(turn);
+                                        if (all.isEmpty()) continue;
+                                        List<Card> playable = getPlayableCards(turn);
+                                        Card thisCard =
+                                                !playable.isEmpty()
+                                                        ? playable.size() == 1
+                                                                ? playable.getFirst()
+                                                                : playable.get(
+                                                                        new Random()
+                                                                                .nextInt(
+                                                                                        playable
+                                                                                                        .size()
+                                                                                                - 1))
+                                                        : all.size() == 1
+                                                                ? all.getFirst()
+                                                                : all.get(
+                                                                        new Random()
+                                                                                .nextInt(
+                                                                                        all.size()
+                                                                                                - 1));
+                                        if (playCard(turn, thisCard)) {
+                                            lastTrick = trickBeforePlay;
+                                            lastTurn = turn;
+                                        }
                                     }
-                                    int trickBeforePlay = trick;
-                                    List<Card> all = getCards(turn);
-                                    if (all.isEmpty()) continue;
-                                    List<Card> playable = getPlayableCards(turn);
-                                    Card thisCard =
-                                            !playable.isEmpty()
-                                                    ? playable.size() == 1
-                                                            ? playable.getFirst()
-                                                            : playable.get(
-                                                                    new Random()
-                                                                            .nextInt(
-                                                                                    playable.size()
-                                                                                            - 1))
-                                                    : all.size() == 1
-                                                            ? all.getFirst()
-                                                            : all.get(
-                                                                    new Random()
-                                                                            .nextInt(
-                                                                                    all.size()
-                                                                                            - 1));
-                                    if (playCard(turn, thisCard)) {
-                                        lastTrick = trickBeforePlay;
-                                        lastTurn = turn;
+                                } else if (state == GameState.PASSING) {
+                                    for (int player = 1; player < 4; player++) {
+                                        if (!server.isRemotePlayerConnected(player)) {
+                                            List<Card> all = getCards(player);
+                                            Card[] cards = new Card[3];
+                                            for (int i = 0; i < 3; i++) {
+                                                cards[i] =
+                                                        all.get(
+                                                                new Random()
+                                                                        .nextInt(all.size() - 1));
+                                            }
+                                            passCards(player, cards);
+                                        }
                                     }
                                 }
                             }
@@ -246,7 +264,8 @@ public class HeartsEngine {
 
         // force two of clubs on first play of first trick
         if (trick == 0 && firstTurn)
-            if (card.getSuit() != Card.Suit.CLUB || card.getRank() != Card.Rank.TWO) return false;
+            if (card.getSuit() != me.pintoadmin.cardTerminal.Card.Suit.CLUB
+                    || card.getRank() != me.pintoadmin.cardTerminal.Card.Rank.TWO) return false;
 
         boolean hasNonPenaltyLegalCard =
                 hands[player].stream()
@@ -357,6 +376,7 @@ public class HeartsEngine {
         }
 
         server.updateClients();
+        server.showScoresClients();
         server.resizeClients();
         try {
             Thread.sleep(2000);

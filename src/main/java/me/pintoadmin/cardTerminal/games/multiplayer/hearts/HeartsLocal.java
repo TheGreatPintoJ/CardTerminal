@@ -300,15 +300,6 @@ public class HeartsLocal extends Game {
             case Enter:
                 if (gameState == HeartsEngine.GameState.PASSING) {
                     submitPassCards(localPlayer, passingCards);
-                    if (!isRemoteGame()) {
-                        for (int player = 1; player < 4; player++) {
-                            if (!engine.getServer().isRemotePlayerConnected(player)) {
-                                submitPassCards(
-                                        player,
-                                        engine.getCards(player).subList(0, 3).toArray(new Card[0]));
-                            }
-                        }
-                    }
                 }
                 break;
         }
