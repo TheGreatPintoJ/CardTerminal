@@ -107,6 +107,8 @@ public class Main {
 
         thisOS = type;
 
+        StatsManager.createIfNotExists();
+
         try {
             terminal = new DefaultTerminalFactory().createTerminal();
             screen = new TerminalScreen(terminal);

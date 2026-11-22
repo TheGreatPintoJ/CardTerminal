@@ -28,6 +28,7 @@ public class SolitaireWin extends EndScreen {
         addStat("Time", String.format("%.3f", stats.time / 1000.0) + "s");
 
         show();
+        StatsManager.addGame("solitaire", stats);
     }
 
     @Override
@@ -74,7 +75,7 @@ public class SolitaireWin extends EndScreen {
             g.disableModifiers(SGR.BLINK);
 
             int startY = 15;
-            Main.drawText(W/2, startY-2, "Solitaire");
+            Main.drawText(W / 2, startY - 2, "Solitaire");
             Main.drawRectangle(W / 4 - 1, startY - 1, 3 * W / 4 + 1, startY + gameStats.size());
             for (Map.Entry<String, String> stat : gameStats.entrySet()) {
                 String k = stat.getKey(), v = stat.getValue();
