@@ -7,13 +7,18 @@ import com.googlecode.lanterna.input.*;
 import com.googlecode.lanterna.screen.*;
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.function.*;
 import me.pintoadmin.cardTerminal.*;
-import me.pintoadmin.cardTerminal.screens.MainMenu;
 
 public class Solitaire extends Game {
     private final GameType type;
     private final long SEED;
+
+    private final long startTime = System.nanoTime();
+    private final Supplier<Long> time =
+            () -> TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
+
     private final Deck deck;
     private final Foundation foundation;
     private final LinkedList<LinkedList<Card>> stock = new LinkedList<>(); // 2d, column:row:card
@@ -421,15 +426,13 @@ public class Solitaire extends Game {
         if (foundation.checkWin()) { // || true for testing
             // Player won
             clearSelected();
-            win();
-            new Solitaire(type, SEED, moves);
             try {
-                Thread.sleep(1000);
+                Thread.sleep(500);
             } catch (InterruptedException e) {
                 System.out.println("Ignored exception: " + e.getMessage());
             }
-            Main.getInstance().setCurrentScreen(new MainMenu());
-
+            new Solitaire(type, SEED, moves);
+            Main.getInstance().setCurrentScreen(new SolitaireWin(this));
             return true;
         }
         return false;
@@ -488,5 +491,15 @@ public class Solitaire extends Game {
 
     public LinkedList<LinkedList<Card>> getStock() {
         return stock;
+    }
+
+    public Stats newStats() {
+        return new Stats();
+    }
+
+    public class Stats {
+        public final String seed = String.valueOf(Solitaire.this.SEED);
+        public final int moves = Solitaire.this.moves.size();
+        public final long time = Solitaire.this.time.get();
     }
 }

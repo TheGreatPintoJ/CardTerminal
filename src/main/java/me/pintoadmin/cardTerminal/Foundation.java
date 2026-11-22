@@ -95,7 +95,9 @@ public class Foundation {
 
     public boolean addCard(Card card) {
         if (cards.contains(card)) return false;
-        if (card.getRank().toInt() - 1 == piles.get(card.getSuit()).getLast().getRank().toInt()) {
+        if ((piles.get(card.getSuit()).isEmpty() && card.getRank() == Card.Rank.ACE)
+                || card.getRank().toInt() - 1
+                        == piles.get(card.getSuit()).getLast().getRank().toInt()) {
             piles.get(card.getSuit()).add(card);
             cards.add(card);
             return true;
@@ -122,6 +124,7 @@ public class Foundation {
     }
 
     public Card getTopCard(Card.Suit suit) {
+        if (piles.get(suit).isEmpty()) return null;
         Card.Rank rank = piles.get(suit).getLast().getRank();
         if (rank == null) return null;
         return deck.getCard(rank, suit);

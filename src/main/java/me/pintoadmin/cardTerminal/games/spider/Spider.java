@@ -8,13 +8,20 @@ import com.googlecode.lanterna.input.*;
 import com.googlecode.lanterna.screen.*;
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.function.*;
 import me.pintoadmin.cardTerminal.*;
+import me.pintoadmin.cardTerminal.games.solitaire.*;
 import me.pintoadmin.cardTerminal.screens.*;
 
 public class Spider extends Game {
     private final long SEED;
     private final GameType type;
+
+    private final long startTime = System.nanoTime();
+    private final Supplier<Long> time =
+            () -> TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
+
     private final Deck deck;
     private final LinkedList<LinkedList<Card>> stock = new LinkedList<>(); // Ten piles
     private final LinkedList<SpiderMove> moves = new LinkedList<>();
@@ -326,7 +333,7 @@ public class Spider extends Game {
                 win();
                 new Spider(SEED, type, moves);
                 Thread.sleep(1000);
-                Main.getInstance().setCurrentScreen(new MainMenu());
+                Main.getInstance().setCurrentScreen(new SpiderWin(this));
             }
         } catch (IOException | InterruptedException e) {
             System.out.println("Ignored exception: " + e.getMessage());
@@ -423,5 +430,15 @@ public class Spider extends Game {
 
     public LinkedList<LinkedList<Card>> getStock() {
         return stock;
+    }
+
+    public Stats newStats() {
+        return new Spider.Stats();
+    }
+
+    public class Stats {
+        public final String seed = String.valueOf(Spider.this.SEED);
+        public final int moves = Spider.this.moves.size();
+        public final long time = Spider.this.time.get();
     }
 }
