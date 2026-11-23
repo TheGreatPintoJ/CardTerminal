@@ -52,6 +52,7 @@ public class HeartsLocal extends Game {
     protected int localPlayer = 0;
 
     private boolean showingScores = false;
+    private int escapeCount = 0;
 
     public void updateLocals() {
         ourCards = engine.getCards(0);
@@ -299,6 +300,20 @@ public class HeartsLocal extends Game {
             }
         }
 
+        if (escapeCount > 0) {
+            g.setForegroundColor(TextColor.ANSI.RED);
+            int timesLeft = 2 - escapeCount + 1;
+            Main.drawTextLeft(
+                    0,
+                    H - 1,
+                    "Press escape "
+                            + timesLeft
+                            + " more time"
+                            + (timesLeft == 1 ? "" : "s")
+                            + " to leave");
+            g.setForegroundColor(TextColor.ANSI.WHITE);
+        }
+
         screen.refresh(Screen.RefreshType.DELTA);
     }
 
@@ -368,10 +383,17 @@ public class HeartsLocal extends Game {
 
     @Override
     public Action handleInput(KeyStroke keyStroke) {
+        if (keyStroke.getKeyType() != KeyType.Escape) escapeCount = 0;
         switch (keyStroke.getKeyType()) {
             case Escape:
-                if (!isRemoteGame()) engine.endGame();
-                return Action.BACK_TO_MENU;
+                if (escapeCount < 2) {
+                    if (gameState != HeartsEngine.GameState.PREGAME) escapeCount++;
+                    resize();
+                    return Action.NULL;
+                } else {
+                    if (!isRemoteGame()) engine.endGame();
+                    return Action.BACK_TO_MENU;
+                }
             case ArrowLeft:
                 if (selectedCard > 0) selectedCard--;
                 break;

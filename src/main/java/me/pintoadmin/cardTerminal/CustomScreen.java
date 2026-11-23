@@ -7,7 +7,8 @@ public abstract class CustomScreen {
         NONE,
         BACK_TO_MENU,
         RESTART,
-        NEW_GAME
+        NEW_GAME,
+        NULL
     }
 
     public abstract void resize();
