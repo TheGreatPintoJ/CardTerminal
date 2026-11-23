@@ -166,9 +166,11 @@ public class HeartsLocal extends Game {
                 g.setForegroundColor(TextColor.ANSI.WHITE);
                 int infoX = 4 + (Card.width / 2);
                 int infoY = y - 16;
-                Main.drawText(infoX, infoY, "Player 1");
+                Main.drawText(infoX, infoY, "Player " + ((localPlayer + 1) % 4));
                 Main.drawText(
-                        infoX, infoY + 1, "Score: " + HeartsEngine.getScore(wonTricks.get(1)));
+                        infoX,
+                        infoY + 1,
+                        "Score: " + HeartsEngine.getScore(wonTricks.get(((localPlayer + 1) % 4))));
             }
             // draw third player's cards
             {
@@ -180,9 +182,11 @@ public class HeartsLocal extends Game {
                 g.setForegroundColor(TextColor.ANSI.WHITE);
                 int infoX = x - 7 - (39 / 2);
                 int infoY = 2 + (Card.height / 2);
-                Main.drawText(infoX, infoY, "Player 2");
+                Main.drawText(infoX, infoY, "Player " + ((localPlayer + 2) % 4));
                 Main.drawText(
-                        infoX, infoY + 1, "Score: " + HeartsEngine.getScore(wonTricks.get(2)));
+                        infoX,
+                        infoY + 1,
+                        "Score: " + HeartsEngine.getScore(wonTricks.get((localPlayer + 2))));
             }
             // draw fourth player's cards
             {
@@ -194,9 +198,11 @@ public class HeartsLocal extends Game {
                 g.setForegroundColor(TextColor.ANSI.WHITE);
                 int infoX = W - (4 + (Card.width / 2));
                 int infoY = y - 16;
-                Main.drawText(infoX, infoY, "Player 3");
+                Main.drawText(infoX, infoY, "Player " + ((localPlayer + 3) % 4));
                 Main.drawText(
-                        infoX, infoY + 1, "Score: " + HeartsEngine.getScore(wonTricks.get(3)));
+                        infoX,
+                        infoY + 1,
+                        "Score: " + HeartsEngine.getScore(wonTricks.get(((localPlayer + 3) % 4))));
             }
 
             // Our cards
@@ -232,11 +238,10 @@ public class HeartsLocal extends Game {
                     card.draw(x, y, true);
                 }
                 g.setForegroundColor(TextColor.ANSI.WHITE);
-                int infoX = preX - 7 - (39 / 2);
-                int infoY = H - (1 + (Card.height / 2));
-                Main.drawText(infoX, infoY, "Player 0");
                 Main.drawText(
-                        infoX, infoY + 1, "Score: " + HeartsEngine.getScore(wonTricks.get(0)));
+                        W / 2,
+                        H - Card.height - 4,
+                        "Score: " + HeartsEngine.getScore(wonTricks.get(localPlayer)));
             }
 
             // Player turn text, or passing text
