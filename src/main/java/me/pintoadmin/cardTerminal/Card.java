@@ -26,10 +26,10 @@ public class Card {
     private TextColor cardTextColor = TextColor.ANSI.WHITE;
 
     public enum Suit {
-        SPADE,
-        CLUB,
         HEART,
-        DIAMOND;
+        SPADE,
+        DIAMOND,
+        CLUB;
 
         public boolean isOppositeColor(Suit suit) {
             return (this == Suit.HEART || this == Suit.DIAMOND)

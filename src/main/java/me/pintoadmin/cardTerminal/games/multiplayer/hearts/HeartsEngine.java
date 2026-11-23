@@ -47,7 +47,8 @@ public class HeartsEngine {
 
     Function<Card, Card.Rank> sortByRank = Card::getRank;
     Function<Card.Rank, Integer> sortByValue = Card.Rank::toIntAceHigh;
-    Comparator<Card> compareRankThenValue = Comparator.comparing(sortByRank.andThen(sortByValue));
+    Comparator<Card> compareRankThenValue =
+            Comparator.comparing(sortByRank.andThen(sortByValue)).reversed();
 
     private GameState state = GameState.PREGAME;
 
