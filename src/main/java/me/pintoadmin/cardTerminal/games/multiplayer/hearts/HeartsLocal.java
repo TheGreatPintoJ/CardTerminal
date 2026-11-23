@@ -51,6 +51,8 @@ public class HeartsLocal extends Game {
     protected Map<Integer, List<Card>> wonTricks = new HashMap<>();
     protected int localPlayer = 0;
 
+    private boolean showingScores = false;
+
     public void updateLocals() {
         ourCards = engine.getCards(0);
         currentPlayerturn = engine.getCurrentPlayerTurn();
@@ -109,6 +111,10 @@ public class HeartsLocal extends Game {
     }
 
     private synchronized void drawGame() throws IOException {
+        if (showingScores) {
+            showScores();
+            return;
+        }
         screen.clear();
 
         int W = WIDTH.get(), H = HEIGHT.get();
@@ -297,12 +303,13 @@ public class HeartsLocal extends Game {
     }
 
     public synchronized void showScores() {
+        showingScores = true;
         try {
             screen.clear();
             int W = WIDTH.get(), H = HEIGHT.get();
 
             g.enableModifiers(SGR.BOLD);
-            Main.drawText(W / 2, H / 2 - 7, "End of round scores");
+            Main.drawText(W / 2, H / 2 - 7, "End of last round scores");
 
             Map<Integer, Integer> scores = this.scores;
             Map<Integer, Integer> sorted =
@@ -321,6 +328,7 @@ public class HeartsLocal extends Game {
                 int value = entry.getValue();
 
                 String name = "Player " + player;
+                if (i == localPlayer) name = "You";
                 Main.drawTextLeft(W / 2 - 11, H / 2 - 4 + i, name);
                 Main.drawTextRight(W / 2 + 5, H / 2 - 4 + i, String.valueOf(value));
 
@@ -396,6 +404,10 @@ public class HeartsLocal extends Game {
                     }
                 }
                 break;
+            case Tab:
+                showingScores = !showingScores;
+                resize();
+                return Action.NONE;
             case Enter:
                 if (gameState == HeartsEngine.GameState.PREGAME) {
                     if (!isRemoteGame()) engine.start();
