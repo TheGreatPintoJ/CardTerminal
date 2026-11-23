@@ -53,6 +53,7 @@ public class HeartsLocal extends Game {
 
     private boolean showingScores = false;
     private int escapeCount = 0;
+    private boolean passedCards = false;
 
     public void updateLocals() {
         ourCards = engine.getCards(0);
@@ -228,6 +229,7 @@ public class HeartsLocal extends Game {
 
                     if (currentPlayerturn == localPlayer
                             || gameState == HeartsEngine.GameState.PASSING) {
+                        if (gameState == HeartsEngine.GameState.TRICKS) passedCards = false;
                         // elevate cursor and selected cards
                         y -=
                                 (index == selectedCard ? 2 : 0)
@@ -235,7 +237,7 @@ public class HeartsLocal extends Game {
                                                 ? 1
                                                 : 0);
                         if (Arrays.stream(passingCards).toList().contains(card))
-                            cardColor = TextColor.ANSI.GREEN;
+                            cardColor = passedCards ? TextColor.ANSI.BLUE : TextColor.ANSI.GREEN;
                         if (index == selectedCard) cardColor = TextColor.ANSI.YELLOW;
                     }
                     if (!getPlayableCards(cards).contains(card)
@@ -403,7 +405,7 @@ public class HeartsLocal extends Game {
                 break;
             case Character:
                 if (keyStroke.getCharacter() == ' ') {
-                    if (gameState == HeartsEngine.GameState.PASSING) {
+                    if (gameState == HeartsEngine.GameState.PASSING && !passedCards) {
                         Card selected = ourCards.get(selectedCard);
                         if (Arrays.stream(passingCards).toList().contains(selected)) {
                             passingCards[Arrays.stream(passingCards).toList().indexOf(selected)] =
@@ -436,6 +438,7 @@ public class HeartsLocal extends Game {
                     if (!isRemoteGame()) engine.start();
                 } else if (gameState == HeartsEngine.GameState.PASSING) {
                     submitPassCards(localPlayer, passingCards);
+                    passedCards = true;
                 }
                 break;
         }
