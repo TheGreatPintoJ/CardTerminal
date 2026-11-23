@@ -71,6 +71,7 @@ public class HeartsRemote extends HeartsLocal {
             message.cardIndices[i] = ourCards.indexOf(cards[i]);
         }
         send(message);
+        passingCards = new Card[3];
     }
 
     @Override

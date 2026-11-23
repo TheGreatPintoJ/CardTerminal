@@ -33,7 +33,7 @@ public class HeartsLocal extends Game {
     private final Supplier<Integer> WIDTH = () -> g.getSize().getColumns();
     private final Supplier<Integer> HEIGHT = () -> g.getSize().getRows();
 
-    private Card[] passingCards = new Card[3];
+    protected Card[] passingCards = new Card[3];
 
     private int selectedCard = 0;
 
@@ -106,6 +106,7 @@ public class HeartsLocal extends Game {
 
     protected void submitPassCards(int player, Card[] cards) {
         engine.passCards(player, cards);
+        passingCards = new Card[3];
     }
 
     protected boolean isRemoteGame() {
@@ -287,7 +288,7 @@ public class HeartsLocal extends Game {
                 List<Card> cards = playedCards;
                 for (Card card : cards) {
                     int index = cards.indexOf(card) + startingPlayer - localPlayer;
-                    int x = (W / 2) - (Card.width / 2), y = (H / 2) - (Card.height / 2);
+                    int x = (W / 2) - (Card.width / 2), y = (H / 2) - (me.pintoadmin.cardTerminal.Card.height / 2);
 
                     card.setTextColor(TextColor.ANSI.WHITE);
 
@@ -321,7 +322,6 @@ public class HeartsLocal extends Game {
     }
 
     public synchronized void showScores() {
-        showingScores = true;
         try {
             screen.clear();
             int W = WIDTH.get(), H = HEIGHT.get();
@@ -462,7 +462,7 @@ public class HeartsLocal extends Game {
             List<Card> playable = new ArrayList<>(cards);
             if (trick == 0)
                 playable.removeIf(
-                        c -> c.getSuit() != Card.Suit.CLUB || c.getRank() != Card.Rank.TWO);
+                        c -> c.getSuit() != Card.Suit.CLUB || c.getRank() != me.pintoadmin.cardTerminal.Card.Rank.TWO);
             if (!heartsBroken) playable.removeIf(c -> c.getSuit() == Card.Suit.HEART);
             return playable;
         }
