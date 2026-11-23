@@ -147,7 +147,13 @@ public class HeartsServer {
             message.activeSuit =
                     engine.getActiveSuit() == null ? null : engine.getActiveSuit().name();
             message.trick = engine.getTrick();
-            message.wonTricks = engine.getWonTricks();
+            for (int i = 0; i < 4; i++) {
+                message.wonTricks.put(
+                        i,
+                        engine.getWonTricks().get(i).stream()
+                                .map(HeartsProtocol.CardData::new)
+                                .toList());
+            }
         }
         send(client, message);
     }
