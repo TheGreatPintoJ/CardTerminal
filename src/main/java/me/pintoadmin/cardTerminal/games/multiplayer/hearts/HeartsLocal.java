@@ -226,7 +226,8 @@ public class HeartsLocal extends Game {
                     int x = startingX + (index * 3);
                     int y = H - 7;
 
-                    if (currentPlayerturn == localPlayer) {
+                    if (currentPlayerturn == localPlayer
+                            || gameState == HeartsEngine.GameState.PASSING) {
                         // elevate cursor and selected cards
                         y -=
                                 (index == selectedCard ? 2 : 0)
