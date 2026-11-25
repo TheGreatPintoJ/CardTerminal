@@ -110,8 +110,7 @@ public class HeartsEngine {
                                                             ? suits.get(
                                                                     new Random()
                                                                             .nextInt(
-                                                                                    suits.size()
-                                                                                            - 1))
+                                                                                    suits.size()))
                                                             : suits.getFirst();
                                             Card thisCard;
                                             if (startingPlayer == turn || highestRank == null) {
@@ -231,9 +230,7 @@ public class HeartsEngine {
                                                     cards[i] =
                                                             all.get(
                                                                     new Random()
-                                                                            .nextInt(
-                                                                                    all.size()
-                                                                                            - 1));
+                                                                            .nextInt(all.size()));
                                                 }
                                                 passCards(player, cards);
                                             }
