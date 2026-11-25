@@ -76,134 +76,172 @@ public class HeartsEngine {
                             int lastTrick = -1;
                             int lastTurn = -1;
                             while (true) {
-                                if (state == GameState.TRICKS) {
-                                    int turn = currentPlayerTurn.get();
-                                    if (lastTurn == turn && lastTrick == trick) {
-                                        try {
-                                            Thread.sleep(100);
-                                        } catch (InterruptedException e) {
-                                            System.out.println(
-                                                    "Ignored exception: " + e.getMessage());
+                                try {
+                                    if (state == GameState.TRICKS) {
+                                        int turn = currentPlayerTurn.get();
+                                        if (lastTurn == turn && lastTrick == trick) {
+                                            try {
+                                                Thread.sleep(100);
+                                            } catch (InterruptedException e) {
+                                                System.out.println(
+                                                        "Ignored exception: " + e.getMessage());
+                                            }
+                                            continue;
                                         }
-                                        continue;
-                                    }
-                                    if (!server.isRemotePlayerConnected(turn)) {
-                                        try {
-                                            Thread.sleep(1000);
-                                        } catch (InterruptedException e) {
-                                            System.out.println(
-                                                    "Ignored exception: " + e.getMessage());
-                                        }
-                                        int trickBeforePlay = trick;
-                                        List<Card> all = getCards(turn);
-                                        if (all.isEmpty()) continue;
-                                        List<Card> playable = getPlayableCards(turn);
-                                        List<Card.Suit> suits =
-                                                new ArrayList<>(
-                                                        playable.stream()
-                                                                .map(Card::getSuit)
-                                                                .distinct()
-                                                                .toList());
-                                        Card.Suit randSuit =
-                                                suits.size() > 1
-                                                        ? suits.get(
-                                                                new Random()
-                                                                        .nextInt(suits.size() - 1))
-                                                        : suits.getFirst();
-                                        Card thisCard;
-                                        if (startingPlayer == turn) {
-                                            // Get lowest of a random suit
-                                            thisCard =
-                                                    playable.stream()
-                                                            .filter(c -> c.getSuit() == randSuit)
-                                                            .sorted(compareRankThenValue)
-                                                            .toList()
-                                                            .getFirst();
-                                        } else {
-                                            // get all playable lower than the highest rank
-                                            List<Card> lowerThan =
+                                        if (!server.isRemotePlayerConnected(turn)) {
+                                            try {
+                                                Thread.sleep(100); // 1k ms = 1s
+                                            } catch (InterruptedException e) {
+                                                System.out.println(
+                                                        "Ignored exception: " + e.getMessage());
+                                            }
+                                            int trickBeforePlay = trick;
+                                            List<Card> all = getCards(turn);
+                                            if (all.isEmpty()) continue;
+                                            List<Card> playable = getPlayableCards(turn);
+                                            List<Card.Suit> suits =
                                                     new ArrayList<>(
                                                             playable.stream()
+                                                                    .map(Card::getSuit)
+                                                                    .distinct()
+                                                                    .toList());
+                                            Card.Suit randSuit =
+                                                    suits.size() > 1
+                                                            ? suits.get(
+                                                                    new Random()
+                                                                            .nextInt(
+                                                                                    suits.size()
+                                                                                            - 1))
+                                                            : suits.getFirst();
+                                            Card thisCard;
+                                            if (startingPlayer == turn || highestRank == null) {
+                                                // Get lowest of a random suit
+                                                if (trick == 0) {
+                                                    System.out.println("Trick is zero");
+                                                    thisCard =
+                                                            all.stream()
                                                                     .filter(
                                                                             c ->
-                                                                                    c.getRank()
-                                                                                                    .toIntAceHigh()
-                                                                                            < highestRank
-                                                                                                    .toIntAceHigh())
-                                                                    .toList());
-                                            lowerThan.sort(compareRankThenValue);
-                                            List<Card> higherThan =
-                                                    new ArrayList<>(
-                                                            playable.stream()
-                                                                    .filter(
-                                                                            c ->
-                                                                                    c.getRank()
-                                                                                                    .toIntAceHigh()
-                                                                                            > highestRank
-                                                                                                    .toIntAceHigh())
-                                                                    .toList());
-                                            higherThan.sort(compareRankThenValue);
-                                            if (!lowerThan.isEmpty()) {
-                                                thisCard = lowerThan.getLast();
-                                            } else {
-                                                if (!higherThan.isEmpty()) {
-                                                    thisCard = higherThan.getFirst();
-                                                } else {
-                                                    // lower than is empty, higher than is empty
-                                                    // (not cards of that suit)
-                                                    // get all hearts
-                                                    List<Card> hearts =
-                                                            new ArrayList<>(
-                                                                    all.stream()
-                                                                            .filter(
-                                                                                    c ->
-                                                                                            c
-                                                                                                            .getSuit()
+                                                                                    c.getSuit()
                                                                                                     == Card
                                                                                                             .Suit
-                                                                                                            .HEART)
+                                                                                                            .CLUB
+                                                                                            && c
+                                                                                                            .getRank()
+                                                                                                    == Card
+                                                                                                            .Rank
+                                                                                                            .TWO)
+                                                                    .toList()
+                                                                    .getFirst();
+                                                } else {
+                                                    thisCard =
+                                                            playable.stream()
+                                                                    .filter(
+                                                                            c ->
+                                                                                    c.getSuit()
+                                                                                            == randSuit)
+                                                                    .sorted(compareRankThenValue)
+                                                                    .toList()
+                                                                    .reversed()
+                                                                    .getFirst();
+                                                }
+                                            } else {
+                                                // get all playable lower than the highest rank
+                                                List<Card> lowerThan =
+                                                        new ArrayList<>(
+                                                                playable.stream()
+                                                                        .filter(
+                                                                                c ->
+                                                                                        c.getRank()
+                                                                                                        .toIntAceHigh()
+                                                                                                < highestRank
+                                                                                                        .toIntAceHigh())
+                                                                        .toList()
+                                                                        .reversed());
+                                                lowerThan.sort(compareRankThenValue);
+                                                List<Card> higherThan =
+                                                        new ArrayList<>(
+                                                                playable.stream()
+                                                                        .filter(
+                                                                                c ->
+                                                                                        c.getRank()
+                                                                                                        .toIntAceHigh()
+                                                                                                > highestRank
+                                                                                                        .toIntAceHigh())
+                                                                        .toList()
+                                                                        .reversed());
+                                                higherThan.sort(compareRankThenValue);
+                                                if (!lowerThan.isEmpty()) {
+                                                    thisCard = lowerThan.getLast();
+                                                } else {
+                                                    if (!higherThan.isEmpty()) {
+                                                        thisCard = higherThan.getFirst();
+                                                    } else {
+                                                        // lower than is empty, higher than is empty
+                                                        // (not cards of that suit)
+                                                        // get all hearts
+                                                        List<Card> hearts =
+                                                                new ArrayList<>(
+                                                                        all.stream()
+                                                                                .filter(
+                                                                                        c ->
+                                                                                                c
+                                                                                                                .getSuit()
+                                                                                                        == Card
+                                                                                                                .Suit
+                                                                                                                .HEART)
+                                                                                .sorted(
+                                                                                        compareRankThenValue)
+                                                                                .toList());
+                                                        if (hearts.isEmpty()) {
+                                                            // play the highest ranked card in
+                                                            // general
+                                                            thisCard =
+                                                                    all.stream()
                                                                             .sorted(
                                                                                     compareRankThenValue)
-                                                                            .toList());
-                                                    if (hearts.isEmpty()) {
-                                                        // play the highest ranked card in general
-                                                        thisCard =
-                                                                all.stream()
-                                                                        .sorted(
-                                                                                compareRankThenValue)
-                                                                        .toList()
-                                                                        .getLast();
-                                                    } else {
-                                                        // play the highest hearts card
-                                                        thisCard = hearts.getLast();
+                                                                            .toList()
+                                                                            .getLast();
+                                                        } else {
+                                                            // play the highest hearts card
+                                                            thisCard = hearts.getLast();
+                                                        }
                                                     }
                                                 }
                                             }
-                                        }
-                                        if (playCard(turn, thisCard)) {
-                                            lastTrick = trickBeforePlay;
-                                            lastTurn = turn;
-                                        } else {
-                                            System.err.println(
-                                                    "Bot could not play card: "
-                                                            + thisCard.getRank().toChars()
-                                                            + thisCard.getSuit().toChar());
-                                        }
-                                    }
-                                } else if (state == GameState.PASSING) {
-                                    for (int player = 1; player < 4; player++) {
-                                        if (!server.isRemotePlayerConnected(player)) {
-                                            List<Card> all = getCards(player);
-                                            Card[] cards = new Card[3];
-                                            for (int i = 0; i < 3; i++) {
-                                                cards[i] =
-                                                        all.get(
-                                                                new Random()
-                                                                        .nextInt(all.size() - 1));
+                                            if (playCard(turn, thisCard)) {
+                                                lastTrick = trickBeforePlay;
+                                                lastTurn = turn;
+                                            } else {
+                                                System.err.println(
+                                                        "Bot "
+                                                                + turn
+                                                                + " could not play card: "
+                                                                + thisCard.getRank().toChars()
+                                                                + thisCard.getSuit().toChar());
                                             }
-                                            passCards(player, cards);
+                                        }
+                                    } else if (state == GameState.PASSING) {
+                                        for (int player = 1; player < 4; player++) {
+                                            if (!server.isRemotePlayerConnected(player)
+                                                    && passingCards.get(player) == null) {
+                                                List<Card> all = getCards(player);
+                                                Card[] cards = new Card[3];
+                                                for (int i = 0; i < 3; i++) {
+                                                    cards[i] =
+                                                            all.get(
+                                                                    new Random()
+                                                                            .nextInt(
+                                                                                    all.size()
+                                                                                            - 1));
+                                                }
+                                                passCards(player, cards);
+                                            }
                                         }
                                     }
+                                } catch (NoSuchElementException e) {
+                                    System.out.println(
+                                            "No card after filtering - " + e.getMessage());
                                 }
                             }
                         });
@@ -221,7 +259,6 @@ public class HeartsEngine {
     private void newDeal() {
         heartsBroken = false;
         trick = 0;
-        deal++;
         playedCards.clear();
         passingCards.clear();
         wonTrickCards.values().forEach(List::clear);
@@ -240,10 +277,12 @@ public class HeartsEngine {
 
         sortCards();
 
+        deal++;
         if (deal % 4 == 3) {
             state = GameState.TRICKS;
             initPassCards();
         } else state = GameState.PASSING;
+        System.out.println("Pass type number: " + (deal % 4));
 
         server.updateClients();
         server.resizeClients();

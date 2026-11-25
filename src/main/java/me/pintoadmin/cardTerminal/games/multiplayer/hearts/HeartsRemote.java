@@ -3,7 +3,6 @@ package me.pintoadmin.cardTerminal.games.multiplayer.hearts;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.googlecode.lanterna.input.KeyStroke;
-import com.googlecode.lanterna.input.KeyType;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -76,8 +75,9 @@ public class HeartsRemote extends HeartsLocal {
 
     @Override
     public Action handleInput(KeyStroke keyStroke) {
-        if (keyStroke.getKeyType() == KeyType.Escape) closeConnection();
-        return super.handleInput(keyStroke);
+        Action result = super.handleInput(keyStroke);
+        if (result == Action.BACK_TO_MENU) closeConnection();
+        return result;
     }
 
     @Override
@@ -174,6 +174,7 @@ public class HeartsRemote extends HeartsLocal {
                 wonTricks.put(i, decodeCards(message.wonTricks.get(i)));
             }
             numCards = message.cardCounts.clone();
+            handleUpdate();
             resize();
         } catch (IllegalArgumentException | NullPointerException e) {
             System.err.println("Received invalid game state from Hearts server: " + e.getMessage());

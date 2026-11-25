@@ -17,10 +17,6 @@ import me.pintoadmin.cardTerminal.*;
 import me.pintoadmin.cardTerminal.games.solitaire.*;
 import me.pintoadmin.cardTerminal.screens.*;
 
-/*
-TODO: add hearts broken indicator
- */
-
 public class HeartsLocal extends Game {
     private final long SEED;
     private final HeartsEngine engine;
@@ -69,6 +65,17 @@ public class HeartsLocal extends Game {
         wonTricks = engine.getWonTricks();
 
         for (int i = 0; i < 4; i++) numCards[i] = engine.getNumCards(i);
+
+        handleUpdate();
+    }
+
+    protected void handleUpdate() {
+        if (gameState == HeartsEngine.GameState.PASSING) {
+            passingCards = new Card[3];
+        }
+        if (gameState == HeartsEngine.GameState.TRICKS) {
+            passedCards = false;
+        }
     }
 
     public HeartsLocal() {
@@ -105,8 +112,9 @@ public class HeartsLocal extends Game {
     }
 
     protected void submitPassCards(int player, Card[] cards) {
-        engine.passCards(player, cards);
-        passingCards = new Card[3];
+        if (engine.passCards(player, cards)) {
+            passedCards = true;
+        }
     }
 
     protected boolean isRemoteGame() {
@@ -195,7 +203,7 @@ public class HeartsLocal extends Game {
                 Main.drawText(
                         infoX,
                         infoY + 1,
-                        "Score: " + HeartsEngine.getScore(wonTricks.get((localPlayer + 2))));
+                        "Score: " + HeartsEngine.getScore(wonTricks.get((localPlayer + 2) % 4)));
             }
             // draw fourth player's cards
             {
@@ -230,7 +238,6 @@ public class HeartsLocal extends Game {
 
                     if (currentPlayerturn == localPlayer
                             || gameState == HeartsEngine.GameState.PASSING) {
-                        if (gameState == HeartsEngine.GameState.TRICKS) passedCards = false;
                         // elevate cursor and selected cards
                         y -=
                                 (index == selectedCard ? 2 : 0)
@@ -288,7 +295,8 @@ public class HeartsLocal extends Game {
                 List<Card> cards = playedCards;
                 for (Card card : cards) {
                     int index = cards.indexOf(card) + startingPlayer - localPlayer;
-                    int x = (W / 2) - (Card.width / 2), y = (H / 2) - (me.pintoadmin.cardTerminal.Card.height / 2);
+                    int x = (W / 2) - (Card.width / 2),
+                            y = (H / 2) - (me.pintoadmin.cardTerminal.Card.height / 2);
 
                     card.setTextColor(TextColor.ANSI.WHITE);
 
@@ -438,7 +446,6 @@ public class HeartsLocal extends Game {
                     if (!isRemoteGame()) engine.start();
                 } else if (gameState == HeartsEngine.GameState.PASSING) {
                     submitPassCards(localPlayer, passingCards);
-                    passedCards = true;
                 }
                 break;
         }
@@ -462,7 +469,9 @@ public class HeartsLocal extends Game {
             List<Card> playable = new ArrayList<>(cards);
             if (trick == 0)
                 playable.removeIf(
-                        c -> c.getSuit() != Card.Suit.CLUB || c.getRank() != me.pintoadmin.cardTerminal.Card.Rank.TWO);
+                        c ->
+                                c.getSuit() != Card.Suit.CLUB
+                                        || c.getRank() != me.pintoadmin.cardTerminal.Card.Rank.TWO);
             if (!heartsBroken) playable.removeIf(c -> c.getSuit() == Card.Suit.HEART);
             return playable;
         }
