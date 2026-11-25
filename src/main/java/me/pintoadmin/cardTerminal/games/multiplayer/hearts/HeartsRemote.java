@@ -10,9 +10,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import me.pintoadmin.cardTerminal.Card;
 import me.pintoadmin.cardTerminal.Game;
 import me.pintoadmin.cardTerminal.networking.HeartsProtocol;
@@ -174,6 +172,12 @@ public class HeartsRemote extends HeartsLocal {
                 wonTricks.put(i, decodeCards(message.wonTricks.get(i)));
             }
             numCards = message.cardCounts.clone();
+
+            List<HeartsProtocol.CardData> passing =
+                    new ArrayList<>(
+                            Arrays.stream(passingCards).map(HeartsProtocol.CardData::new).toList());
+            passingCards = decodeCards(passing).toArray(new Card[0]);
+
             handleUpdate();
             resize();
         } catch (IllegalArgumentException | NullPointerException e) {
