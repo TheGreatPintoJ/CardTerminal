@@ -70,10 +70,8 @@ public class HeartsLocal extends Game {
     }
 
     protected void handleUpdate() {
-        if (gameState == HeartsEngine.GameState.PASSING) {
+        if (gameState != HeartsEngine.GameState.PASSING) {
             passingCards = new Card[3];
-        }
-        if (gameState == HeartsEngine.GameState.TRICKS) {
             passedCards = false;
         }
     }

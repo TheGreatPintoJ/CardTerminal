@@ -173,10 +173,14 @@ public class HeartsRemote extends HeartsLocal {
             }
             numCards = message.cardCounts.clone();
 
-            List<HeartsProtocol.CardData> passing =
-                    new ArrayList<>(
-                            Arrays.stream(passingCards).map(HeartsProtocol.CardData::new).toList());
-            passingCards = decodeCards(passing).toArray(new Card[0]);
+            for (int i = 0; i < passingCards.length; i++) {
+                Card old = passingCards[i];
+                if (old == null) continue;
+                passingCards[i] = ourCards.stream()
+                        .filter(c -> c.getRank() == old.getRank() && c.getSuit() == old.getSuit())
+                        .findFirst()
+                        .orElse(null);
+            }
 
             handleUpdate();
             resize();
