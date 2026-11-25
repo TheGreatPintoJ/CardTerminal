@@ -80,21 +80,11 @@ public class HeartsEngine {
                                     if (state == GameState.TRICKS) {
                                         int turn = currentPlayerTurn.get();
                                         if (lastTurn == turn && lastTrick == trick) {
-                                            try {
-                                                Thread.sleep(100);
-                                            } catch (InterruptedException e) {
-                                                System.out.println(
-                                                        "Ignored exception: " + e.getMessage());
-                                            }
+                                            Thread.sleep(100);
                                             continue;
                                         }
                                         if (!server.isRemotePlayerConnected(turn)) {
-                                            try {
-                                                Thread.sleep(100); // 1k ms = 1s
-                                            } catch (InterruptedException e) {
-                                                System.out.println(
-                                                        "Ignored exception: " + e.getMessage());
-                                            }
+                                            Thread.sleep(100); // 1k ms = 1s todo: change back to 1000
                                             int trickBeforePlay = trick;
                                             List<Card> all = getCards(turn);
                                             if (all.isEmpty()) continue;
@@ -235,10 +225,13 @@ public class HeartsEngine {
                                                 passCards(player, cards);
                                             }
                                         }
+                                        Thread.sleep(100);
                                     }
                                 } catch (NoSuchElementException e) {
                                     System.out.println(
                                             "No card after filtering - " + e.getMessage());
+                                } catch (InterruptedException e) {
+                                    System.out.println("Ignored exception: "+e.getMessage());
                                 }
                             }
                         });
