@@ -176,10 +176,14 @@ public class HeartsRemote extends HeartsLocal {
             for (int i = 0; i < passingCards.length; i++) {
                 Card old = passingCards[i];
                 if (old == null) continue;
-                passingCards[i] = ourCards.stream()
-                        .filter(c -> c.getRank() == old.getRank() && c.getSuit() == old.getSuit())
-                        .findFirst()
-                        .orElse(null);
+                passingCards[i] =
+                        ourCards.stream()
+                                .filter(
+                                        c ->
+                                                c.getRank() == old.getRank()
+                                                        && c.getSuit() == old.getSuit())
+                                .findFirst()
+                                .orElse(null);
             }
 
             handleUpdate();

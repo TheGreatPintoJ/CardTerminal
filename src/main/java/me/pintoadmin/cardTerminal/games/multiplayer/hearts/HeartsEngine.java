@@ -84,7 +84,8 @@ public class HeartsEngine {
                                             continue;
                                         }
                                         if (!server.isRemotePlayerConnected(turn)) {
-                                            Thread.sleep(100); // 1k ms = 1s todo: change back to 1000
+                                            Thread.sleep(
+                                                    100); // 1k ms = 1s todo: change back to 1000
                                             int trickBeforePlay = trick;
                                             List<Card> all = getCards(turn);
                                             if (all.isEmpty()) continue;
@@ -99,8 +100,7 @@ public class HeartsEngine {
                                                     suits.size() > 1
                                                             ? suits.get(
                                                                     new Random()
-                                                                            .nextInt(
-                                                                                    suits.size()))
+                                                                            .nextInt(suits.size()))
                                                             : suits.getFirst();
                                             Card thisCard;
                                             if (startingPlayer == turn || highestRank == null) {
@@ -231,7 +231,7 @@ public class HeartsEngine {
                                     System.out.println(
                                             "No card after filtering - " + e.getMessage());
                                 } catch (InterruptedException e) {
-                                    System.out.println("Ignored exception: "+e.getMessage());
+                                    System.out.println("Ignored exception: " + e.getMessage());
                                 }
                             }
                         });
