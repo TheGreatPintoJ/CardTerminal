@@ -459,20 +459,8 @@ public class HeartsLocal extends Game {
     }
 
     private List<Card> getPlayableCards(List<Card> cards) {
-        if (activeSuit != null) {
-            List<Card> sameSuit = cards.stream().filter(c -> c.getSuit() == activeSuit).toList();
-            List<Card> notSuit = cards.stream().filter(c -> c.getSuit() != activeSuit).toList();
-            return sameSuit.isEmpty() ? notSuit : sameSuit;
-        } else {
-            List<Card> playable = new ArrayList<>(cards);
-            if (trick == 0)
-                playable.removeIf(
-                        c ->
-                                c.getSuit() != Card.Suit.CLUB
-                                        || c.getRank() != me.pintoadmin.cardTerminal.Card.Rank.TWO);
-            if (!heartsBroken) playable.removeIf(c -> c.getSuit() == Card.Suit.HEART);
-            return playable;
-        }
+        return HeartsEngine.getPlayableCards(
+                cards, activeSuit, heartsBroken, trick, playedCards.isEmpty());
     }
 
     public Stats newStats() {

@@ -355,32 +355,9 @@ public class HeartsEngine {
         if (currentPlayerTurn.get() != player) return false;
         if (card == null) return false;
 
-        boolean firstTurn = playerTurn == 0;
-        boolean hasNonHearts = hands[player].stream().anyMatch(c -> c.getSuit() != Card.Suit.HEART);
         boolean isHeart = card.getSuit() == me.pintoadmin.cardTerminal.Card.Suit.HEART;
-        boolean isActiveSuit = card.getSuit() == activeSuit;
-        boolean hasLedSuit =
-                activeSuit != null
-                        && hands[player].stream().anyMatch(c -> c.getSuit() == activeSuit);
-        boolean canLead = !isHeart || heartsBroken || !hasNonHearts;
-        boolean canFollow = isActiveSuit || !hasLedSuit;
 
-        // force two of clubs on first play of first trick
-        if (trick == 0 && firstTurn)
-            if (card.getSuit() != me.pintoadmin.cardTerminal.Card.Suit.CLUB
-                    || card.getRank() != me.pintoadmin.cardTerminal.Card.Rank.TWO) return false;
-
-        boolean hasNonPenaltyLegalCard =
-                hands[player].stream()
-                        .anyMatch(
-                                c ->
-                                        (!hasLedSuit || c.getSuit() == activeSuit)
-                                                && !isPenaltyCard(c));
-        boolean canPlay =
-                (firstTurn ? canLead : canFollow)
-                        && !(trick == 0 && isPenaltyCard(card) && hasNonPenaltyLegalCard);
-
-        if (hands[player].contains(card) && canPlay) {
+        if (getPlayableCards(player).contains(card)) {
             if (isHeart) heartsBroken = true;
             // First card in trick, set active suit
             if (playerTurn == 0) {
@@ -404,7 +381,7 @@ public class HeartsEngine {
         } else return false;
     }
 
-    private boolean isPenaltyCard(Card card) {
+    private static boolean isPenaltyCard(Card card) {
         return card.getSuit() == me.pintoadmin.cardTerminal.Card.Suit.HEART
                 || (card.getSuit() == me.pintoadmin.cardTerminal.Card.Suit.SPADE
                         && card.getRank() == me.pintoadmin.cardTerminal.Card.Rank.QUEEN);
@@ -551,17 +528,43 @@ public class HeartsEngine {
     }
 
     List<Card> getPlayableCards(int player) {
-        if (activeSuit != null) {
-            List<Card> sameSuit =
-                    hands[player].stream().filter(c -> c.getSuit() == activeSuit).toList();
-            List<Card> notSuit =
-                    hands[player].stream().filter(c -> c.getSuit() != activeSuit).toList();
-            return sameSuit.isEmpty() ? notSuit : sameSuit;
-        } else {
-            return heartsBroken
-                    ? hands[player].stream().toList()
-                    : hands[player].stream().filter(c -> c.getSuit() != Card.Suit.HEART).toList();
+        return getPlayableCards(hands[player], activeSuit, heartsBroken, trick, playerTurn == 0);
+    }
+
+    /**
+     * Single source of truth for which cards in {@code hand} may legally be played. Used by {@link
+     * #playCard(int, Card)} for validation and by clients/bots for display and selection.
+     */
+    static List<Card> getPlayableCards(
+            List<Card> hand,
+            Card.Suit activeSuit,
+            boolean heartsBroken,
+            int trick,
+            boolean leading) {
+        if (leading) {
+            // First lead of the deal must be the two of clubs
+            if (trick == 0)
+                return hand.stream()
+                        .filter(c -> c.getSuit() == Card.Suit.CLUB && c.getRank() == Card.Rank.TWO)
+                        .toList();
+            // Hearts can't be led until broken, unless only hearts remain
+            boolean hasNonHearts = hand.stream().anyMatch(c -> c.getSuit() != Card.Suit.HEART);
+            if (heartsBroken || !hasNonHearts) return List.copyOf(hand);
+            return hand.stream().filter(c -> c.getSuit() != Card.Suit.HEART).toList();
         }
+
+        // Must follow the led suit if possible
+        boolean hasLedSuit =
+                activeSuit != null && hand.stream().anyMatch(c -> c.getSuit() == activeSuit);
+        List<Card> playable =
+                hasLedSuit
+                        ? hand.stream().filter(c -> c.getSuit() == activeSuit).toList()
+                        : List.copyOf(hand);
+
+        // No penalty cards on the first trick unless there's no other legal choice
+        if (trick == 0 && playable.stream().anyMatch(c -> !isPenaltyCard(c)))
+            playable = playable.stream().filter(c -> !isPenaltyCard(c)).toList();
+        return playable;
     }
 
     public int getNumCards(int player) {
