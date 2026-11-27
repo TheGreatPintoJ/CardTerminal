@@ -48,6 +48,15 @@ public class HeartsLocal extends Game {
     protected Map<Integer, List<Card>> wonTricks = new HashMap<>();
     protected int localPlayer = 0;
 
+    /**
+     * Timeline for client-side animations and timed redraws (runs on both host and remote clients).
+     * Schedule work here instead of sleeping on the key-handler thread, e.g. {@code
+     * animations.after(300, this::resize)} or {@code animations.sequence().frames(8, 40, f -> {
+     * offset = f; resize(); }).start()}. {@link #drawGame()} is synchronized, so calling {@link
+     * #resize()} from a timeline task is safe. Closed automatically when the player leaves.
+     */
+    protected final Timeline animations = new Timeline("Hearts animations");
+
     private boolean showingScores = false;
     private int escapeCount = 0;
     private boolean passedCards = false;
@@ -412,6 +421,7 @@ public class HeartsLocal extends Game {
                     resize();
                     return Action.NULL;
                 } else {
+                    animations.close();
                     if (!isRemoteGame()) engine.endGame();
                     return Action.BACK_TO_MENU;
                 }

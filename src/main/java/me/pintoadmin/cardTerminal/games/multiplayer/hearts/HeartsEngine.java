@@ -13,6 +13,18 @@ public class HeartsEngine {
 
     private Thread autoplay;
 
+    /**
+     * Runs the engine's timed steps (trick pause, score screen) without blocking the thread that
+     * triggered them. See {@link #pauseThen(long, Runnable)}.
+     */
+    private final Timeline timeline = new Timeline("Hearts engine timeline");
+
+    /**
+     * True while the engine is waiting on a timed step (a finished trick on the table, or the score
+     * screen). Plays are rejected and bots wait while paused.
+     */
+    private volatile boolean paused = false;
+
     private int deal = -1;
     private int trick = -1;
     private final List<Card>[] hands =
@@ -75,17 +87,24 @@ public class HeartsEngine {
                         () -> {
                             int lastTrick = -1;
                             int lastTurn = -1;
-                            while (true) {
+                            while (state != GameState.ENDED
+                                    && !Thread.currentThread().isInterrupted()) {
                                 try {
+                                    if (paused) {
+                                        // A trick or the score screen is on display; wait it out
+                                        if (!Timeline.sleep(HeartsTiming.BOT_POLL)) return;
+                                        continue;
+                                    }
                                     if (state == GameState.TRICKS) {
                                         int turn = currentPlayerTurn.get();
                                         if (lastTurn == turn && lastTrick == trick) {
-                                            Thread.sleep(100);
+                                            if (!Timeline.sleep(HeartsTiming.BOT_POLL)) return;
                                             continue;
                                         }
                                         if (!server.isRemotePlayerConnected(turn)) {
-                                            Thread.sleep(
-                                                    100); // 1k ms = 1s todo: change back to 1000
+                                            if (!Timeline.sleep(
+                                                    HeartsTiming.ms(HeartsTiming.BOT_PLAY))) return;
+                                            if (paused) continue;
                                             int trickBeforePlay = trick;
                                             List<Card> all = getCards(turn);
                                             if (all.isEmpty()) continue;
@@ -225,16 +244,45 @@ public class HeartsEngine {
                                                 passCards(player, cards);
                                             }
                                         }
-                                        Thread.sleep(100);
+                                        if (!Timeline.sleep(HeartsTiming.BOT_POLL)) return;
+                                    } else {
+                                        // PREGAME: nothing to do yet
+                                        if (!Timeline.sleep(HeartsTiming.BOT_POLL)) return;
                                     }
                                 } catch (NoSuchElementException e) {
                                     System.out.println(
                                             "No card after filtering - " + e.getMessage());
-                                } catch (InterruptedException e) {
-                                    System.out.println("Ignored exception: " + e.getMessage());
                                 }
                             }
-                        });
+                        },
+                        "Hearts bots");
+        autoplay.setDaemon(true);
+    }
+
+    /**
+     * Holds the game for {@code delayMs} (scaled by {@link HeartsTiming#speed}) and then runs
+     * {@code next} while holding the engine lock. Returns immediately; the caller's thread is never
+     * blocked. While waiting, {@link #isPaused()} is true, {@link #playCard} rejects plays and bots
+     * wait. If the game ends during the wait, {@code next} is skipped.
+     *
+     * <p>Use this for any "show this for a moment, then continue" step in the engine.
+     */
+    private void pauseThen(long delayMs, Runnable next) {
+        paused = true;
+        timeline.after(
+                HeartsTiming.ms(delayMs),
+                () -> {
+                    synchronized (this) {
+                        if (state == GameState.ENDED) return;
+                        paused = false;
+                        next.run();
+                    }
+                });
+    }
+
+    /** True while a timed pause (trick on the table, score screen) is in progress. */
+    public boolean isPaused() {
+        return paused;
     }
 
     public synchronized void start() {
@@ -349,6 +397,7 @@ public class HeartsEngine {
     public synchronized boolean playCard(int player, Card card) {
         if (!(player >= 0 && player <= 3)) return false;
         if (state != GameState.TRICKS) return false;
+        if (paused) return false;
         if (currentPlayerTurn.get() != player) return false;
         if (card == null) return false;
 
@@ -373,7 +422,8 @@ public class HeartsEngine {
 
             server.updateClients();
             server.resizeClients();
-            if (playerTurn == 4) finishTrick();
+            // Leave the full trick on the table for a moment before collecting it
+            if (playerTurn == 4) pauseThen(HeartsTiming.TRICK_END, this::finishTrick);
             return true;
         } else return false;
     }
@@ -384,15 +434,8 @@ public class HeartsEngine {
                         && card.getRank() == me.pintoadmin.cardTerminal.Card.Rank.QUEEN);
     }
 
+    /** Runs after the {@link HeartsTiming#TRICK_END} pause scheduled by {@link #playCard}. */
     private void finishTrick() {
-        server.updateClients();
-        server.resizeClients();
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            System.out.println("Ignored exception: " + e.getMessage());
-        }
-
         int winningPlayer =
                 Math.floorMod(
                         playedCards.indexOf(
@@ -443,11 +486,13 @@ public class HeartsEngine {
 
         server.updateClients();
         server.showScoresClients();
-        try {
-            Thread.sleep(4000);
-        } catch (InterruptedException e) {
-            System.out.println("Ignored exception: " + e.getMessage());
-        }
+
+        // Keep the score screen up for a moment, then continue
+        pauseThen(HeartsTiming.DEAL_SCORES, this::afterDealScores);
+    }
+
+    /** Runs after the {@link HeartsTiming#DEAL_SCORES} pause scheduled by {@link #finishDeal}. */
+    private void afterDealScores() {
         server.resizeClients();
 
         Integer highestPlayer = getHighestPlayer();
@@ -492,8 +537,12 @@ public class HeartsEngine {
         return score;
     }
 
-    public void endGame() {
+    public synchronized void endGame() {
         state = GameState.ENDED;
+        paused = false;
+        // Drop any pending pauses and stop the bot thread
+        timeline.close();
+        if (Thread.currentThread() != autoplay) autoplay.interrupt();
 
         Integer winningPlayer = getLowestPlayer();
         Integer winningScore = scores.get(winningPlayer);
