@@ -43,6 +43,7 @@ public class HeartsLocal extends Game {
     protected boolean heartsBroken;
     protected Card.Suit activeSuit;
     protected int[] numCards = new int[4];
+    protected int deal;
     protected int trick;
     protected Map<Integer, List<Card>> wonTricks = new HashMap<>();
     protected int localPlayer = 0;
@@ -61,6 +62,7 @@ public class HeartsLocal extends Game {
         scores = engine.getScores();
         heartsBroken = engine.isHeartsBroken();
         activeSuit = engine.getActiveSuit();
+        deal = engine.getDeal();
         trick = engine.getTrick();
         wonTricks = engine.getWonTricks();
 
@@ -264,7 +266,17 @@ public class HeartsLocal extends Game {
             g.setForegroundColor(TextColor.ANSI.WHITE);
             g.enableModifiers(SGR.BOLD);
             if (gameState == HeartsEngine.GameState.PASSING) {
-                Main.drawText(W / 2, H / 2, "Select cards to pass");
+                String toString =
+                        switch (deal % 4) {
+                            case 0 -> "to the left (Player " + (localPlayer + 1 % 4) + ")";
+                            case 1 ->
+                                    "to the right (Player "
+                                            + (Math.floorMod(localPlayer - 1, 4))
+                                            + ")";
+                            case 2 -> "across (Player " + (localPlayer + 2 % 4) + ")";
+                            default -> "NO PASSING";
+                        };
+                Main.drawText(W / 2, H / 2, "Select cards to pass " + toString);
             } else if (gameState == HeartsEngine.GameState.TRICKS) {
                 int turn = currentPlayerturn;
                 String turnString =

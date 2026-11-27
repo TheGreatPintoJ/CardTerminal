@@ -239,6 +239,7 @@ public class HeartsEngine {
 
     public synchronized void start() {
         if (state == GameState.PREGAME) {
+            deal = 2;
             newDeal();
             server.updateClients();
 
@@ -266,13 +267,10 @@ public class HeartsEngine {
         }
 
         sortCards();
-
         deal++;
-        if (deal % 4 == 3) {
-            state = GameState.TRICKS;
-            initPassCards();
-        } else state = GameState.PASSING;
-        System.out.println("Pass type number: " + (deal % 4));
+
+        if (deal % 4 == 3) initPassCards();
+        else state = GameState.PASSING;
 
         server.updateClients();
         server.resizeClients();
@@ -333,7 +331,6 @@ public class HeartsEngine {
         if (state != GameState.PASSING) return false;
         if (passingCards.containsKey(player)) return false;
         if (deal % 4 == 3) {
-            state = GameState.TRICKS;
             initPassCards();
             return true;
         }

@@ -146,6 +146,7 @@ public class HeartsServer {
             message.heartsBroken = engine.isHeartsBroken();
             message.activeSuit =
                     engine.getActiveSuit() == null ? null : engine.getActiveSuit().name();
+            message.deal = engine.getDeal();
             message.trick = engine.getTrick();
             for (int i = 0; i < 4; i++) {
                 message.wonTricks.put(

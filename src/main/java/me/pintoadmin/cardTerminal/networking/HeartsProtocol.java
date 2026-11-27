@@ -22,6 +22,7 @@ public final class HeartsProtocol {
         public int[] scores;
         public boolean heartsBroken;
         public String activeSuit;
+        public int deal;
         public int trick;
         public Map<Integer, List<CardData>> wonTricks = new HashMap<>();
         public int[] cardCounts;

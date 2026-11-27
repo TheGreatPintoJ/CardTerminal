@@ -167,6 +167,7 @@ public class HeartsRemote extends HeartsLocal {
             }
             heartsBroken = message.heartsBroken;
             activeSuit = message.activeSuit == null ? null : Card.Suit.valueOf(message.activeSuit);
+            deal = message.deal;
             trick = message.trick;
             for (int i = 0; i < 4; i++) {
                 wonTricks.put(i, decodeCards(message.wonTricks.get(i)));
