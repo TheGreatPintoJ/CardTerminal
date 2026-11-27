@@ -104,6 +104,66 @@ turn arrow pointing at the trick's leader). No protocol changes, so old remote c
 
 Result: `./gradlew test` passed, 7/7, 0 skipped.
 
+## Part 2: client side of the pauses, and remote games
+
+In part 1 the engine already ran both pauses (trick end and score screen) through
+`pauseThen`. Part 2 makes every client screen, local and remote, handle those pauses properly.
+**The protocol is unchanged.** Clients work out both pauses from data they already receive, so the
+pause length stays defined in one place (the engine) and every client stays in sync with it.
+
+### Problems fixed
+
+| Problem | Effect (local and remote) |
+|---|---|
+| The score screen was a one-off draw. Any later redraw (a key press, a snapshot) replaced it with the table. | Pressing an arrow key during the 4 s score pause hid the scores. |
+| Pressing space on an empty hand during the score pause called `ourCards.get(0)` and threw `IndexOutOfBoundsException`. `Main`'s key handler only catches `IOException`/`InterruptedException`. | The exception **killed the key-handler thread**: the game stopped taking input for good. This could happen whenever you won the last trick of a deal. |
+| During the trick pause the screen said "It is your turn" (pointing at the trick leader) and raised the cursor card. | Pressing space sent a play the server rejected. Remote players got a server error. |
+| Score screen: `if (i == localPlayer)` compared the *row index* to the seat. | "You" marked the wrong row: always the top row for the host, and some other row for remote players. |
+| Passing text: `localPlayer + 1 % 4` is `localPlayer + 1` (operator precedence). | Remote player 3 saw "pass to the left (Player 4)". The "across" text had the same bug. |
+
+### Changes
+
+- **`HeartsEngine.getTrickWinner(played, startingPlayer)`** (new, public static): the one rule
+  for who takes a trick. `finishTrick()` now uses it, replacing the old stream filter on
+  `highestRank`/`activeSuit` (same result). Clients use it to show the winner during the pause.
+- **`HeartsLocal`** (inherited by `HeartsRemote`):
+  - `holdScores()` + `holdingScores`: the "showScores" event now *holds* the score screen.
+    `drawGame()` keeps drawing scores while the hold is on. The hold ends when a snapshot with a
+    new deal number arrives (`handleUpdate`), which happens exactly when the engine's
+    `DEAL_SCORES` pause ends. If the game ends instead, the final scores stay up.
+  - `isTrickResolving()`: true when 4 cards are on the table, which only happens during the
+    `TRICK_END` pause. While it's true the screen shows "Player N takes the trick" / "You take the
+    trick", the arrow points at the winner, the cursor card isn't raised, and space doesn't play.
+  - Space is ignored when the cursor is outside the hand or while scores are held (fixes the crash).
+  - Score-screen "You" row and passing-target text fixed.
+- **`HeartsServer.showScoresClients()`** and **`HeartsRemote`** "showScores" handler call
+  `holdScores()` instead of `showScores()`.
+
+### Why this works for remote games
+
+The server sends remote clients the same snapshots and events the host's screen gets, in the same
+order over one TCP connection:
+
+1. Trick end: the snapshot after the 4th card has `playedCards.size() == 4`. That's the trick pause
+   (`isTrickResolving`). After `TRICK_END`, the next snapshot has 0 cards and the screen goes back
+   to normal.
+2. Deal end: snapshot → `showScores` (hold starts) → `DEAL_SCORES` later → `resizeScreen` →
+   snapshot with `deal + 1` (hold ends).
+
+Remote clients need no timers of their own, so they can't drift from the host, and if the host
+changes `HeartsTiming.speed` every client follows. Plays sent during a pause are still rejected
+by the server (`paused` check), so a client that ignores the UI rules can't break the game.
+
+### New tests
+
+- `HeartsRemotePauseTest`: joins seat 1 as a **real socket client** using the JSON protocol and
+  plays a full deal at `speed = 0.1`. It checks that the remote sees a 4-card snapshot, that a play
+  sent during the trick pause gets an error, that `showScores` arrives before any next-deal
+  snapshot, and that the hold lasts at least `DEAL_SCORES`. It passed 12/12 repeated runs.
+- `HeartsTrickWinnerTest`: 4 cases (off-suit can't win, ace high, nobody follows, empty trick).
+
+Full suite: 12/12 passed.
+
 ## How to add a delay or animation
 
 **Engine pacing** (all players see it):

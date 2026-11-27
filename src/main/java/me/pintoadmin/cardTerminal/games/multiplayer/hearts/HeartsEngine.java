@@ -436,19 +436,7 @@ public class HeartsEngine {
 
     /** Runs after the {@link HeartsTiming#TRICK_END} pause scheduled by {@link #playCard}. */
     private void finishTrick() {
-        int winningPlayer =
-                Math.floorMod(
-                        playedCards.indexOf(
-                                        playedCards.stream()
-                                                .filter(
-                                                        c ->
-                                                                c.getRank() == highestRank
-                                                                        && c.getSuit()
-                                                                                == activeSuit)
-                                                .toList()
-                                                .getFirst())
-                                + startingPlayer,
-                        4);
+        int winningPlayer = getTrickWinner(playedCards, startingPlayer);
         wonTrickCards.get(winningPlayer).addAll(playedCards);
 
         playedCards.forEach(deck::discardCard);
@@ -464,6 +452,27 @@ public class HeartsEngine {
         server.resizeClients();
 
         if (trick++ == 12) finishDeal();
+    }
+
+    /**
+     * Single source of truth for who takes a trick: the highest card of the led suit (the first
+     * card played). {@code played} is in play order, starting with {@code startingPlayer}. Used by
+     * the engine to score the trick and by clients (local and remote) to show the winner during the
+     * {@link HeartsTiming#TRICK_END} pause.
+     *
+     * @return the winning player's seat, or -1 if nothing has been played
+     */
+    public static int getTrickWinner(List<Card> played, int startingPlayer) {
+        if (played.isEmpty()) return -1;
+        Card.Suit led = played.getFirst().getSuit();
+        int best = 0;
+        for (int i = 1; i < played.size(); i++) {
+            Card c = played.get(i);
+            if (c.getSuit() == led
+                    && c.getRank().toIntAceHigh() > played.get(best).getRank().toIntAceHigh())
+                best = i;
+        }
+        return Math.floorMod(startingPlayer + best, 4);
     }
 
     private void finishDeal() {

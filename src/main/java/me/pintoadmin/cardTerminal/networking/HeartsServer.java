@@ -91,7 +91,7 @@ public class HeartsServer {
     }
 
     public void showScoresClients() {
-        if (local != null) local.showScores();
+        if (local != null) local.holdScores();
         broadcast(event("showScores"));
     }
 
