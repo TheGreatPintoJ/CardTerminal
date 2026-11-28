@@ -328,12 +328,11 @@ public class HeartsLocal extends Game {
                                 ? HeartsEngine.getTrickWinner(playedCards, startingPlayer)
                                 : currentPlayerturn;
                 String turnString;
-                if (resolving)
-                    turnString =
-                            turn == localPlayer
-                                    ? "You take the trick"
-                                    : "Player " + turn + " takes the trick";
-                else
+                if (resolving) {
+                    int points = HeartsEngine.getScore(playedCards);
+                    String who = turn == localPlayer ? "You take" : "Player " + turn + " takes";
+                    turnString = who + " the trick" + (points > 0 ? "(+" + points + ")" : "");
+                } else
                     turnString =
                             turn != localPlayer
                                     ? "It is Player " + turn + "'s turn"
@@ -358,12 +357,20 @@ public class HeartsLocal extends Game {
             // Draw played cards
             {
                 List<Card> cards = playedCards;
+                int winningIndex = -1;
+                if (isTrickResolving()) {
+                    int winner = HeartsEngine.getTrickWinner(cards, startingPlayer);
+                    winningIndex = Math.floorMod(winner - startingPlayer, 4);
+                }
                 for (Card card : cards) {
                     int index = cards.indexOf(card) + startingPlayer - localPlayer;
                     int x = (W / 2) - (Card.width / 2),
                             y = (H / 2) - (me.pintoadmin.cardTerminal.Card.height / 2);
 
-                    card.setTextColor(TextColor.ANSI.WHITE);
+                    card.setTextColor(
+                            cards.indexOf(card) == winningIndex
+                                    ? TextColor.ANSI.YELLOW
+                                    : TextColor.ANSI.WHITE);
 
                     switch ((index + 4) % 4) {
                         case 0 -> y += (Card.height / 2) + 2;
