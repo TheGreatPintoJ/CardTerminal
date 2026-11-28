@@ -380,7 +380,7 @@ public class HeartsLocal extends Game {
 
                     switch ((index + 4) % 4) {
                         case 0 -> y += (Card.height / 2) + 2;
-                        case 1 -> x -= Card.width * 15 / 10;
+                        case 1 -> x -= (Card.width * 15 / 10) - 2;
                         case 2 -> y -= (Card.height / 2) + 2;
                         case 3 -> x += Card.width + 2;
                     }
