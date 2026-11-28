@@ -19,17 +19,17 @@ public final class HeartsTiming {
      */
     public static volatile double speed = 1.0;
 
-    /** How long a bot "thinks" before playing a card. Was hard-coded with a TODO to use 1000. */
-    public static final long BOT_PLAY = 100;
+    /** How long a bot "thinks" before playing a card. Was hard-coded with a TO DO to use 1000. */
+    public static final long BOT_PLAY = 500;
 
     /** How often the bot thread checks whether it has something to do. Not scaled by speed. */
     public static final long BOT_POLL = 100;
 
     /** How long a finished trick stays on the table before it is collected. */
-    public static final long TRICK_END = 1000;
+    public static final long TRICK_END = 2000;
 
     /** How long the end-of-deal score screen stays up before the next deal is dealt. */
-    public static final long DEAL_SCORES = 4000;
+    public static final long DEAL_SCORES = 3000;
 
     /** Returns {@code base} scaled by {@link #speed}. */
     public static long ms(long base) {
