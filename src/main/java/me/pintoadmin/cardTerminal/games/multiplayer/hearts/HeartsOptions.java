@@ -175,11 +175,12 @@ public class HeartsOptions extends GameOptions {
                                                 optionValues.size() - 1));
                         break;
                     case ArrowLeft:
-                        if (selectedOption == Option.ENDPOINTS) endingPoints--;
-                        if (selectedOption == Option.PORT) port--;
+                        if (selectedOption == Option.ENDPOINTS && endingPoints > 0)
+                            endingPoints -= 5;
+                        if (selectedOption == Option.PORT && port > 0) port--;
                         break;
                     case ArrowRight:
-                        if (selectedOption == Option.ENDPOINTS) endingPoints++;
+                        if (selectedOption == Option.ENDPOINTS) endingPoints += 5;
                         if (selectedOption == Option.PORT) port++;
                         break;
                 }
@@ -195,7 +196,8 @@ public class HeartsOptions extends GameOptions {
                 // Update vars and print chars
                 if (selectedOption == Option.SEED && (Character.isDigit(c) || c == '-')) {
                     SEED += c;
-                } else if (selectedOption == Option.HOST && (Character.isDigit(c) || c == '.')) {
+                } else if (selectedOption == Option.HOST
+                        && (Character.isDigit(c) || c == '.' || Character.isAlphabetic(c))) {
                     host += c;
                 }
                 build();
