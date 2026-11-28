@@ -287,7 +287,6 @@ public class HeartsEngine {
 
     public synchronized void start() {
         if (state == GameState.PREGAME) {
-            deal = 2;
             newDeal();
             server.updateClients();
 
