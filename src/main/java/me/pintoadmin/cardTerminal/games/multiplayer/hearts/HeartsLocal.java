@@ -48,7 +48,26 @@ public class HeartsLocal extends Game {
     protected Map<Integer, List<Card>> wonTricks = new HashMap<>();
     protected int localPlayer = 0;
 
+    /**
+     * Timeline for client-side animations and timed redraws (runs on both host and remote clients).
+     * Schedule work here instead of sleeping on the key-handler thread, e.g. {@code
+     * animations.after(300, this::resize)} or {@code animations.sequence().frames(8, 40, f -> {
+     * offset = f; resize(); }).start()}. {@link #drawGame()} is synchronized, so calling {@link
+     * #resize()} from a timeline task is safe. Closed automatically when the player leaves.
+     */
+    protected final Timeline animations = new Timeline("Hearts animations");
+
     private boolean showingScores = false;
+
+    /**
+     * True while the engine's {@link HeartsTiming#DEAL_SCORES} pause is running. Set by the
+     * server's "showScores" event ({@link #holdScores()}) and cleared when the next deal's snapshot
+     * arrives, so the score screen stays up for exactly the server's pause on every client, local
+     * or remote, and isn't wiped by a key press or a redraw.
+     */
+    private volatile boolean holdingScores = false;
+
+    private int lastDeal = Integer.MIN_VALUE;
     private int escapeCount = 0;
     private boolean passedCards = false;
 
@@ -76,6 +95,29 @@ public class HeartsLocal extends Game {
             passingCards = new Card[3];
             passedCards = false;
         }
+        // A new deal ends the end-of-deal score pause
+        if (deal != lastDeal) {
+            lastDeal = deal;
+            holdingScores = false;
+        }
+    }
+
+    /**
+     * Shows the score screen for the engine's end-of-deal pause (see {@link #holdingScores}).
+     * Called by the server for the host and by {@link HeartsRemote} for remote players.
+     */
+    public void holdScores() {
+        holdingScores = true;
+        resize();
+    }
+
+    /**
+     * True during the engine's {@link HeartsTiming#TRICK_END} pause: all four cards are on the
+     * table waiting to be collected. Worked out from the snapshot, so it needs no extra protocol
+     * field and works the same for local and remote players.
+     */
+    protected boolean isTrickResolving() {
+        return gameState == HeartsEngine.GameState.TRICKS && playedCards.size() == 4;
     }
 
     public HeartsLocal() {
@@ -122,7 +164,7 @@ public class HeartsLocal extends Game {
     }
 
     private synchronized void drawGame() throws IOException {
-        if (showingScores) {
+        if (showingScores || holdingScores) {
             showScores();
             return;
         }
@@ -236,7 +278,7 @@ public class HeartsLocal extends Game {
                     int x = startingX + (index * 3);
                     int y = H - 7;
 
-                    if (currentPlayerturn == localPlayer
+                    if ((currentPlayerturn == localPlayer && !isTrickResolving())
                             || gameState == HeartsEngine.GameState.PASSING) {
                         // elevate cursor and selected cards
                         y -=
@@ -268,21 +310,34 @@ public class HeartsLocal extends Game {
             if (gameState == HeartsEngine.GameState.PASSING) {
                 String toString =
                         switch (deal % 4) {
-                            case 0 -> "to the left (Player " + (localPlayer + 1 % 4) + ")";
+                            case 0 -> "to the left (Player " + ((localPlayer + 1) % 4) + ")";
                             case 1 ->
                                     "to the right (Player "
                                             + (Math.floorMod(localPlayer - 1, 4))
                                             + ")";
-                            case 2 -> "across (Player " + (localPlayer + 2 % 4) + ")";
+                            case 2 -> "across (Player " + ((localPlayer + 2) % 4) + ")";
                             default -> "NO PASSING";
                         };
                 Main.drawText(W / 2, H / 2, "Select cards to pass " + toString);
             } else if (gameState == HeartsEngine.GameState.TRICKS) {
-                int turn = currentPlayerturn;
-                String turnString =
-                        turn != localPlayer
-                                ? "It is Player " + turn + "'s turn"
-                                : "It is your turn";
+                // During the end-of-trick pause, point at who takes the trick instead of
+                // showing a turn that can't be played yet
+                boolean resolving = isTrickResolving();
+                int turn =
+                        resolving
+                                ? HeartsEngine.getTrickWinner(playedCards, startingPlayer)
+                                : currentPlayerturn;
+                String turnString;
+                if (resolving)
+                    turnString =
+                            turn == localPlayer
+                                    ? "You take the trick"
+                                    : "Player " + turn + " takes the trick";
+                else
+                    turnString =
+                            turn != localPlayer
+                                    ? "It is Player " + turn + "'s turn"
+                                    : "It is your turn";
                 Main.drawText(W / 2, H - Card.height - 3, turnString);
                 switch ((turn + (4 - localPlayer)) % 4) {
                     case 0 -> g.setCharacter(W / 2, H / 2, '▼');
@@ -364,7 +419,7 @@ public class HeartsLocal extends Game {
                 int value = entry.getValue();
 
                 String name = "Player " + player;
-                if (i == localPlayer) name = "You";
+                if (player == localPlayer) name = "You";
                 Main.drawTextLeft(W / 2 - 11, H / 2 - 4 + i, name);
                 Main.drawTextRight(W / 2 + 5, H / 2 - 4 + i, String.valueOf(value));
 
@@ -412,6 +467,7 @@ public class HeartsLocal extends Game {
                     resize();
                     return Action.NULL;
                 } else {
+                    animations.close();
                     if (!isRemoteGame()) engine.endGame();
                     return Action.BACK_TO_MENU;
                 }
@@ -422,7 +478,10 @@ public class HeartsLocal extends Game {
                 if (selectedCard < ourCards.size() - 1) selectedCard++;
                 break;
             case Character:
-                if (keyStroke.getCharacter() == ' ') {
+                // Ignore cards while paused or if the cursor is stale (e.g. empty hand during the
+                // score pause). An exception here would kill the key-handler thread.
+                boolean cursorValid = selectedCard >= 0 && selectedCard < ourCards.size();
+                if (keyStroke.getCharacter() == ' ' && cursorValid && !holdingScores) {
                     if (gameState == HeartsEngine.GameState.PASSING && !passedCards) {
                         Card selected = ourCards.get(selectedCard);
                         if (Arrays.stream(passingCards).toList().contains(selected)) {
@@ -436,7 +495,7 @@ public class HeartsLocal extends Game {
                         }
                     } else if (gameState == HeartsEngine.GameState.TRICKS) {
                         int turn = currentPlayerturn;
-                        if (turn == localPlayer) {
+                        if (turn == localPlayer && !isTrickResolving()) {
                             Card selected = ourCards.get(selectedCard);
                             submitPlayCard(localPlayer, selected);
                         }

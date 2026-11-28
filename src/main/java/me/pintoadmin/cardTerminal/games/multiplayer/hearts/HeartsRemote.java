@@ -133,7 +133,7 @@ public class HeartsRemote extends HeartsLocal {
         } else if ("resizeScreen".equals(message.type)) {
             resize();
         } else if ("showScores".equals(message.type)) {
-            showScores();
+            holdScores();
         } else if ("error".equals(message.type)) {
             System.err.println("Hearts server rejected request: " + message.error);
         } else {
