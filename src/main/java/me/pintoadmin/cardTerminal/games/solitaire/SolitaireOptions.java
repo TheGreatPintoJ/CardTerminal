@@ -109,10 +109,12 @@ public class SolitaireOptions extends GameOptions {
             Main.drawTextRight(
                     W - 2,
                     startY + 2,
-                    String.valueOf(StatsManager.getAverageTime("solitaire") / 1000.0));
+                    String.valueOf(StatsManager.getAverageLong("time", "solitaire") / 1000.0));
             Main.drawTextLeft(W / 2 + 1, startY + 3, "Average Moves");
             Main.drawTextRight(
-                    W - 2, startY + 3, String.valueOf(StatsManager.getAverageMoves("solitaire")));
+                    W - 2,
+                    startY + 3,
+                    String.valueOf(StatsManager.getAverageInt("moves", "solitaire")));
 
             Main.drawRectangle(W / 2, startY + 5, W - 2, H - 2);
             Main.drawText(3 * W / 4, startY + 5, " History ");

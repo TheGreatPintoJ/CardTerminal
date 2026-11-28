@@ -14,8 +14,6 @@ import java.util.concurrent.*;
 import java.util.function.*;
 import java.util.stream.*;
 import me.pintoadmin.cardTerminal.*;
-import me.pintoadmin.cardTerminal.games.solitaire.*;
-import me.pintoadmin.cardTerminal.screens.*;
 
 public class HeartsLocal extends Game {
     private final long SEED;
@@ -570,7 +568,7 @@ public class HeartsLocal extends Game {
         public final long elapsed = HeartsLocal.this.time.get();
         public final String time =
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern("MM-dd-yyyy, hh:mm:ss a"));
-        public final int endingScore = scores.get(localPlayer);
+        public final int score = scores.get(localPlayer);
         public final int deals = deal;
         public final boolean remote = localPlayer == 0;
     }

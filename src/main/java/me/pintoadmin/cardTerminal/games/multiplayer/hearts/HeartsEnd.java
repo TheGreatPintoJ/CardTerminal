@@ -27,7 +27,7 @@ public class HeartsEnd extends EndScreen {
         addStat("Player", String.valueOf(stats.player));
         addStat("Winner", String.valueOf(stats.winner));
         addStat("Elapsed Time", String.format("%.3f", stats.elapsed / 1000.0) + "s");
-        addStat("Score", String.valueOf(stats.endingScore));
+        addStat("Score", String.valueOf(stats.score));
         addStat("Number of Deals", String.valueOf(stats.deals));
 
         show();

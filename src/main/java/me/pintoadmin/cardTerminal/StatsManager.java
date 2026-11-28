@@ -1,6 +1,6 @@
 package me.pintoadmin.cardTerminal;
 
-import com.fasterxml.jackson.core.*;
+import com.fasterxml.jackson.core.type.*;
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.json.*;
 import com.fasterxml.jackson.databind.node.*;
@@ -30,16 +30,16 @@ public class StatsManager {
         }
     }
 
-    public static double getAverageTime(String gameName) {
+    public static double getAverageLong(String fieldName, String gameName) {
         try {
             JsonMapper mapper = new JsonMapper();
             JsonNode root = mapper.readTree(file.toFile());
             ArrayNode games = (ArrayNode) root.get(gameName);
             if (games == null || games.isEmpty()) return 0.0;
 
-            Set<Long> times = new HashSet<>();
+            List<Long> times = new ArrayList<>();
             for (JsonNode game : games) {
-                times.add(game.get("time").asLong());
+                times.add(game.get(fieldName).asLong());
             }
             return times.stream().mapToLong(Long::longValue).average().orElse(0.0);
         } catch (IOException e) {
@@ -48,16 +48,16 @@ public class StatsManager {
         }
     }
 
-    public static double getAverageMoves(String gameName) {
+    public static double getAverageInt(String fieldName, String gameName) {
         try {
             JsonMapper mapper = new JsonMapper();
             JsonNode root = mapper.readTree(file.toFile());
             ArrayNode games = (ArrayNode) root.get(gameName);
             if (games == null || games.isEmpty()) return 0.0;
 
-            Set<Integer> times = new HashSet<>();
+            List<Integer> times = new ArrayList<>();
             for (JsonNode game : games) {
-                times.add(game.get("moves").asInt());
+                times.add(game.get(fieldName).asInt());
             }
             return times.stream().mapToInt(Integer::intValue).average().orElse(0.0);
         } catch (IOException e) {
@@ -75,11 +75,9 @@ public class StatsManager {
 
             List<Map<String, Object>> games = new LinkedList<>();
             for (JsonNode game : gameArr) {
-                Map<String, Object> thisGame = new LinkedHashMap<>();
-                thisGame.put("seed", game.get("seed").asText());
-                thisGame.put("moves", game.get("moves").asInt());
-                thisGame.put("elapsed", game.get("elapsed").asLong());
-                thisGame.put("time", game.get("time").asText());
+                Map<String, Object> thisGame =
+                        mapper.convertValue(
+                                game, new TypeReference<LinkedHashMap<String, Object>>() {});
                 games.add(thisGame);
             }
 

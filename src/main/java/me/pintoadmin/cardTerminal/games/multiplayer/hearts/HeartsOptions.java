@@ -8,7 +8,6 @@ import java.io.*;
 import java.util.*;
 import java.util.function.*;
 import me.pintoadmin.cardTerminal.*;
-import me.pintoadmin.cardTerminal.games.spider.*;
 import me.pintoadmin.cardTerminal.screens.*;
 
 public class HeartsOptions extends GameOptions {
@@ -118,8 +117,53 @@ public class HeartsOptions extends GameOptions {
             }
             Main.drawRectangle(W / 2, 1, W - 2, startY);
             Main.drawText(3 * W / 4, 1, " Keybinds ");
-            Main.drawRectangle(W / 2, startY + 1, W - 2, H - 2);
-            Main.drawText(3 * W / 4, startY + 1, " History (coming soon) ");
+
+            Main.drawRectangle(W / 2, startY + 1, W - 2, startY + 5);
+            Main.drawText(3 * W / 4, startY + 1, " Statistics ");
+            Main.drawTextLeft(W / 2 + 1, startY + 2, "Average Time");
+            Main.drawTextRight(
+                    W - 2,
+                    startY + 2,
+                    String.valueOf(StatsManager.getAverageLong("elapsed", "hearts") / 1000.0));
+            Main.drawTextLeft(W / 2 + 1, startY + 3, "Average Score");
+            Main.drawTextRight(
+                    W - 2,
+                    startY + 3,
+                    String.valueOf(StatsManager.getAverageInt("score", "hearts")));
+            Main.drawTextLeft(W / 2 + 1, startY + 4, "Average Deals");
+            Main.drawTextRight(
+                    W - 2,
+                    startY + 4,
+                    String.valueOf(StatsManager.getAverageInt("deals", "hearts")));
+
+            startY += 7;
+
+            Main.drawRectangle(W / 2, startY - 1, W - 2, H - 2);
+            Main.drawText(3 * W / 4, startY - 1, " History ");
+            int i = 0;
+            for (Map<String, Object> map : StatsManager.getGames("hearts").reversed()) {
+                if (startY + i + 6 >= H - 2) {
+                    Main.drawText(3 * W / 4, startY + i, "...");
+                    break;
+                }
+
+                String seed = map.get("seed").toString();
+                int score = Integer.parseInt(map.get("score").toString());
+                long elapsed = Long.parseLong(map.get("elapsed").toString());
+                int deals = Integer.parseInt(map.get("deals").toString());
+                boolean remote = Boolean.parseBoolean(map.get("remote").toString());
+
+                Main.drawRectangle(W / 2 + 1, startY + i, W - 3, startY + i + 6);
+                Main.drawText(3 * W / 4, startY + i, map.get("time").toString());
+
+                Main.drawTextLeft(W / 2 + 2, startY + i + 1, "Seed: " + seed);
+                Main.drawTextLeft(W / 2 + 2, startY + i + 2, "Score: " + score);
+                Main.drawTextLeft(W / 2 + 2, startY + i + 3, "Time: " + (elapsed / 1000.0));
+                Main.drawTextLeft(W / 2 + 2, startY + i + 4, "Deals: " + deals);
+                Main.drawTextLeft(W / 2 + 2, startY + i + 5, "Remote: " + remote);
+
+                i += 7;
+            }
         }
 
         screen.refresh(Screen.RefreshType.AUTOMATIC);
