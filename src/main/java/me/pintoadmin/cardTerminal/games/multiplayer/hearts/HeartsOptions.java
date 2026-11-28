@@ -134,7 +134,7 @@ public class HeartsOptions extends GameOptions {
                         !SEED.isEmpty()
                                 ? new HeartsLocal(
                                         Long.parseLong(SEED.substring(0, 18)), endingPoints)
-                                : new HeartsLocal());
+                                : new HeartsLocal(endingPoints));
     }
 
     private void join() {

@@ -48,6 +48,8 @@ public class HeartsLocal extends Game {
     protected Map<Integer, List<Card>> wonTricks = new HashMap<>();
     protected int localPlayer = 0;
 
+    private HeartsEnd endScreen;
+
     /**
      * Timeline for client-side animations and timed redraws (runs on both host and remote clients).
      * Schedule work here instead of sleeping on the key-handler thread, e.g. {@code
@@ -122,6 +124,10 @@ public class HeartsLocal extends Game {
 
     public HeartsLocal() {
         this(new Random().nextLong(), 100);
+    }
+
+    public HeartsLocal(int endingPoints) {
+        this(new Random().nextLong(), endingPoints);
     }
 
     public HeartsLocal(long SEED, int endingPoints) {
@@ -382,6 +388,12 @@ public class HeartsLocal extends Game {
                     card.draw(x, y, true);
                 }
             }
+        } else if (gameState == HeartsEngine.GameState.ENDED) {
+            if (endScreen == null) {
+                endScreen = new HeartsEnd(this);
+                Main.getInstance().setCurrentScreen(endScreen);
+                holdingScores = false;
+            } else endScreen.show();
         }
 
         if (escapeCount > 0) {
@@ -440,6 +452,11 @@ public class HeartsLocal extends Game {
         }
     }
 
+    public void endGame() {
+        holdingScores = false;
+        resize();
+    }
+
     @Override
     public Game newGame() {
         return new HeartsLocal();
@@ -470,7 +487,7 @@ public class HeartsLocal extends Game {
         switch (keyStroke.getKeyType()) {
             case Escape:
                 if (escapeCount < 2) {
-                    if (gameState != HeartsEngine.GameState.PREGAME) escapeCount++;
+                    escapeCount++;
                     resize();
                     return Action.NULL;
                 } else {
@@ -553,5 +570,8 @@ public class HeartsLocal extends Game {
         public final long elapsed = HeartsLocal.this.time.get();
         public final String time =
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern("MM-dd-yyyy, hh:mm:ss a"));
+        public final int endingScore = scores.get(localPlayer);
+        public final int deals = deal;
+        public final boolean remote = localPlayer == 0;
     }
 }

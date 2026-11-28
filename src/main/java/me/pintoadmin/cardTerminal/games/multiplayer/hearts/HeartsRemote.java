@@ -134,6 +134,8 @@ public class HeartsRemote extends HeartsLocal {
             resize();
         } else if ("showScores".equals(message.type)) {
             holdScores();
+        } else if ("endGame".equals(message.type)) {
+            endGame();
         } else if ("error".equals(message.type)) {
             System.err.println("Hearts server rejected request: " + message.error);
         } else {

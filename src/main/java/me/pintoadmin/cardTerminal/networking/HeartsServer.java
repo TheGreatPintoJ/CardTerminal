@@ -95,6 +95,11 @@ public class HeartsServer {
         broadcast(event("showScores"));
     }
 
+    public void endGameClients() {
+        if (local != null) local.endGame();
+        broadcast(event("endGame"));
+    }
+
     public void addLocalClient(HeartsLocal local) {
         this.local = local;
     }

@@ -8,6 +8,7 @@ import com.googlecode.lanterna.input.*;
 import com.googlecode.lanterna.screen.*;
 import java.io.*;
 import java.util.*;
+import java.util.stream.*;
 import me.pintoadmin.cardTerminal.*;
 import me.pintoadmin.cardTerminal.screens.*;
 
@@ -26,6 +27,8 @@ public class HeartsEnd extends EndScreen {
         addStat("Player", String.valueOf(stats.player));
         addStat("Winner", String.valueOf(stats.winner));
         addStat("Elapsed Time", String.format("%.3f", stats.elapsed / 1000.0) + "s");
+        addStat("Score", String.valueOf(stats.endingScore));
+        addStat("Number of Deals", String.valueOf(stats.deals));
 
         show();
         StatsManager.addGame("hearts", stats);
@@ -98,11 +101,21 @@ public class HeartsEnd extends EndScreen {
                 startY++;
             }
 
-            Main.drawRectangle(W / 4 - 1, startY + 1, 3 * W / 4 + 1, startY + 5);
-            for (Map.Entry<Integer, Integer> score :
-                    heartsLocal.scores.entrySet().stream().sorted().toList()) {
-                Main.drawTextLeft(W / 4, startY, "Player " + score.getKey());
-                Main.drawTextRight(3 * W / 4, startY, String.valueOf(score.getValue()));
+            Main.drawRectangle(W / 4 - 1, startY + 1, 3 * W / 4 + 1, startY + 6);
+
+            Map<Integer, Integer> sorted =
+                    heartsLocal.scores.entrySet().stream()
+                            .sorted(Map.Entry.comparingByValue())
+                            .collect(
+                                    Collectors.toMap(
+                                            Map.Entry::getKey,
+                                            Map.Entry::getValue,
+                                            (oldValue, newValue) -> oldValue,
+                                            LinkedHashMap::new));
+
+            for (Map.Entry<Integer, Integer> score : sorted.entrySet()) {
+                Main.drawTextLeft(W / 4, startY + 2, "Player " + score.getKey());
+                Main.drawTextRight(3 * W / 4, startY + 2, String.valueOf(score.getValue()));
 
                 startY++;
             }

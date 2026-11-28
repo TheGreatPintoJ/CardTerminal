@@ -552,11 +552,8 @@ public class HeartsEngine {
         timeline.close();
         if (Thread.currentThread() != autoplay) autoplay.interrupt();
 
-        Integer winningPlayer = getLowestPlayer();
-        Integer winningScore = scores.get(winningPlayer);
-
-        // TODO: announce who won (HeartsEnd)
-        server.showScoresClients();
+        server.updateClients();
+        server.endGameClients();
 
         server.deinit();
     }
